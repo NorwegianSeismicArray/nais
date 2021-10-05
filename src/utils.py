@@ -2,7 +2,7 @@
 Author: Erik B. Myklebust, erik@norsar.no
 2021
 """
-import urllib2
+import urllib3
 
 def spectrogram_standard_scaler(spectrograms):
     return spectrograms - spectrograms.mean(axis=0)[np.newaxis,:] / spectrograms.std(axis=0)[np.newaxis,:]
@@ -16,7 +16,7 @@ def waveform_minmax_scaler(waveforms):
 def download_weights(url):
 
     file_name = url.split('/')[-1]
-    u = urllib2.urlopen(url)
+    u = urllib3.urlopen(url)
     f = open(file_name, 'wb')
     meta = u.info()
     file_size = int(meta.getheaders("Content-Length")[0])
@@ -39,7 +39,7 @@ def download_weights(url):
 
 from zipfile import ZipFile
 
-def extract_weights(filename, dest='models')
+def extract_weights(filename, dest='models'):
     with ZipFile('filename', 'r') as zipObj:
        # Extract all the contents of zip file in current directory
        zipObj.extractall(dest)

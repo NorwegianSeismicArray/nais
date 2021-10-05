@@ -21,10 +21,6 @@ class ImageEncoder(keras.Model):
     def call(self, inputs):
         return self.model(inputs)
 
-    def predict(self, inputs, **kwargs):
-        p = self.model.predict(inputs, **kwargs)
-        return p.reshape((p.shape[0], -1))
-
 class ImageDecoder(keras.Model):
     def __init__(self, depth=1, num_channels=3):
         super(ImageDecoder, self).__init__()
@@ -96,9 +92,9 @@ class WaveAutoEncoder(keras.Model):
         return self.name + f'-depth{self.depth}'
 
 
-class SpectrogramModel(keras.Model):
+class CreateSpectrogramModel(keras.Model):
     def __init__(self, n_fft=512, win_length=128, hop_length=32, name='SpectrogramModel'):
-        super(SpectrogramModel, self).__init__(name=name)
+        super(CreateSpectrogramModel, self).__init__(name=name)
         self.n_fft = n_fft
         self.win_length = win_length
         self.hop_length = hop_length

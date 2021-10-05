@@ -11,7 +11,7 @@ Datasets:
 MAX_EPOCHS = 200
 
 import numpy as np
-from src.NModels import SpectrogramModel, ImageAutoEncoder, WaveAutoEncoder
+from src.Models import CreateSpectrogramModel, ImageAutoEncoder, WaveAutoEncoder
 from tensorflow import keras
 from datetime import date
 from src.utils import spectrogram_minmax_scaler, waveform_minmax_scaler
@@ -24,10 +24,11 @@ X = np.load(f'data/{dataset}.npy')
 
 # Seperate stations into three components.
 X = np.concatenate([X[:,:,3*i:3*(i+1)] for i in range(X.shape[-1]//3)],axis=0)
+print(X.shape)
 
 for model in [ImageAutoEncoder, WaveAutoEncoder]:
     if 'Image' in str(model):
-        spectrogram_model = SpectrogramModel(n_fft=512, win_length=128, hop_length=32)
+        spectrogram_model = CreateSpectrogramModel(n_fft=512, win_length=128, hop_length=32)
         # Create spectrograms and normalize.
         x = spectrogram_model.predict(X, verbose=1)
         x = spectrogram_minmax_scaler(x)
@@ -35,7 +36,7 @@ for model in [ImageAutoEncoder, WaveAutoEncoder]:
         x = waveform_minmax_scaler(X)
         x = TimeSeriesResampler(4096).fit_transform(x)
 
-    for d in range(2, 5):
+    for d in range(3,4):
         autoencoder = model(depth=d)
 
         autoencoder.compile(optimizer='adam',
