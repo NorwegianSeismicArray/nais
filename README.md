@@ -16,5 +16,6 @@ Examples can be found in the folder *examples*.
 
 ### Files
 * *train.py* is used to train models. 
-* *src/NModels.py* contains models. 
+* *src/Models.py* contains models. 
+* *src/PretrainedModels.py contains interface for pretrained models. 
 * *models* contain pretrained model weights. 
