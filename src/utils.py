@@ -43,3 +43,5 @@ def extract_weights(filename, dest='models'):
     with ZipFile('filename', 'r') as zipObj:
        # Extract all the contents of zip file in current directory
        zipObj.extractall(dest)
+
+
