@@ -1,4 +1,4 @@
-### NORSAR Artificial Inteligence Toolkit (NAIT)
+### NORSAR Artificial Inteligence System (NAIS, yes, the acronym was choses first)
 This repository will eventually contain tools specific to aiding in AI research at NORSAR.
 
 This repository will contain: 
