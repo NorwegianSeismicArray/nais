@@ -13,7 +13,7 @@ class StackedSpectrogram(tf.keras.layers.Layer):
     stack_method : str, add, mean, concat, None. 
             concat acts on frequency dimension. None concatenates last dim. 
     """
-    def __init__(self, n_fft=512, win_length=128, hop_length=32, output_dim=(64,64), num_components=3, stack_method=None, name='SpectrogramModel'):
+    def __init__(self, n_fft=2048, win_length=128, hop_length=32, output_dim=(64,64), num_components=3, stack_method=None, name='SpectrogramModel'):
         super(StackedSpectrogram, self).__init__(name=name)
 
         self.n_fft = n_fft

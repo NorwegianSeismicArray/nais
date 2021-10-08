@@ -1,25 +1,10 @@
 ### NORSAR Artificial Inteligence Toolkit (NAIT)
 This repository will eventually contain tools specific to aiding in AI research at NORSAR.
 
-
-## Pretrained Models
-
-This repository will contain pretrained models specifically to NORSAR. 
-
-### Spectrograms
-Current available pretrained spectrogram models and data used for training: 
-* AutoEncoder
-  * GeobyIT Alna data, Raspberry shakes. Noisy with few events. 
-
-
-### Waveforms
-TBD.
-
-## Examples 
-Examples can be found in the folder *examples*.
-
-## Files
-* *train.py* is used to train models. 
-* *src/Models.py* contains models. 
-* *src/PretrainedModels.py contains interface for pretrained models. 
-* *models* contain pretrained model weights. 
+This repository will contain: 
+* Baseline models, for waveforms and spectrograms. Possibly pretrained for certain tasks.
+* Standard datasets to test models. Development of new models can be difficult. Standard datasets eliminates errors in the data and lets you focus on developing the model. 
+  * Classification
+  * Regression
+  * Masking (eg. arrival picking)
+* Augmentation methods.
