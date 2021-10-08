@@ -124,7 +124,8 @@ class AlexNet(keras.Model):
     https://towardsdatascience.com/implementing-alexnet-cnn-architecture-using-tensorflow-2-0-and-keras-2113e090ad98
     """
 
-    def __init__(self, kernel_sizes=None, num_classes=None, pooling='max'):
+    def __init__(self, kernel_sizes=None, num_classes=None, pooling='max', name='AlexNet'):
+        super(AlexNet, self).__init__(name=name)
         if kernel_sizes is None:
             kernel_sizes = [11, 5, 3, 3, 3]
         assert len(kernel_sizes) == 5
@@ -178,7 +179,8 @@ class WaveAlexNet(keras.Model):
     Save as AlexNet but with 1D convolutions.
     """
 
-    def __init__(self, kernel_sizes=None, num_classes=None, pooling='max'):
+    def __init__(self, kernel_sizes=None, num_classes=None, pooling='max', name='WaveAlexNet'):
+        super(WaveAlexNet, self).__init__(name=name)
         if kernel_sizes is None:
             kernel_sizes = [11, 5, 3, 3, 3]
         assert len(kernel_sizes) == 5
@@ -226,3 +228,85 @@ class WaveAlexNet(keras.Model):
         for layer in self.layers:
             x = layer(x)
         return x
+
+
+class PhaseNet(keras.Model):
+    """
+    Adapted from https://keras.io/examples/vision/oxford_pets_image_segmentation/
+
+    args
+
+    num_classes : int
+        Number of output classes, eg. P and S wave picking num_classes=2.
+
+    """
+    def __init__(self, num_classes=2, filters=None, name='PhaseNet'):
+        super(PhaseNet, self).__init__(name=name)
+        self.num_classes = num_classes
+
+        if filters is None:
+            self.filters = [4, 8, 16, 32]
+        else:
+            self.filters = filters
+
+    def build(self, input_shape):
+        inputs = keras.Input(shape=input_shape[1:])
+
+        ### [First half of the network: downsampling inputs] ###
+
+        # Entry block
+        x = keras.layers.Conv1D(self.filters[0], 7, strides=2, padding="same")(inputs)
+        x = keras.layers.BatchNormalization()(x)
+        x = keras.layers.Activation("relu")(x)
+
+        previous_block_activation = x  # Set aside residual
+
+        # Blocks 1, 2, 3 are identical apart from the feature depth.
+        for filters in self.filters[1:]:
+            x = keras.layers.Activation("relu")(x)
+            x = keras.layers.SeparableConv1D(filters, 7, padding="same")(x)
+            x = keras.layers.BatchNormalization()(x)
+
+            x = keras.layers.Activation("relu")(x)
+            x = keras.layers.SeparableConv1D(filters, 7, padding="same")(x)
+            x = keras.layers.BatchNormalization()(x)
+
+            x = keras.layers.MaxPooling1D(4, strides=2, padding="same")(x)
+
+            # Project residual
+            residual = keras.layers.Conv1D(filters, 1, strides=2, padding="same")(
+                previous_block_activation
+            )
+            x = keras.layers.add([x, residual])  # Add back residual
+            previous_block_activation = x  # Set aside next residual
+
+        ### [Second half of the network: upsampling inputs] ###
+
+        for filters in self.filters[::-1]:
+            x = keras.layers.Activation("relu")(x)
+            x = keras.layers.Conv1DTranspose(filters, 7, padding="same")(x)
+            x = keras.layers.BatchNormalization()(x)
+
+            x = keras.layers.Activation("relu")(x)
+            x = keras.layers.Conv1DTranspose(filters, 7, padding="same")(x)
+            x = keras.layers.BatchNormalization()(x)
+
+            x = keras.layers.UpSampling1D(2)(x)
+
+            # Project residual
+            residual = keras.layers.UpSampling1D(2)(previous_block_activation)
+            residual = keras.layers.Conv1D(filters, 1, padding="same")(residual)
+            x = keras.layers.add([x, residual])  # Add back residual
+            previous_block_activation = x  # Set aside next residual
+
+        # Add a per-pixel classification layer
+        outputs = keras.layers.Conv1D(self.num_classes, 3, activation="softmax", padding="same")(x)
+
+        # Define the model
+        self.model = keras.Model(inputs, outputs)
+
+    def summary(self):
+        return self.model.summary()
+
+    def call(self, inputs):
+        return self.model(inputs)
