@@ -22,6 +22,7 @@ class ImageEncoder(keras.Model):
     def call(self, inputs):
         return self.model(inputs)
 
+
 class ImageDecoder(keras.Model):
     def __init__(self, depth=1, num_channels=3):
         super(ImageDecoder, self).__init__()
@@ -35,6 +36,7 @@ class ImageDecoder(keras.Model):
 
     def call(self, inputs):
         return self.model(inputs)
+
 
 class WaveEncoder(keras.Model):
     def __init__(self, depth=1):
@@ -70,6 +72,12 @@ class WaveDecoder(keras.Model):
 
 
 class ImageAutoEncoder(keras.Model):
+    """
+    Autoencoder which encodes images.
+
+    depth : int
+        number of convolutional layers
+    """
     def __init__(self, depth=1, name='ImageAutoEncoder'):
         super(ImageAutoEncoder, self).__init__(name=name)
         self.encoder = ImageEncoder(depth)
@@ -84,6 +92,13 @@ class ImageAutoEncoder(keras.Model):
 
 
 class WaveAutoEncoder(keras.Model):
+    """
+    Autoencoder which encodes waveforms.
+    
+    depth : int
+        number of convolutional layers
+    """
+
     def __init__(self, depth=1, name='WaveAutoEncoder'):
         super(WaveAutoEncoder, self).__init__(name=name)
         self.encoder = WaveEncoder(depth)
@@ -98,6 +113,11 @@ class WaveAutoEncoder(keras.Model):
 
 
 class CreateSpectrogramModel(keras.Model):
+    """
+    Keras implementation of spectrograms.
+    Stack infront of Conv2D model to create spectrograms on the fly.
+    Note that, this is slower as it creates spectrograms per batch and not once.
+    """
     def __init__(self, n_fft=512, win_length=128, hop_length=32, name='SpectrogramModel'):
         super(CreateSpectrogramModel, self).__init__(name=name)
         self.n_fft = n_fft
@@ -122,9 +142,18 @@ class CreateSpectrogramModel(keras.Model):
 class AlexNet(keras.Model):
     """
     https://towardsdatascience.com/implementing-alexnet-cnn-architecture-using-tensorflow-2-0-and-keras-2113e090ad98
+
+    kernel_size : list of length 5
+        kernel sizes to use in model
+    num_outputs : int or None
+        number of outputs of final dense layer. Leave as None to exclude top.
+    output_type : str
+        type of output, binary, multiclass, multilabel, regression
+    pooling : str
+         pooling type, max or avg, other will use no pooling
     """
 
-    def __init__(self, kernel_sizes=None, num_classes=None, pooling='max', name='AlexNet'):
+    def __init__(self, kernel_sizes=None, num_outputs=None, output_type='binary', pooling='max', name='AlexNet'):
         super(AlexNet, self).__init__(name=name)
         if kernel_sizes is None:
             kernel_sizes = [11, 5, 3, 3, 3]
@@ -163,9 +192,20 @@ class AlexNet(keras.Model):
             tf.keras.layers.Dropout(0.5),
         ]
 
-        if num_classes is not None:
-            assert type(num_classes) == int
-            self.layers.append(tf.keras.layers.Dense(num_classes, activation='softmax'))
+        if num_outputs is not None:
+            if output_type == 'binary':
+                assert num_outputs == 1
+                act = 'sigmoid'
+            elif output_type == 'multiclass':
+                assert num_outputs > 1
+                act = 'softmax'
+            elif output_type == 'multilabel':
+                assert num_outputs > 1
+                act = 'sigmoid'
+            else:
+                act = 'linear'
+
+            self.layers.append(tf.keras.layers.Dense(num_outputs, activation=act))
 
     def call(self, inputs):
         x = inputs
@@ -176,10 +216,19 @@ class AlexNet(keras.Model):
 
 class WaveAlexNet(keras.Model):
     """
-    Save as AlexNet but with 1D convolutions.
+    Same as AlexNet but with 1D convolutions.
+
+    kernel_size : list of length 5
+        kernel sizes to use in model
+    num_outputs : int or None
+        number of outputs of final dense layer. Leave as None to exclude top.
+    output_type : str
+        type of output, binary, multiclass, multilabel, regression
+    pooling : str
+         pooling type, max or avg, other will use no pooling
     """
 
-    def __init__(self, kernel_sizes=None, num_classes=None, pooling='max', name='WaveAlexNet'):
+    def __init__(self, kernel_sizes=None, num_outputs=None, output_type='binary', pooling='max', name='WaveAlexNet'):
         super(WaveAlexNet, self).__init__(name=name)
         if kernel_sizes is None:
             kernel_sizes = [11, 5, 3, 3, 3]
@@ -219,9 +268,20 @@ class WaveAlexNet(keras.Model):
             tf.keras.layers.Dropout(0.5),
         ]
 
-        if num_classes is not None:
-            assert type(num_classes) == int
-            self.layers.append(tf.keras.layers.Dense(num_classes, activation='softmax'))
+        if num_outputs is not None:
+            if output_type == 'binary':
+                assert num_outputs == 1
+                act = 'sigmoid'
+            elif output_type == 'multiclass':
+                assert num_outputs > 1
+                act = 'softmax'
+            elif output_type == 'multilabel':
+                assert num_outputs > 1
+                act = 'sigmoid'
+            else:
+                act = 'linear'
+
+            self.layers.append(tf.keras.layers.Dense(num_outputs, activation=act))
 
     def call(self, inputs):
         x = inputs
@@ -240,6 +300,7 @@ class PhaseNet(keras.Model):
         Number of output classes, eg. P and S wave picking num_classes=2.
 
     """
+
     def __init__(self, num_classes=2, filters=None, name='PhaseNet'):
         super(PhaseNet, self).__init__(name=name)
         self.num_classes = num_classes
