@@ -409,6 +409,6 @@ class WaveNet(keras.Model):
 
     def call(self, inputs):
         x = inputs
-        for l in self.layers:
-            x = l(x)
+        for layer in self.layers:
+            x = layer(x)
         return x
