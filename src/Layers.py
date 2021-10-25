@@ -45,3 +45,29 @@ class StackedSpectrogram(tf.keras.layers.Layer):
         
     def call(self, inputs):
         return self.model(inputs)
+
+class ResidualConv1D(keras.layers.Layer):
+    def __init__(self, filters=32, kernel_size=3, stacked_layer=1):
+        super(Linear, self).__init__()
+
+        self.sigmoid_layers = []
+        self.tanh_layers = []
+        self.conv_layers = []
+
+        for dilation_rate in [2 ** i for i in range(stacked_layer)]:
+            self.sigmoid_layers.append(keras.layers.Conv1D(filters, kernel_size, dilation_rate=dilation_rate,padding='same', activation='sigmoid'))
+            self.tanh_layers.append(keras.layers.Conv1D(filters, kernel_size, dilation_rate=dilation_rate,padding='same', activation='mish'))
+            self.conv_layers.append(Conv1D(num_filters, 1, padding='same'))
+
+    def call(self, inputs):
+        residual_output = inputs
+        x = inputs
+        for sl, tl, cl in zip(self.sigmoid_layers, self.tanh_layers, self.conv_layers):
+            sigmoid_x = sl(x)
+            tanh_x = tl(x)
+
+            x = tf.keras.layers.multiply([sigmoid_x, tanh_x])
+            x = cl(x)
+            residual_output = tf.keras.layers.add([residual_output, x])
+
+        return residual_output

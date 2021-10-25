@@ -7,6 +7,7 @@ import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 from kapre import STFT, Magnitude
+from Layers import ResidualConv1D
 
 
 class ImageEncoder(keras.Model):
@@ -94,7 +95,7 @@ class ImageAutoEncoder(keras.Model):
 class WaveAutoEncoder(keras.Model):
     """
     Autoencoder which encodes waveforms.
-    
+
     depth : int
         number of convolutional layers
     """
@@ -371,3 +372,43 @@ class PhaseNet(keras.Model):
 
     def call(self, inputs):
         return self.model(inputs)
+
+
+class WaveNet(keras.Model):
+    """
+    Adapted from https://www.kaggle.com/siavrez/wavenet-keras
+
+    args
+
+    num_classes : int
+        Number of output classes, eg. P and S wave picking num_classes=2.
+
+    """
+
+    def __init__(self, num_classes=2, num_filters=16, kernel_size=3, filters=None, stacked_layers=None, name='WaveNet'):
+        super(WaveNet, self).__init__(name=name)
+        self.num_classes = num_classes
+
+        if filters is None:
+            self.filters = 16
+        else:
+            self.filters = filters
+
+        if stacked_layers is None:
+            self.stacked_layers = [12,8,4,1]
+        else:
+            self.stacked_layers = stacked_layers
+
+        self.layers = []
+        for i,sl in enumerate(self.stacked_layers):
+            self.layers.append(keras.layers.Conv1D(self.filters*(i+1), 1, padding='same'))
+            self.layers.append(ResidualConv1D(self.filters*(i+1), kernel_size, sl))
+
+        if num_classes > 0:
+            self.layers.append(keras.layers.Dense(num_classes, activation='softmax'))
+
+    def call(self, inputs):
+        x = inputs
+        for l in self.layers:
+            x = l(x)
+        return x
