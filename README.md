@@ -11,3 +11,15 @@ This repository will contain:
 
 ## Installation
 ``git clone https://bitbucket:7990/projects/GEOB/repos/nais && python3 nais/setup.py install``
+
+# Quick example
+
+```python
+X = ...
+y = ...
+
+from nais.Models import AlexNet
+model = AlexNet(num_outputs=1) #binary 
+model.combile('adam','binary_crossentropy')
+model.fit(X,y)
+```
