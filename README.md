@@ -8,3 +8,8 @@ This repository will contain:
   * Regression
   * Masking (eg. arrival picking)
 * Augmentation methods.
+
+## Installation
+``pip install git+https://user_name@http://bitbucket:7990/projects/GEOB/repos/nais.git#egg=nais``
+
+Replace `user_name` with yours. 

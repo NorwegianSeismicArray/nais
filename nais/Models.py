@@ -7,8 +7,7 @@ import tensorflow as tf
 from tensorflow import keras
 import numpy as np
 from kapre import STFT, Magnitude
-from Layers import ResidualConv1D
-
+from nais.Layers import ResidualConv1D
 
 class ImageEncoder(keras.Model):
     def __init__(self, depth=1):
@@ -168,7 +167,7 @@ class AlexNet(keras.Model):
         else:
             pooling_layer = lambda **kwargs: tf.keras.layers.Activation('linear')
 
-        self.layers = [
+        self.ls = [
             tf.keras.layers.Conv2D(filters=96, kernel_size=kernel_sizes[0], strides=(4, 4), activation='relu',
                                    padding='same'),
             tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2)),
@@ -206,11 +205,11 @@ class AlexNet(keras.Model):
             else:
                 act = 'linear'
 
-            self.layers.append(tf.keras.layers.Dense(num_outputs, activation=act))
+            self.ls.append(tf.keras.layers.Dense(num_outputs, activation=act))
 
     def call(self, inputs):
         x = inputs
-        for layer in self.layers:
+        for layer in self.ls:
             x = layer(x)
         return x
 
@@ -243,7 +242,7 @@ class WaveAlexNet(keras.Model):
         else:
             pooling_layer = lambda **kwargs: tf.keras.layers.Activation('linear')
 
-        self.layers = [
+        self.ls = [
             tf.keras.layers.Conv1D(filters=96, kernel_size=kernel_sizes[0], strides=1, activation='relu',
                                    padding='same'),
             tf.keras.layers.BatchNormalization(),
@@ -282,11 +281,11 @@ class WaveAlexNet(keras.Model):
             else:
                 act = 'linear'
 
-            self.layers.append(tf.keras.layers.Dense(num_outputs, activation=act))
+            self.ls.append(tf.keras.layers.Dense(num_outputs, activation=act))
 
     def call(self, inputs):
         x = inputs
-        for layer in self.layers:
+        for layer in self.ls:
             x = layer(x)
         return x
 
@@ -399,16 +398,16 @@ class WaveNet(keras.Model):
         else:
             self.stacked_layers = stacked_layers
 
-        self.layers = []
+        self.ls = []
         for i,sl in enumerate(self.stacked_layers):
-            self.layers.append(keras.layers.Conv1D(self.filters*(i+1), 1, padding='same'))
-            self.layers.append(ResidualConv1D(self.filters*(i+1), kernel_size, sl))
+            self.ls.append(keras.layers.Conv1D(self.filters*(i+1), 1, padding='same'))
+            self.ls.append(ResidualConv1D(self.filters*(i+1), kernel_size, sl))
 
         if num_classes > 0:
-            self.layers.append(keras.layers.Dense(num_classes, activation='softmax'))
+            self.ls.append(keras.layers.Dense(num_classes, activation='softmax'))
 
     def call(self, inputs):
         x = inputs
-        for layer in self.layers:
+        for layer in self.ls:
             x = layer(x)
         return x
