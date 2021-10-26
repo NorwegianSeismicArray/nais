@@ -10,6 +10,4 @@ This repository will contain:
 * Augmentation methods.
 
 ## Installation
-``pip install git+https://user_name@http://bitbucket:7990/projects/GEOB/repos/nais.git#egg=nais``
-
-Replace `user_name` with yours. 
+``git clone https://bitbucket:7990/projects/GEOB/repos/nais && python3 nais/setup.py install``
