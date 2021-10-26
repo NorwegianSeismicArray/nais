@@ -14,7 +14,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="http://bitbucket:7990/projects/GEOB/repos/nais",
     packages=['nais'],
-    install_requires=['tensorflow','numpy','kapre'],
+    install_requires=['tensorflow','numpy','kapre','tensorflow_addons'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

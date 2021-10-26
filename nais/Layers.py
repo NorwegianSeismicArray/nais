@@ -2,6 +2,7 @@ import tensorflow as tf
 from kapre import STFT, Magnitude
 
 from tensorflow import keras
+import tensorflow_addons as tfa
 
 class StackedSpectrogram(tf.keras.layers.Layer):
     """
@@ -57,8 +58,8 @@ class ResidualConv1D(keras.layers.Layer):
         self.conv_layers = []
 
         for dilation_rate in [2 ** i for i in range(stacked_layer)]:
-            self.sigmoid_layers.append(keras.layers.Conv1D(filters, kernel_size, dilation_rate=dilation_rate,padding='same', activation='sigmoid'))
-            self.tanh_layers.append(keras.layers.Conv1D(filters, kernel_size, dilation_rate=dilation_rate,padding='same', activation='mish'))
+            self.sigmoid_layers.append(keras.layers.Conv1D(filters, kernel_size, dilation_rate=dilation_rate, padding='same', activation='sigmoid'))
+            self.tanh_layers.append(keras.layers.Conv1D(filters, kernel_size, dilation_rate=dilation_rate, padding='same', activation=tfa.activations.mish))
             self.conv_layers.append(keras.layers.Conv1D(filters, 1, padding='same'))
 
     def call(self, inputs):

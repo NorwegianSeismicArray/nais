@@ -246,7 +246,7 @@ class WaveAlexNet(keras.Model):
             tf.keras.layers.Conv1D(filters=96, kernel_size=kernel_sizes[0], strides=1, activation='relu',
                                    padding='same'),
             tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.MaxPooling1D(pool_size=3, strides=2),
+            pooling_layer(pool_size=3, strides=2),
             tf.keras.layers.Conv1D(filters=256, kernel_size=kernel_sizes[1], strides=1, activation='relu',
                                    padding="same"),
             tf.keras.layers.BatchNormalization(),
@@ -384,7 +384,7 @@ class WaveNet(keras.Model):
 
     """
 
-    def __init__(self, num_classes=2, num_filters=16, kernel_size=3, filters=None, stacked_layers=None, name='WaveNet'):
+    def __init__(self, num_classes=2, kernel_size=3, filters=None, stacked_layers=None, name='WaveNet'):
         super(WaveNet, self).__init__(name=name)
         self.num_classes = num_classes
 
