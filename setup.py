@@ -6,7 +6,7 @@ with open("README.md") as file:
 
 setuptools.setup(
     name="nais",
-    version="0.1.3",
+    version="0.1.4",
     author="Erik B. Myklebust",
     author_email="erik@norsar.no",
     description="NORSAR AI System.",

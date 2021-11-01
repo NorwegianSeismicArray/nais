@@ -375,18 +375,11 @@ class PhaseNet(keras.Model):
 
 class WaveNet(keras.Model):
     """
-    Adapted from https://www.kaggle.com/siavrez/wavenet-keras
-
-    args
-
-    num_classes : int
-        Number of output classes, eg. P and S wave picking num_classes=2.
-
+    https://deepmind.com/blog/article/wavenet-generative-model-raw-audio
     """
 
-    def __init__(self, num_classes=2, kernel_size=3, filters=None, stacked_layers=None, name='WaveNet'):
+    def __init__(self, num_outputs=None, kernel_size=3, output_type='binary', filters=None, stacked_layers=None, name='WaveNet'):
         super(WaveNet, self).__init__(name=name)
-        self.num_classes = num_classes
 
         if filters is None:
             self.filters = 16
@@ -403,8 +396,20 @@ class WaveNet(keras.Model):
             self.ls.append(keras.layers.Conv1D(self.filters*(i+1), 1, padding='same'))
             self.ls.append(ResidualConv1D(self.filters*(i+1), kernel_size, sl))
 
-        if num_classes > 0:
-            self.ls.append(keras.layers.Dense(num_classes, activation='softmax'))
+        if num_outputs is not None:
+            if output_type == 'binary':
+                assert num_outputs == 1
+                act = 'sigmoid'
+            elif output_type == 'multiclass':
+                assert num_outputs > 1
+                act = 'softmax'
+            elif output_type == 'multilabel':
+                assert num_outputs > 1
+                act = 'sigmoid'
+            else:
+                act = 'linear'
+
+            self.ls.append(tf.keras.layers.Dense(num_outputs, activation=act))
 
     def call(self, inputs):
         x = inputs
