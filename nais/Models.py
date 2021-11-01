@@ -243,7 +243,7 @@ class WaveAlexNet(keras.Model):
             pooling_layer = lambda **kwargs: tf.keras.layers.Activation('linear')
 
         self.ls = [
-            tf.keras.layers.Conv1D(filters=96, kernel_size=kernel_sizes[0], strides=1, activation='relu',
+            tf.keras.layers.Conv1D(filters=96, kernel_size=kernel_sizes[0], strides=4, activation='relu',
                                    padding='same'),
             tf.keras.layers.BatchNormalization(),
             pooling_layer(pool_size=3, strides=2),
@@ -260,7 +260,7 @@ class WaveAlexNet(keras.Model):
             tf.keras.layers.Conv1D(filters=256, kernel_size=kernel_sizes[4], strides=1, activation='relu',
                                    padding="same"),
             tf.keras.layers.BatchNormalization(),
-            pooling_layer(pool_size=2),
+            pooling_layer(pool_size=3, strides=2),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(4096, activation='relu'),
             tf.keras.layers.Dropout(0.5),
