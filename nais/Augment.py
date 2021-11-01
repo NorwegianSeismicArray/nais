@@ -14,11 +14,12 @@ class RandomCrop1D(tf.keras.layers.Layer):
 
     def build(self, input_dim):
         _, x_size, y_size = input_dim
-        self.length = x_size
+        self.length = int(x_size*(1-self.crop))
+        self.channels = y_size
 
     def call(self, inputs):
         x = tf.expand_dims(inputs,axis=-1)
-        x = tf.keras.layers.RandomCrop(int(inputs.shape[1]*(1-self.crop)), inputs.shape[-1])(x)
+        x = tf.keras.layers.RandomCrop(self.length, self.channels)(x)
         x = tf.squeeze(x, axis=-1)
         return x
 
