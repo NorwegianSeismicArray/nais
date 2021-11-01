@@ -19,6 +19,7 @@ class RandomCrop1D(tf.keras.layers.Layer):
     def call(self, inputs):
         x = tf.expand_dims(inputs,axis=-1)
         x = tf.keras.layers.RandomCrop(int(inputs.shape[1]*(1-self.crop)), inputs.shape[-1])(x)
+        x = tf.squeeze(x, axis=-1)
         return x
 
 class SpectrogramTimeAugment(tf.keras.layers.Layer):
