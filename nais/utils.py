@@ -3,6 +3,7 @@ Author: Erik B. Myklebust, erik@norsar.no
 2021
 """
 import urllib3
+import numpy as np
 
 def spectrogram_standard_scaler(spectrograms):
     return spectrograms - spectrograms.mean(axis=0)[np.newaxis,:] / spectrograms.std(axis=0)[np.newaxis,:]

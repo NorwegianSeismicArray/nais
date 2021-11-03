@@ -1,12 +1,12 @@
 
 import setuptools
 
-with open("README.md") as file:
+with open("./README.md") as file:
     read_me_description = file.read()
 
 setuptools.setup(
     name="nais",
-    version="0.1.4",
+    version="0.1.5",
     author="Erik B. Myklebust",
     author_email="erik@norsar.no",
     description="NORSAR AI System.",
@@ -20,5 +20,5 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    #python_requires='>=3.6',
 )
