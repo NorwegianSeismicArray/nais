@@ -228,10 +228,12 @@ class WaveAlexNet(keras.Model):
          pooling type, max or avg, other will use no pooling
     """
 
-    def __init__(self, kernel_sizes=None, num_outputs=None, output_type='binary', pooling='max', name='WaveAlexNet'):
+    def __init__(self, kernel_sizes=None, filters=None num_outputs=None, output_type='binary', pooling='max', name='WaveAlexNet'):
         super(WaveAlexNet, self).__init__(name=name)
         if kernel_sizes is None:
             kernel_sizes = [11, 5, 3, 3, 3]
+        if filters is None:
+          	filters = [96, 256, 384, 384, 256]
         assert len(kernel_sizes) == 5
         assert pooling in [None, 'none', 'max', 'avg']
 
@@ -243,21 +245,21 @@ class WaveAlexNet(keras.Model):
             pooling_layer = lambda **kwargs: tf.keras.layers.Activation('linear')
 
         self.ls = [
-            tf.keras.layers.Conv1D(filters=96, kernel_size=kernel_sizes[0], strides=4, activation='relu',
+            tf.keras.layers.Conv1D(filters=filters[0], kernel_size=kernel_sizes[0], strides=4, activation='relu',
                                    padding='same'),
             tf.keras.layers.BatchNormalization(),
             pooling_layer(pool_size=3, strides=2),
-            tf.keras.layers.Conv1D(filters=256, kernel_size=kernel_sizes[1], strides=1, activation='relu',
+            tf.keras.layers.Conv1D(filters=filters[1], kernel_size=kernel_sizes[1], strides=1, activation='relu',
                                    padding="same"),
             tf.keras.layers.BatchNormalization(),
             pooling_layer(pool_size=3, strides=2),
-            tf.keras.layers.Conv1D(filters=384, kernel_size=kernel_sizes[2], strides=1, activation='relu',
+            tf.keras.layers.Conv1D(filters=filters[2], kernel_size=kernel_sizes[2], strides=1, activation='relu',
                                    padding="same"),
             tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Conv1D(filters=384, kernel_size=kernel_sizes[3], strides=1, activation='relu',
+            tf.keras.layers.Conv1D(filters=filters[3], kernel_size=kernel_sizes[3], strides=1, activation='relu',
                                    padding="same"),
             tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Conv1D(filters=256, kernel_size=kernel_sizes[4], strides=1, activation='relu',
+            tf.keras.layers.Conv1D(filters=filters[4], kernel_size=kernel_sizes[4], strides=1, activation='relu',
                                    padding="same"),
             tf.keras.layers.BatchNormalization(),
             pooling_layer(pool_size=3, strides=2),
