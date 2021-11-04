@@ -228,7 +228,7 @@ class WaveAlexNet(keras.Model):
          pooling type, max or avg, other will use no pooling
     """
 
-    def __init__(self, kernel_sizes=None, filters=None num_outputs=None, output_type='binary', pooling='max', name='WaveAlexNet'):
+    def __init__(self, kernel_sizes=None, filters=None, num_outputs=None, output_type='binary', pooling='max', name='WaveAlexNet'):
         super(WaveAlexNet, self).__init__(name=name)
         if kernel_sizes is None:
             kernel_sizes = [11, 5, 3, 3, 3]
