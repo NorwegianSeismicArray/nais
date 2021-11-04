@@ -233,7 +233,7 @@ class WaveAlexNet(keras.Model):
         if kernel_sizes is None:
             kernel_sizes = [11, 5, 3, 3, 3]
         assert len(kernel_sizes) == 5
-        assert pooling in [None, 'max', 'avg']
+        assert pooling in [None, 'none', 'max', 'avg']
 
         if pooling == 'max':
             pooling_layer = tf.keras.layers.MaxPooling1D
