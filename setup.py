@@ -6,7 +6,7 @@ with open("./README.md") as file:
 
 setuptools.setup(
     name="nais",
-    version="0.1.5",
+    version="0.1.7",
     author="Erik B. Myklebust",
     author_email="erik@norsar.no",
     description="NORSAR AI System.",
@@ -14,7 +14,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="http://bitbucket:7990/projects/GEOB/repos/nais",
     packages=['nais'],
-    install_requires=['tensorflow','numpy','kapre','tensorflow_addons'],
+    install_requires=['tensorflow','numpy','kapre'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
