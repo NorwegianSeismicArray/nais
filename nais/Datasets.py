@@ -137,23 +137,24 @@ class CoSSen(Dataset):
         else:
             files = list(
                 map(lambda a: self.location + 'train/' + str(a).zfill(3) + '.tar', np.arange(self.num_train_files)))
+            files += ['last.tar']
 
         for f in tqdm(files, desc='Transferring files'):
             self._load_single(f, self.target_location + 'train/')
 
-        #Load traininig labels
+        #Load train labels
         labels = pd.read_csv(self.location + 'train_labels.csv')
 
         #Keep only labels for the files loaded above if subsample < 1
-        to_filter = list(map(lambda f: f.split('/')[-1].split('.')[0], files))
-        labels['Example#'] = labels['Example#'].apply(lambda a: a.split('.')[0].zfill(16))
-        idx = np.asarray([labels['Example#'].str.endswith(ft).astype(int).values for ft in to_filter]).sum(axis=0)
-        labels = labels[idx > 0]
+        if subsample < 1:
+            to_filter = list(map(lambda f: f.split('/')[-1].split('.')[0], files))
+            labels['Example#'] = labels['Example#'].apply(lambda a: a.split('.')[0].zfill(16))
+            idx = np.asarray([labels['Example#'].str.endswith(ft).astype(int).values for ft in to_filter]).sum(axis=0)
+            labels = labels[idx > 0]
 
         X = []
         y = np.asarray(labels['Location+MT'].apply(eval).values)
         for f in tqdm(labels['Example#'], desc='Loading images'):
-            print(self.target_location + 'train/' + int(f)+'.png')
             X.append(self._single_image_to_array(self.target_location + 'train/' + int(f)+'.png'))
         X = np.asarray(X)
 
