@@ -49,10 +49,7 @@ def extract_weights(filename, dest='models'):
       
 def get_model_memory_usage(batch_size, model):
     import numpy as np
-    try:
-        from keras import backend as K
-    except:
-        from tensorflow.keras import backend as K
+    from tensorflow.keras import backend as K
 
     shapes_mem_count = 0
     internal_model_mem_count = 0

@@ -4,49 +4,48 @@ Author: Erik B. Myklebust, erik@norsar.no
 """
 
 import tensorflow as tf
-from tensorflow import keras
 import numpy as np
 from kapre import STFT, Magnitude
 from nais.Layers import ResidualConv1D
 
-class ImageEncoder(keras.Model):
+class ImageEncoder(tf.keras.Model):
     def __init__(self, depth=1):
         super(ImageEncoder, self).__init__()
-        self.model = keras.Sequential()
+        self.model = tf.keras.Sequential()
         for d in range(depth):
-            self.model.add(keras.layers.BatchNormalization())
-            self.model.add(keras.layers.SpatialDropout2D(0.2))
-            self.model.add(keras.layers.Conv2D(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
-        self.model.add(keras.layers.ActivityRegularization(l1=1e-3))
+            self.model.add(tf.keras.layers.BatchNormalization())
+            self.model.add(tf.keras.layers.SpatialDropout2D(0.2))
+            self.model.add(tf.keras.layers.Conv2D(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
+        self.model.add(tf.keras.layers.ActivityRegularization(l1=1e-3))
 
     def call(self, inputs):
         return self.model(inputs)
 
 
-class ImageDecoder(keras.Model):
+class ImageDecoder(tf.keras.Model):
     def __init__(self, depth=1, num_channels=3):
         super(ImageDecoder, self).__init__()
-        self.model = keras.Sequential()
+        self.model = tf.keras.Sequential()
         for d in list(range(depth))[::-1]:
-            self.model.add(keras.layers.BatchNormalization())
-            self.model.add(keras.layers.SpatialDropout2D(0.2))
+            self.model.add(tf.keras.layers.BatchNormalization())
+            self.model.add(tf.keras.layers.SpatialDropout2D(0.2))
             self.model.add(
-                keras.layers.Conv2DTranspose(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
-        self.model.add(keras.layers.Conv2D(num_channels, (3, 3), padding='same'))
+                tf.keras.layers.Conv2DTranspose(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
+        self.model.add(tf.keras.layers.Conv2D(num_channels, (3, 3), padding='same'))
 
     def call(self, inputs):
         return self.model(inputs)
 
 
-class WaveEncoder(keras.Model):
+class WaveEncoder(tf.keras.Model):
     def __init__(self, depth=1):
         super(WaveEncoder, self).__init__()
-        self.model = keras.Sequential()
+        self.model = tf.keras.Sequential()
         for d in range(depth):
-            self.model.add(keras.layers.BatchNormalization())
-            self.model.add(keras.layers.SpatialDropout1D(0.2))
-            self.model.add(keras.layers.Conv1D(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
-        self.model.add(keras.layers.ActivityRegularization(l1=1e-3))
+            self.model.add(tf.keras.layers.BatchNormalization())
+            self.model.add(tf.keras.layers.SpatialDropout1D(0.2))
+            self.model.add(tf.keras.layers.Conv1D(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
+        self.model.add(tf.keras.layers.ActivityRegularization(l1=1e-3))
 
     def call(self, inputs):
         return self.model(inputs)
@@ -56,22 +55,22 @@ class WaveEncoder(keras.Model):
         return p.reshape((p.shape[0], -1))
 
 
-class WaveDecoder(keras.Model):
+class WaveDecoder(tf.keras.Model):
     def __init__(self, depth=1, num_channels=3):
         super(WaveDecoder, self).__init__()
-        self.model = keras.Sequential()
+        self.model = tf.keras.Sequential()
         for d in list(range(depth))[::-1]:
-            self.model.add(keras.layers.BatchNormalization())
-            self.model.add(keras.layers.SpatialDropout1D(0.2))
+            self.model.add(tf.keras.layers.BatchNormalization())
+            self.model.add(tf.keras.layers.SpatialDropout1D(0.2))
             self.model.add(
-                keras.layers.Conv1DTranspose(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
-        self.model.add(keras.layers.Conv1D(num_channels, 7, padding='same'))
+                tf.keras.layers.Conv1DTranspose(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
+        self.model.add(tf.keras.layers.Conv1D(num_channels, 7, padding='same'))
 
     def call(self, inputs):
         return self.model(inputs)
 
 
-class ImageAutoEncoder(keras.Model):
+class ImageAutoEncoder(tf.keras.Model):
     """
     Autoencoder which encodes images.
 
@@ -91,7 +90,7 @@ class ImageAutoEncoder(keras.Model):
         return self.name + f'-depth{self.depth}'
 
 
-class WaveAutoEncoder(keras.Model):
+class WaveAutoEncoder(tf.keras.Model):
     """
     Autoencoder which encodes waveforms.
 
@@ -112,7 +111,7 @@ class WaveAutoEncoder(keras.Model):
         return self.name + f'-depth{self.depth}'
 
 
-class CreateSpectrogramModel(keras.Model):
+class CreateSpectrogramModel(tf.keras.Model):
     """
     Keras implementation of spectrograms.
     Stack infront of Conv2D model to create spectrograms on the fly.
@@ -124,13 +123,13 @@ class CreateSpectrogramModel(keras.Model):
         self.win_length = win_length
         self.hop_length = hop_length
 
-        self.model = keras.Sequential()
+        self.model = tf.keras.Sequential()
 
         self.model.add(STFT(n_fft=n_fft, win_length=win_length, hop_length=hop_length))
         self.model.add(Magnitude())
-        self.model.add(keras.layers.Lambda(tf.math.square))
-        self.model.add(keras.layers.Lambda(lambda x: tf.clip_by_value(x, 1e-7, np.inf)))
-        self.model.add(keras.layers.Resizing(256, 256))
+        self.model.add(tf.keras.layers.Lambda(tf.math.square))
+        self.model.add(tf.keras.layers.Lambda(lambda x: tf.clip_by_value(x, 1e-7, np.inf)))
+        self.model.add(tf.keras.layers.Resizing(256, 256))
 
     def call(self, inputs):
         return self.model(inputs)
@@ -139,7 +138,7 @@ class CreateSpectrogramModel(keras.Model):
         return self.name + f'-n_fft-{self.n_fft}-win_length-{self.win_length}-hop_lenght-{self.hop_length}'
 
 
-class AlexNet(keras.Model):
+class AlexNet(tf.keras.Model):
     """
     https://towardsdatascience.com/implementing-alexnet-cnn-architecture-using-tensorflow-2-0-and-keras-2113e090ad98
 
@@ -214,7 +213,7 @@ class AlexNet(keras.Model):
         return x
 
 
-class WaveAlexNet(keras.Model):
+class WaveAlexNet(tf.keras.Model):
     """
     Same as AlexNet but with 1D convolutions.
 
@@ -292,7 +291,7 @@ class WaveAlexNet(keras.Model):
         return x
 
 
-class PhaseNet(keras.Model):
+class PhaseNet(tf.keras.Model):
     """
     Adapted from https://keras.io/examples/vision/oxford_pets_image_segmentation/
 
@@ -313,60 +312,60 @@ class PhaseNet(keras.Model):
             self.filters = filters
 
     def build(self, input_shape):
-        inputs = keras.Input(shape=input_shape[1:])
+        inputs = tf.keras.Input(shape=input_shape[1:])
 
         ### [First half of the network: downsampling inputs] ###
 
         # Entry block
-        x = keras.layers.Conv1D(self.filters[0], 7, strides=2, padding="same")(inputs)
-        x = keras.layers.BatchNormalization()(x)
-        x = keras.layers.Activation("relu")(x)
+        x = tf.keras.layers.Conv1D(self.filters[0], 7, strides=2, padding="same")(inputs)
+        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.Activation("relu")(x)
 
         previous_block_activation = x  # Set aside residual
 
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for filters in self.filters[1:]:
-            x = keras.layers.Activation("relu")(x)
-            x = keras.layers.SeparableConv1D(filters, 7, padding="same")(x)
-            x = keras.layers.BatchNormalization()(x)
+            x = tf.keras.layers.Activation("relu")(x)
+            x = tf.keras.layers.SeparableConv1D(filters, 7, padding="same")(x)
+            x = tf.keras.layers.BatchNormalization()(x)
 
-            x = keras.layers.Activation("relu")(x)
-            x = keras.layers.SeparableConv1D(filters, 7, padding="same")(x)
-            x = keras.layers.BatchNormalization()(x)
+            x = tf.keras.layers.Activation("relu")(x)
+            x = tf.keras.layers.SeparableConv1D(filters, 7, padding="same")(x)
+            x = tf.keras.layers.BatchNormalization()(x)
 
-            x = keras.layers.MaxPooling1D(4, strides=2, padding="same")(x)
+            x = tf.keras.layers.MaxPooling1D(4, strides=2, padding="same")(x)
 
             # Project residual
-            residual = keras.layers.Conv1D(filters, 1, strides=2, padding="same")(
+            residual = tf.keras.layers.Conv1D(filters, 1, strides=2, padding="same")(
                 previous_block_activation
             )
-            x = keras.layers.add([x, residual])  # Add back residual
+            x = tf.keras.layers.add([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
         ### [Second half of the network: upsampling inputs] ###
 
         for filters in self.filters[::-1]:
-            x = keras.layers.Activation("relu")(x)
-            x = keras.layers.Conv1DTranspose(filters, 7, padding="same")(x)
-            x = keras.layers.BatchNormalization()(x)
+            x = tf.keras.layers.Activation("relu")(x)
+            x = tf.keras.layers.Conv1DTranspose(filters, 7, padding="same")(x)
+            x = tf.keras.layers.BatchNormalization()(x)
 
-            x = keras.layers.Activation("relu")(x)
-            x = keras.layers.Conv1DTranspose(filters, 7, padding="same")(x)
-            x = keras.layers.BatchNormalization()(x)
+            x = tf.keras.layers.Activation("relu")(x)
+            x = tf.keras.layers.Conv1DTranspose(filters, 7, padding="same")(x)
+            x = tf.keras.layers.BatchNormalization()(x)
 
-            x = keras.layers.UpSampling1D(2)(x)
+            x = tf.keras.layers.UpSampling1D(2)(x)
 
             # Project residual
-            residual = keras.layers.UpSampling1D(2)(previous_block_activation)
-            residual = keras.layers.Conv1D(filters, 1, padding="same")(residual)
-            x = keras.layers.add([x, residual])  # Add back residual
+            residual = tf.keras.layers.UpSampling1D(2)(previous_block_activation)
+            residual = tf.keras.layers.Conv1D(filters, 1, padding="same")(residual)
+            x = tf.keras.layers.add([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
         # Add a per-pixel classification layer
-        outputs = keras.layers.Conv1D(self.num_classes, 3, activation="softmax", padding="same")(x)
+        outputs = tf.keras.layers.Conv1D(self.num_classes, 3, activation="softmax", padding="same")(x)
 
         # Define the model
-        self.model = keras.Model(inputs, outputs)
+        self.model = tf.keras.Model(inputs, outputs)
 
     def summary(self):
         return self.model.summary()
@@ -375,7 +374,7 @@ class PhaseNet(keras.Model):
         return self.model(inputs)
 
 
-class WaveNet(keras.Model):
+class WaveNet(tf.keras.Model):
     """
     https://deepmind.com/blog/article/wavenet-generative-model-raw-audio
     """
@@ -395,7 +394,7 @@ class WaveNet(keras.Model):
 
         self.ls = []
         for i,sl in enumerate(self.stacked_layers):
-            self.ls.append(keras.layers.Conv1D(self.filters*(i+1), 1, padding='same'))
+            self.ls.append(tf.keras.layers.Conv1D(self.filters*(i+1), 1, padding='same'))
             self.ls.append(ResidualConv1D(self.filters*(i+1), kernel_size, sl))
 
         if num_outputs is not None:

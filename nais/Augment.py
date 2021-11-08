@@ -22,9 +22,6 @@ class RandomCrop1D(tf.keras.layers.Layer):
         self.channels = y_size
         self.rc_layer = tf.keras.layers.RandomCrop(self.length, self.channels)
 
-    def compute_output_shape(self, input_shape):
-        return (input_shape[0], self.length, self.channels)
-
     def call(self, inputs):
         x = tf.expand_dims(inputs, axis=-1)
         x = self.rc_layer(x)

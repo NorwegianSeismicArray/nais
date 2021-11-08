@@ -1,9 +1,6 @@
 import tensorflow as tf
 from kapre import STFT, Magnitude
 
-from tensorflow import keras
-import tensorflow_addons as tfa
-
 class StackedSpectrogram(tf.keras.layers.Layer):
     """
     Creates spectrograms for each channel and stacks them to grayscale.
@@ -59,7 +56,7 @@ class StackedSpectrogram(tf.keras.layers.Layer):
     def call(self, inputs):
         return self.model(inputs)
 
-class ResidualConv1D(keras.layers.Layer):
+class ResidualConv1D(tf.keras.layers.Layer):
     def __init__(self, filters=32, kernel_size=3, stacked_layer=1):
         super(ResidualConv1D, self).__init__()
 
@@ -74,12 +71,12 @@ class ResidualConv1D(keras.layers.Layer):
 
         for dilation_rate in [2 ** i for i in range(self.stacked_layer)]:
             self.sigmoid_layers.append(
-                keras.layers.Conv1D(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same',
+                tf.keras.layers.Conv1D(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same',
                                     activation='sigmoid'))
             self.tanh_layers.append(
-                keras.layers.Conv1D(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same',
+                tf.keras.layers.Conv1D(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same',
                                     activation='tanh'))
-            self.conv_layers.append(keras.layers.Conv1D(self.filters, 1, padding='same'))
+            self.conv_layers.append(tf.keras.layers.Conv1D(self.filters, 1, padding='same'))
 
     def get_config(self):
         return dict(name=self.name,
@@ -101,7 +98,7 @@ class ResidualConv1D(keras.layers.Layer):
         return residual_output
 
 
-class ResidualConv1DTranspose(keras.layers.Layer):
+class ResidualConv1DTranspose(tf.keras.layers.Layer):
     def __init__(self, filters=32, kernel_size=3, stacked_layer=1):
         super(ResidualConv1DTranspose, self).__init__()
 
@@ -115,9 +112,9 @@ class ResidualConv1DTranspose(keras.layers.Layer):
         self.conv_layers = []
 
         for dilation_rate in [2 ** i for i in range(self.stacked_layer)]:
-            self.sigmoid_layers.append(keras.layers.Conv1DTranspose(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same', activation='sigmoid'))
-            self.tanh_layers.append(keras.layers.Conv1DTranspose(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same', activation='tanh'))
-            self.conv_layers.append(keras.layers.Conv1DTranspose(self.filters, 1, padding='same'))
+            self.sigmoid_layers.append(tf.keras.layers.Conv1DTranspose(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same', activation='sigmoid'))
+            self.tanh_layers.append(tf.keras.layers.Conv1DTranspose(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same', activation='tanh'))
+            self.conv_layers.append(tf.keras.layers.Conv1DTranspose(self.filters, 1, padding='same'))
 
     def get_config(self):
         return dict(name=self.name,
