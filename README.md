@@ -12,6 +12,10 @@ This repository will contain:
 ## Installation
 ``pip install git+ssh://git@bitbucket:7999/geob/nais.git#egg=nais``
 
+If an error occurs when importing `nais`, likely ``sndfile`` library is not installed (check the error), and needs to be:
+
+``apt-get install libsndfile1-dev``
+
 # Quick example
 
 ```python
