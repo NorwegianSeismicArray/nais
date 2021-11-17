@@ -1,4 +1,4 @@
-### NORSAR Artificial Inteligence System (NAIS, yes, the acronym was choses first)
+### NORSAR Artificial Inteligence System (NAIS, yes, the acronym was chosen first)
 This repository will eventually contain tools specific to aiding in AI research at NORSAR.
 
 This repository will contain: 

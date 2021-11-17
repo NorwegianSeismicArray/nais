@@ -14,11 +14,11 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="http://bitbucket:7990/projects/GEOB/repos/nais",
     packages=['nais'],
-    install_requires=['tensorflow','numpy','kapre','keras-tuner'],
+    install_requires=['tensorflow>=2.0','numpy>=1.2','kapre>=0.3.6','keras-tuner>=1.1'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    #python_requires='>=3.6',
+    python_requires='>=3.6'
 )
