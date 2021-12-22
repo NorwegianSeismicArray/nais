@@ -129,6 +129,7 @@ class CreateSpectrogramModel(tf.keras.Model):
         self.model.add(Magnitude())
         self.model.add(tf.keras.layers.Lambda(tf.math.square))
         self.model.add(tf.keras.layers.Lambda(lambda x: tf.clip_by_value(x, 1e-7, np.inf)))
+        self.model.add(tf.keras.layers.Lambda(tf.math.log))
         self.model.add(tf.keras.layers.Resizing(256, 256))
 
     def call(self, inputs):
@@ -138,7 +139,7 @@ class CreateSpectrogramModel(tf.keras.Model):
         return self.name + f'-n_fft-{self.n_fft}-win_length-{self.win_length}-hop_lenght-{self.hop_length}'
 
 
-class AlexNet(tf.keras.Model):
+class AlexNet2D(tf.keras.Model):
     """
     https://towardsdatascience.com/implementing-alexnet-cnn-architecture-using-tensorflow-2-0-and-keras-2113e090ad98
 
@@ -152,8 +153,8 @@ class AlexNet(tf.keras.Model):
          pooling type, max or avg, other will use no pooling
     """
 
-    def __init__(self, kernel_sizes=None, num_outputs=None, output_type='binary', pooling='max', name='AlexNet'):
-        super(AlexNet, self).__init__(name=name)
+    def __init__(self, kernel_sizes=None, num_outputs=None, output_type='binary', pooling='max', name='AlexNet2D'):
+        super(AlexNet2D, self).__init__(name=name)
         if kernel_sizes is None:
             kernel_sizes = [11, 5, 3, 3, 3]
         assert len(kernel_sizes) == 5
@@ -213,7 +214,7 @@ class AlexNet(tf.keras.Model):
         return x
 
 
-class WaveAlexNet(tf.keras.Model):
+class AlexNet1D(tf.keras.Model):
     """
     Same as AlexNet but with 1D convolutions.
 
@@ -227,8 +228,8 @@ class WaveAlexNet(tf.keras.Model):
          pooling type, max or avg, other will use no pooling
     """
 
-    def __init__(self, kernel_sizes=None, filters=None, num_outputs=None, output_type='binary', pooling='max', name='WaveAlexNet'):
-        super(WaveAlexNet, self).__init__(name=name)
+    def __init__(self, kernel_sizes=None, filters=None, num_outputs=None, output_type='binary', pooling='max', name='AlexNet1D'):
+        super(AlexNet1D, self).__init__(name=name)
         if kernel_sizes is None:
             kernel_sizes = [11, 5, 3, 3, 3]
         if filters is None:
@@ -361,8 +362,13 @@ class PhaseNet(tf.keras.Model):
             x = tf.keras.layers.add([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
+        # Exit block
+        x = tf.keras.layers.Conv1D(self.filters[0], 7, strides=1, padding="same")(inputs)
+        x = tf.keras.layers.BatchNormalization()(x)
+        x = tf.keras.layers.Activation("relu")(x)
+
         # Add a per-pixel classification layer
-        outputs = tf.keras.layers.Conv1D(self.num_classes, 3, activation="softmax", padding="same")(x)
+        outputs = tf.keras.layers.Conv1D(self.num_classes, 1, activation="softmax", padding="same")(x)
 
         # Define the model
         self.model = tf.keras.Model(inputs, outputs)
