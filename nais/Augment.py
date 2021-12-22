@@ -1,5 +1,6 @@
 
 import tensorflow as tf
+import numpy as np
 
 class RandomCrop1D(tf.keras.layers.Layer):
     """
@@ -37,12 +38,11 @@ class SpectrogramTimeAugment(tf.keras.layers.Layer):
         return dict(prop=self.prop, name=self.name)
 
     def call(self, inputs):
-        _, length, _ = inputs.shape[1:]
-        mask = tf.ones_like(inputs)
-        start = tf.random.uniform(shape=(), minval=0, maxval=length * (1 - self.prop), dtype=tf.dtypes.int32)
-        mask[:, :, start:start + self.prop * length, :] = 0.0
-        return inputs * mask
-
+        length, _, _ = inputs.shape[1:]
+        mask = np.ones(inputs.shape[1:])
+        start = np.random.randint(0, int(length * (1 - self.prop)))
+        mask[start:start + int(self.prop * length), :, :] = 0.0
+        return inputs * np.expand_dims(mask, axis=0)
 
 class SpectrogramFreqAugment(tf.keras.layers.Layer):
     def __init__(self, prop=0.1, name='SpectrogramFreqAugment'):
@@ -53,8 +53,8 @@ class SpectrogramFreqAugment(tf.keras.layers.Layer):
         return dict(prop=self.prop, name=self.name)
 
     def call(self, inputs):
-        height, _, _ = inputs.shape[1:]
-        mask = tf.ones_like(inputs)
-        start = tf.random.uniform(shape=(), minval=0, maxval=height * (1 - self.prop), dtype=tf.dtypes.int32)
-        mask[:, start:start + self.prop * height, :, :] = 0.0
-        return inputs * mask
+        _, height, _ = inputs.shape[1:]
+        mask = np.ones(inputs.shape[1:])
+        start = np.random.randint(0, int(height * (1 - self.prop)))
+        mask[:, start:start + int(self.prop * height), :] = 0.0
+        return inputs * np.expand_dims(mask, axis=0)

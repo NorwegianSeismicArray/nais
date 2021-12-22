@@ -16,7 +16,6 @@ import getpass
 
 user = getpass.getuser()
 
-
 class Dataset:
     def __init__(self, location=None, target_location=None):
         # load data into memory or create generator if large.
@@ -51,7 +50,7 @@ class Arces(Dataset):
             Set to False to force reload of data.
         """
         if processed == True:
-            self.processed = os.path.isdir(f'/nobackup/{user}/tmpdata/arces_data/')
+            self.processed = os.path.isdir(f'/nobackup/{user}/tmpdata/arces/')
         else:
             self.processed = processed
         super(Arces, self).__init__(location='/projects/processing/ML/ARCES.tar.gz',
@@ -74,7 +73,7 @@ class Arces(Dataset):
                            names=['filename', 'class'])
         #Converting windows path to universal
         data['filename'] = data['filename'].apply(lambda f: os.path.join(*f.split('\\')))
-        y = data['class'].values
+        data.set_index(data['filename'], inplace=True)
 
         if subsample < 1:
             #Random sampling subset of data with startification
@@ -82,10 +81,12 @@ class Arces(Dataset):
         else:
             filenames = data['filename'].values
 
+        filenames = set(filenames)
         #Loading the individual traces from files.
         d = [self._load_single(self.target_location + f) for f in tqdm(filenames, desc='Loading traces.')]
         x, info = zip(*d)
         x = np.swapaxes(np.asarray(x), 1, 2) #output (sample,lenght,channels)
+        y = data.loc[filenames, 'class'].values
 
         if include_info:
             return x, y, info

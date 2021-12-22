@@ -4,9 +4,14 @@ import setuptools
 with open("./README.md") as file:
     read_me_description = file.read()
 
+req = []
+with open('./requirements.txt') as file:
+    for l in file.readlines():
+        req.append(l.strip())
+
 setuptools.setup(
     name="nais",
-    version="0.1.9",
+    version="0.1.17",
     author="Erik B. Myklebust",
     author_email="erik@norsar.no",
     description="NORSAR AI System.",
@@ -14,7 +19,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="http://bitbucket:7990/projects/GEOB/repos/nais",
     packages=['nais'],
-    install_requires=['tensorflow>=2.0','numpy>=1.2','kapre>=0.3.6','keras-tuner>=1.1'],
+    install_requires=req,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
