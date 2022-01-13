@@ -42,4 +42,4 @@ class CVTuner(kt.engine.tuner.Tuner):
         val_metrics = np.mean(np.asarray(val_metrics), axis=0)
         res = dict(zip(metrics,val_metrics))
 
-        self.oracle.update_trial(trial.trial_id, res)
+        return res
