@@ -37,7 +37,7 @@ class CVTuner(kt.engine.tuner.Tuner):
                       callbacks=cb,
                       **kwargs)
             val_metrics.append(model.evaluate(x_test, y_test))
-            metrics = model.metric_names
+            metrics = model.metrics_names
 
         val_metrics = np.mean(np.asarray(val_metrics), axis=0)
         res = dict(zip(metrics,val_metrics))
