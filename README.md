@@ -16,6 +16,14 @@ If an error occurs when importing `nais`, likely ``sndfile`` library is not inst
 
 ``apt-get install libsndfile1-dev``
 
+## Alternative installation
+If the above instruction did not work, try:
+``
+git clone http://bitbucket:7990/scm/geob/nais.git
+cd nais
+python3 setup.py install
+``
+
 # Quick example
 
 ```python
