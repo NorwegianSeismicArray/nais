@@ -385,7 +385,7 @@ class WaveNet(tf.keras.Model):
     https://deepmind.com/blog/article/wavenet-generative-model-raw-audio
     """
 
-    def __init__(self, num_outputs=None, kernel_size=3, output_type='binary', filters=None, stacked_layers=None, name='WaveNet'):
+    def __init__(self, num_outputs=None, kernel_size=3, output_type='binary', pooling=None, filters=None, stacked_layers=None, name='WaveNet'):
         super(WaveNet, self).__init__(name=name)
 
         if filters is None:
@@ -402,7 +402,16 @@ class WaveNet(tf.keras.Model):
         for i,sl in enumerate(self.stacked_layers):
             self.ls.append(tf.keras.layers.Conv1D(self.filters*(i+1), 1, padding='same'))
             self.ls.append(ResidualConv1D(self.filters*(i+1), kernel_size, sl))
-
+		
+        if pooling is None:
+          	self.ls.append(tf.keras.layers.Flatten())
+        elif pooling == 'avg':
+          	self.ls.append(tf.keras.layers.GlobalAveragePooling1D())
+        elif pooling == 'max':
+          	self.ls.append(tf.keras.layers.GlobalMaxPooling1D())
+        else:
+          	raise NotImplementedError(pooling + 'no implemented')
+        
         if num_outputs is not None:
             if output_type == 'binary':
                 assert num_outputs == 1
