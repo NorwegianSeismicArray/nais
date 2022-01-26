@@ -368,7 +368,10 @@ class PhaseNet(tf.keras.Model):
         x = tf.keras.layers.Activation("relu")(x)
 
         # Add a per-pixel classification layer
-        outputs = tf.keras.layers.Conv1D(self.num_classes, 1, activation="softmax", padding="same")(x)
+        if self.num_classes is not None:
+            outputs = tf.keras.layers.Conv1D(self.num_classes, 1, activation="softmax", padding="same")(x)
+        else:
+            outputs = x
 
         # Define the model
         self.model = tf.keras.Model(inputs, outputs)
@@ -404,13 +407,13 @@ class WaveNet(tf.keras.Model):
             self.ls.append(ResidualConv1D(self.filters*(i+1), kernel_size, sl))
 		
         if pooling is None:
-          	self.ls.append(tf.keras.layers.Flatten())
+            self.ls.append(tf.keras.layers.Flatten())
         elif pooling == 'avg':
-          	self.ls.append(tf.keras.layers.GlobalAveragePooling1D())
+            self.ls.append(tf.keras.layers.GlobalAveragePooling1D())
         elif pooling == 'max':
-          	self.ls.append(tf.keras.layers.GlobalMaxPooling1D())
+            self.ls.append(tf.keras.layers.GlobalMaxPooling1D())
         else:
-          	raise NotImplementedError(pooling + 'no implemented')
+            raise NotImplementedError(pooling + 'no implemented')
         
         if num_outputs is not None:
             if output_type == 'binary':

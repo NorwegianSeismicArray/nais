@@ -144,10 +144,6 @@ class Resampling1D(tf.keras.layers.Layer):
     def build(self, input_shape):
         self.ls = tf.keras.layers.Resizing(self.length, input_shape[-1], interpolation=self.interpolation)
 
-    def compute_output_shape(input_shape):
-        print(input_shape)
-        return (self.length, input_shape[-1])
-
     def call(self,inputs):
         x = tf.expand_dims(inputs,axis=-1)
         x = self.ls(x)
