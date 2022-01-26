@@ -1,5 +1,6 @@
 import tensorflow as tf
 from kapre import STFT, Magnitude
+import numpy as np
 
 class StackedSpectrogram(tf.keras.layers.Layer):
     """
@@ -22,7 +23,6 @@ class StackedSpectrogram(tf.keras.layers.Layer):
         self.output_dim = output_dim
         self.num_components = num_components
         self.stack_method = stack_method
-
 
     def get_config(self):
         return dict(n_fft = self.n_fft,
@@ -134,3 +134,19 @@ class ResidualConv1DTranspose(tf.keras.layers.Layer):
             residual_output = tf.keras.layers.add([residual_output, x])
 
         return residual_output
+    
+class Resampling1D(tf.keras.layers.Layer):
+    def __init__(self, length, interpolation="bilinear", **kwargs):
+        super(Resampling1D, self).__init__(**kwargs)
+        self.length = length
+        self.interpolation = interpolation
+        
+    def build(self, input_shape):
+        self.ls = tf.keras.layers.Resizing(self.length, input_shape[-1], interpolation=self.interpolation)
+
+    def call(self,inputs):
+        inputs = tf.expand_dims(inputs,axis=-1)
+        return tf.squeeze(self.ls(inputs))
+
+    def get_config(self):
+        return dict(name=self.name, length=self.length)
