@@ -166,7 +166,7 @@ class CosSimConv1D(tf.keras.layers.Layer):
         self.channels = self.in_shape[2]
 
         self.w = self.add_weight(
-            shape=(1, self.channels * tf.square(self.kernel_size), self.units),
+            shape=(1, self.channels * self.kernel_size, self.units),
             initializer="glorot_uniform",
             trainable=True,
         )
@@ -189,22 +189,13 @@ class CosSimConv1D(tf.keras.layers.Layer):
             [
                 tf.pad(x[:, :-1, :], tf.constant([[0, 0], [1, 0], [0, 0]])),
                 x,
-                tf.pad(x[:, :-1, :], tf.constant([[0, 0], [0, 1], [0, 0]])),
-
-                tf.pad(x[:, :-1, :], tf.constant([[0, 0], [1, 0], [0, 0]])),
-                x,
                 tf.pad(x[:, 1:, :], tf.constant([[0, 0], [0, 1], [0, 0]])),
-
-                tf.pad(x[:, 1:, :], tf.constant([[0, 0], [1, 0], [0, 0]])),
-                x,
-                tf.pad(x[:, 1:, :], tf.constant([[0, 0], [0, 1], [0, 0]])),
-
             ], axis=2)
         return x
 
     def call(self, inputs, training=None):
         x = self.stack3(inputs)
-        x = tf.reshape(x, (-1, self.flat_size, self.channels * tf.square(self.kernel_size)))
+        x = tf.reshape(x, (-1, self.flat_size, self.channels * self.kernel_size))
         q = tf.square(self.q)
         x_norm = self.l2_normal(x, axis=2) + q
         w_norm = self.l2_normal(self.w, axis=1) + q
@@ -272,10 +263,6 @@ class MaxAbsPool1D(tf.keras.layers.Layer):
         x = tf.gather_nd(stacked, idx)
         x = tf.reshape(x, (-1, *self.out_shape[1:]))
         return x
-
-
-
-
 
 
 
