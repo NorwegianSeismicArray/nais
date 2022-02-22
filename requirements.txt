@@ -1,0 +1,9 @@
+numpy
+scipy
+tensorflow
+keras_tuner
+kapre
+scikit-learn
+pandas
+tqdm
+pillow
