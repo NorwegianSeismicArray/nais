@@ -10,19 +10,11 @@ This repository will contain:
 * Augmentation methods.
 
 ## Installation
-``pip install git+ssh://git@bitbucket:7999/geob/nais.git#egg=nais``
+``pip install git+https://github.com/NorwegianSeismicArray/nais.git#egg=nais``
 
 If an error occurs when importing `nais`, likely ``sndfile`` library is not installed (check the error), and needs to be:
 
 ``apt-get install libsndfile1-dev``
-
-## Alternative installation
-If the above instruction did not work, try:
-```
-git clone http://bitbucket:7990/scm/geob/nais.git
-cd nais
-python3 setup.py install
-```
 
 # Quick example
 
