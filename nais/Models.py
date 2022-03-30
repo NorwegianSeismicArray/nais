@@ -6,32 +6,32 @@ Author: Erik B. Myklebust, erik@norsar.no
 import tensorflow as tf
 import numpy as np
 from kapre import STFT, Magnitude
-from nais.Layers import ResidualConv1D
+import tensorflow.keras.layers as tfl
+from nais.Layers import ResidualConv1D, ResnetBlock1D, SeqSelfAttention, FeedForward
 
 class ImageEncoder(tf.keras.Model):
     def __init__(self, depth=1):
         super(ImageEncoder, self).__init__()
         self.model = tf.keras.Sequential()
         for d in range(depth):
-            self.model.add(tf.keras.layers.BatchNormalization())
-            self.model.add(tf.keras.layers.SpatialDropout2D(0.2))
-            self.model.add(tf.keras.layers.Conv2D(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
-        self.model.add(tf.keras.layers.ActivityRegularization(l1=1e-3))
+            self.model.add(tfl.BatchNormalization())
+            self.model.add(tfl.SpatialDropout2D(0.2))
+            self.model.add(tfl.Conv2D(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
+        self.model.add(tfl.ActivityRegularization(l1=1e-3))
 
     def call(self, inputs):
         return self.model(inputs)
-
 
 class ImageDecoder(tf.keras.Model):
     def __init__(self, depth=1, num_channels=3):
         super(ImageDecoder, self).__init__()
         self.model = tf.keras.Sequential()
         for d in list(range(depth))[::-1]:
-            self.model.add(tf.keras.layers.BatchNormalization())
-            self.model.add(tf.keras.layers.SpatialDropout2D(0.2))
+            self.model.add(tfl.BatchNormalization())
+            self.model.add(tfl.SpatialDropout2D(0.2))
             self.model.add(
-                tf.keras.layers.Conv2DTranspose(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
-        self.model.add(tf.keras.layers.Conv2D(num_channels, (3, 3), padding='same'))
+                tfl.Conv2DTranspose(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
+        self.model.add(tfl.Conv2D(num_channels, (3, 3), padding='same'))
 
     def call(self, inputs):
         return self.model(inputs)
@@ -42,10 +42,10 @@ class WaveEncoder(tf.keras.Model):
         super(WaveEncoder, self).__init__()
         self.model = tf.keras.Sequential()
         for d in range(depth):
-            self.model.add(tf.keras.layers.BatchNormalization())
-            self.model.add(tf.keras.layers.SpatialDropout1D(0.2))
-            self.model.add(tf.keras.layers.Conv1D(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
-        self.model.add(tf.keras.layers.ActivityRegularization(l1=1e-3))
+            self.model.add(tfl.BatchNormalization())
+            self.model.add(tfl.SpatialDropout1D(0.2))
+            self.model.add(tfl.Conv1D(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
+        self.model.add(tfl.ActivityRegularization(l1=1e-3))
 
     def call(self, inputs):
         return self.model(inputs)
@@ -60,11 +60,11 @@ class WaveDecoder(tf.keras.Model):
         super(WaveDecoder, self).__init__()
         self.model = tf.keras.Sequential()
         for d in list(range(depth))[::-1]:
-            self.model.add(tf.keras.layers.BatchNormalization())
-            self.model.add(tf.keras.layers.SpatialDropout1D(0.2))
+            self.model.add(tfl.BatchNormalization())
+            self.model.add(tfl.SpatialDropout1D(0.2))
             self.model.add(
-                tf.keras.layers.Conv1DTranspose(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
-        self.model.add(tf.keras.layers.Conv1D(num_channels, 7, padding='same'))
+                tfl.Conv1DTranspose(64, 7 * depth - 7 * d, strides=4, activation='relu', padding='same'))
+        self.model.add(tfl.Conv1D(num_channels, 7, padding='same'))
 
     def call(self, inputs):
         return self.model(inputs)
@@ -127,10 +127,10 @@ class CreateSpectrogramModel(tf.keras.Model):
 
         self.model.add(STFT(n_fft=n_fft, win_length=win_length, hop_length=hop_length))
         self.model.add(Magnitude())
-        self.model.add(tf.keras.layers.Lambda(tf.math.square))
-        self.model.add(tf.keras.layers.Lambda(lambda x: tf.clip_by_value(x, 1e-7, np.inf)))
-        self.model.add(tf.keras.layers.Lambda(tf.math.log))
-        self.model.add(tf.keras.layers.Resizing(256, 256))
+        self.model.add(tfl.Lambda(tf.math.square))
+        self.model.add(tfl.Lambda(lambda x: tf.clip_by_value(x, 1e-7, np.inf)))
+        self.model.add(tfl.Lambda(tf.math.log))
+        self.model.add(tfl.Resizing(256, 256))
 
     def call(self, inputs):
         return self.model(inputs)
@@ -161,35 +161,35 @@ class AlexNet2D(tf.keras.Model):
         assert pooling in [None, 'max', 'avg']
 
         if pooling == 'max':
-            pooling_layer = tf.keras.layers.MaxPooling2D
+            pooling_layer = tfl.MaxPooling2D
         elif pooling == 'avg':
-            pooling_layer = tf.keras.layers.AveragePooling2D
+            pooling_layer = tfl.AveragePooling2D
         else:
-            pooling_layer = lambda **kwargs: tf.keras.layers.Activation('linear')
+            pooling_layer = lambda **kwargs: tfl.Activation('linear')
 
         self.ls = [
-            tf.keras.layers.Conv2D(filters=96, kernel_size=kernel_sizes[0], strides=(4, 4), activation='relu',
+            tfl.Conv2D(filters=96, kernel_size=kernel_sizes[0], strides=(4, 4), activation='relu',
                                    padding='same'),
-            tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2)),
-            tf.keras.layers.Conv2D(filters=256, kernel_size=kernel_sizes[1], strides=(1, 1), activation='relu',
+            tfl.MaxPooling2D(pool_size=(3, 3), strides=(2, 2)),
+            tfl.Conv2D(filters=256, kernel_size=kernel_sizes[1], strides=(1, 1), activation='relu',
                                    padding="same"),
-            tf.keras.layers.BatchNormalization(),
+            tfl.BatchNormalization(),
             pooling_layer(pool_size=(3, 3), strides=(2, 2)),
-            tf.keras.layers.Conv2D(filters=384, kernel_size=kernel_sizes[2], strides=(1, 1), activation='relu',
+            tfl.Conv2D(filters=384, kernel_size=kernel_sizes[2], strides=(1, 1), activation='relu',
                                    padding="same"),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Conv2D(filters=384, kernel_size=kernel_sizes[3], strides=(1, 1), activation='relu',
+            tfl.BatchNormalization(),
+            tfl.Conv2D(filters=384, kernel_size=kernel_sizes[3], strides=(1, 1), activation='relu',
                                    padding="same"),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Conv2D(filters=256, kernel_size=kernel_sizes[4], strides=(1, 1), activation='relu',
+            tfl.BatchNormalization(),
+            tfl.Conv2D(filters=256, kernel_size=kernel_sizes[4], strides=(1, 1), activation='relu',
                                    padding="same"),
-            tf.keras.layers.BatchNormalization(),
+            tfl.BatchNormalization(),
             pooling_layer(pool_size=(2, 2)),
-            tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(4096, activation='relu'),
-            tf.keras.layers.Dropout(0.5),
-            tf.keras.layers.Dense(4096, activation='relu'),
-            tf.keras.layers.Dropout(0.5),
+            tfl.Flatten(),
+            tfl.Dense(4096, activation='relu'),
+            tfl.Dropout(0.5),
+            tfl.Dense(4096, activation='relu'),
+            tfl.Dropout(0.5),
         ]
 
         if num_outputs is not None:
@@ -205,7 +205,7 @@ class AlexNet2D(tf.keras.Model):
             else:
                 act = 'linear'
 
-            self.ls.append(tf.keras.layers.Dense(num_outputs, activation=act))
+            self.ls.append(tfl.Dense(num_outputs, activation=act))
 
     def call(self, inputs):
         x = inputs
@@ -238,36 +238,36 @@ class AlexNet1D(tf.keras.Model):
         assert pooling in [None, 'none', 'max', 'avg']
 
         if pooling == 'max':
-            pooling_layer = tf.keras.layers.MaxPooling1D
+            pooling_layer = tfl.MaxPooling1D
         elif pooling == 'avg':
-            pooling_layer = tf.keras.layers.AveragePooling1D
+            pooling_layer = tfl.AveragePooling1D
         else:
-            pooling_layer = lambda **kwargs: tf.keras.layers.Activation('linear')
+            pooling_layer = lambda **kwargs: tfl.Activation('linear')
 
         self.ls = [
-            tf.keras.layers.Conv1D(filters=filters[0], kernel_size=kernel_sizes[0], strides=4, activation='relu',
+            tfl.Conv1D(filters=filters[0], kernel_size=kernel_sizes[0], strides=4, activation='relu',
                                    padding='same'),
-            tf.keras.layers.BatchNormalization(),
+            tfl.BatchNormalization(),
             pooling_layer(pool_size=3, strides=2),
-            tf.keras.layers.Conv1D(filters=filters[1], kernel_size=kernel_sizes[1], strides=1, activation='relu',
+            tfl.Conv1D(filters=filters[1], kernel_size=kernel_sizes[1], strides=1, activation='relu',
                                    padding="same"),
-            tf.keras.layers.BatchNormalization(),
+            tfl.BatchNormalization(),
             pooling_layer(pool_size=3, strides=2),
-            tf.keras.layers.Conv1D(filters=filters[2], kernel_size=kernel_sizes[2], strides=1, activation='relu',
+            tfl.Conv1D(filters=filters[2], kernel_size=kernel_sizes[2], strides=1, activation='relu',
                                    padding="same"),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Conv1D(filters=filters[3], kernel_size=kernel_sizes[3], strides=1, activation='relu',
+            tfl.BatchNormalization(),
+            tfl.Conv1D(filters=filters[3], kernel_size=kernel_sizes[3], strides=1, activation='relu',
                                    padding="same"),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Conv1D(filters=filters[4], kernel_size=kernel_sizes[4], strides=1, activation='relu',
+            tfl.BatchNormalization(),
+            tfl.Conv1D(filters=filters[4], kernel_size=kernel_sizes[4], strides=1, activation='relu',
                                    padding="same"),
-            tf.keras.layers.BatchNormalization(),
+            tfl.BatchNormalization(),
             pooling_layer(pool_size=3, strides=2),
-            tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(4096, activation='relu'),
-            tf.keras.layers.Dropout(0.5),
-            tf.keras.layers.Dense(4096, activation='relu'),
-            tf.keras.layers.Dropout(0.5),
+            tfl.Flatten(),
+            tfl.Dense(4096, activation='relu'),
+            tfl.Dropout(0.5),
+            tfl.Dense(4096, activation='relu'),
+            tfl.Dropout(0.5),
         ]
 
         if num_outputs is not None:
@@ -283,7 +283,7 @@ class AlexNet1D(tf.keras.Model):
             else:
                 act = 'linear'
 
-            self.ls.append(tf.keras.layers.Dense(num_outputs, activation=act))
+            self.ls.append(tfl.Dense(num_outputs, activation=act))
 
     def call(self, inputs):
         x = inputs
@@ -318,58 +318,58 @@ class PhaseNet(tf.keras.Model):
         ### [First half of the network: downsampling inputs] ###
 
         # Entry block
-        x = tf.keras.layers.Conv1D(self.filters[0], 7, strides=2, padding="same")(inputs)
-        x = tf.keras.layers.BatchNormalization()(x)
-        x = tf.keras.layers.Activation("relu")(x)
+        x = tfl.Conv1D(self.filters[0], 7, strides=2, padding="same")(inputs)
+        x = tfl.BatchNormalization()(x)
+        x = tfl.Activation("relu")(x)
 
         previous_block_activation = x  # Set aside residual
 
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for filters in self.filters[1:]:
-            x = tf.keras.layers.Activation("relu")(x)
-            x = tf.keras.layers.SeparableConv1D(filters, 7, padding="same")(x)
-            x = tf.keras.layers.BatchNormalization()(x)
+            x = tfl.Activation("relu")(x)
+            x = tfl.SeparableConv1D(filters, 7, padding="same")(x)
+            x = tfl.BatchNormalization()(x)
 
-            x = tf.keras.layers.Activation("relu")(x)
-            x = tf.keras.layers.SeparableConv1D(filters, 7, padding="same")(x)
-            x = tf.keras.layers.BatchNormalization()(x)
+            x = tfl.Activation("relu")(x)
+            x = tfl.SeparableConv1D(filters, 7, padding="same")(x)
+            x = tfl.BatchNormalization()(x)
 
-            x = tf.keras.layers.MaxPooling1D(4, strides=2, padding="same")(x)
+            x = tfl.MaxPooling1D(4, strides=2, padding="same")(x)
 
             # Project residual
-            residual = tf.keras.layers.Conv1D(filters, 1, strides=2, padding="same")(
+            residual = tfl.Conv1D(filters, 1, strides=2, padding="same")(
                 previous_block_activation
             )
-            x = tf.keras.layers.add([x, residual])  # Add back residual
+            x = tfl.add([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
         ### [Second half of the network: upsampling inputs] ###
 
         for filters in self.filters[::-1]:
-            x = tf.keras.layers.Activation("relu")(x)
-            x = tf.keras.layers.Conv1DTranspose(filters, 7, padding="same")(x)
-            x = tf.keras.layers.BatchNormalization()(x)
+            x = tfl.Activation("relu")(x)
+            x = tfl.Conv1DTranspose(filters, 7, padding="same")(x)
+            x = tfl.BatchNormalization()(x)
 
-            x = tf.keras.layers.Activation("relu")(x)
-            x = tf.keras.layers.Conv1DTranspose(filters, 7, padding="same")(x)
-            x = tf.keras.layers.BatchNormalization()(x)
+            x = tfl.Activation("relu")(x)
+            x = tfl.Conv1DTranspose(filters, 7, padding="same")(x)
+            x = tfl.BatchNormalization()(x)
 
-            x = tf.keras.layers.UpSampling1D(2)(x)
+            x = tfl.UpSampling1D(2)(x)
 
             # Project residual
-            residual = tf.keras.layers.UpSampling1D(2)(previous_block_activation)
-            residual = tf.keras.layers.Conv1D(filters, 1, padding="same")(residual)
-            x = tf.keras.layers.add([x, residual])  # Add back residual
+            residual = tfl.UpSampling1D(2)(previous_block_activation)
+            residual = tfl.Conv1D(filters, 1, padding="same")(residual)
+            x = tfl.add([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
         # Exit block
-        x = tf.keras.layers.Conv1D(self.filters[0], 7, strides=1, padding="same")(inputs)
-        x = tf.keras.layers.BatchNormalization()(x)
-        x = tf.keras.layers.Activation("relu")(x)
+        x = tfl.Conv1D(self.filters[0], 7, strides=1, padding="same")(inputs)
+        x = tfl.BatchNormalization()(x)
+        x = tfl.Activation("relu")(x)
 
         # Add a per-pixel classification layer
         if self.num_classes is not None:
-            outputs = tf.keras.layers.Conv1D(self.num_classes, 1, activation="softmax", padding="same")(x)
+            outputs = tfl.Conv1D(self.num_classes, 1, activation="softmax", padding="same")(x)
         else:
             outputs = x
 
@@ -403,15 +403,15 @@ class WaveNet(tf.keras.Model):
 
         self.ls = []
         for i,sl in enumerate(self.stacked_layers):
-            self.ls.append(tf.keras.layers.Conv1D(self.filters*(i+1), 1, padding='same'))
+            self.ls.append(tfl.Conv1D(self.filters*(i+1), 1, padding='same'))
             self.ls.append(ResidualConv1D(self.filters*(i+1), kernel_size, sl))
 		
         if pooling is None:
-            self.ls.append(tf.keras.layers.Flatten())
+            self.ls.append(tfl.Flatten())
         elif pooling == 'avg':
-            self.ls.append(tf.keras.layers.GlobalAveragePooling1D())
+            self.ls.append(tfl.GlobalAveragePooling1D())
         elif pooling == 'max':
-            self.ls.append(tf.keras.layers.GlobalMaxPooling1D())
+            self.ls.append(tfl.GlobalMaxPooling1D())
         else:
             raise NotImplementedError(pooling + 'no implemented')
         
@@ -428,10 +428,135 @@ class WaveNet(tf.keras.Model):
             else:
                 act = 'linear'
 
-            self.ls.append(tf.keras.layers.Dense(num_outputs, activation=act))
+            self.ls.append(tfl.Dense(num_outputs, activation=act))
 
     def call(self, inputs):
         x = inputs
         for layer in self.ls:
             x = layer(x)
         return x
+
+
+class EarthQuakeTransformer(tf.keras.Model):
+    """
+    https://www.nature.com/articles/s41467-020-17591-w
+
+    Example
+    import numpy as np
+    test = np.random.random(size=(16,1024,3))
+    d = np.random.randint(2, size=(16,1024,1))
+    p = np.random.randint(2, size=(16,1024,1))
+    s = np.random.randint(2, size=(16,1024,1))
+
+    model = EarthQuakeTransformer(input_dim=test.shape[1:])
+    model.compile(optimizer='adam', loss=['binary_crossentropy',
+                                          'binary_crossentropy',
+                                          'binary_crossentropy'])
+
+    model.fit(test, (d,p,s))
+
+    """
+
+
+    def __init__(self, input_dim, name='EarthQuakeTransformer'):
+        super(EarthQuakeTransformer, self).__init__(name=name)
+
+        filters         = [8, 16, 16, 32, 32, 64, 64]
+        kernelsizes     = [11, 9, 7, 7, 5, 5, 3]
+        invfilters      = filters[::-1]
+        invkernelsizes  = kernelsizes[::-1]
+        resfilters      = [64, 64, 64, 64, 64]
+        reskernelsizes  = [3, 3, 3, 2, 2]
+        lstmfilters     = [16, 16]
+
+        try:
+            assert resfilters[0] == filters[-1]
+        except AssertionError:
+            print('Filters missmatch.')
+            filters = resfilters[0]
+
+        def conv_block(f,kz):
+            return tf.keras.Sequential([tfl.Conv1D(f,kz,padding='same'),
+                                        tfl.BatchNormalization(),
+                                        tfl.Activation('relu'),
+                                        tfl.Dropout(0.1),
+                                        tfl.MaxPooling1D(2, padding='same')])
+
+        def block_BiLSTM(f,x):
+            'Returns LSTM residual block'
+            x = tfl.Bidirectional(tfl.LSTM(f, return_sequences=True, dropout=0.1, recurrent_dropout=0.1))(x)
+            x = tfl.Conv1D(f, 1, padding='same')(x)
+            x = tfl.BatchNormalization()(x)
+            return x
+
+        def block_transformer(f, width, x):
+            att, w = SeqSelfAttention(return_attention=True,
+                                      attention_width=width)(x)
+            att = tfl.Add()([x, att])
+            norm = tfl.LayerNormalization()(att)
+            ff = tf.keras.Sequential([tfl.Dense(128, activation='relu'),
+                                      tfl.Dropout(0.1),
+                                      tfl.Dense(norm.shape[2]),
+                                      ])(norm)
+            ff_add = tfl.Add()([norm, ff])
+            norm_out = tfl.LayerNormalization()(ff_add)
+            return norm_out, w
+
+        def _encoder():
+            inp = tfl.Input(input_dim)
+            def encode(x):
+                for f, kz in zip(filters, kernelsizes):
+                    x = conv_block(f, kz)(x)
+                for f, kz in zip(resfilters, reskernelsizes):
+                    x = ResnetBlock1D(f, kz, dropout=0.1)(x)
+                for f in lstmfilters:
+                    x = block_BiLSTM(f, x)
+                x = tfl.LSTM(64, return_sequences=True)(x)
+                x, w0 = block_transformer(64, None, x)
+                encoded, w1 = block_transformer(64, None, x)
+                return encoded
+            return tf.keras.Model(inp, encode(inp))
+
+        def inv_conv_block(f,kz):
+            return tf.keras.Sequential([tfl.UpSampling1D(2),
+                                        tfl.Conv1D(f,kz,padding='same'),
+                                        tfl.BatchNormalization(),
+                                        tfl.Activation('relu'),
+                                        tfl.Dropout(0.1)])
+
+        def _decoder(input_shape, activation='sigmoid'):
+            inp = tfl.Input(input_shape)
+            x = inp
+            if activation != 'sigmoid':
+                x = tfl.LSTM(filters[1], return_sequences=True,
+                             dropout=0.1,
+                             recurrent_dropout=0.1)(x)
+                x, w = SeqSelfAttention(return_attention=True,
+                                                         attention_width=3)(x)
+
+            x = tf.keras.Sequential([inv_conv_block(f, kz) for f, kz in zip(invfilters, invkernelsizes)])(x)
+            to_crop = x.shape[1] - input_dim[0]
+            of_start, of_end = to_crop//2, to_crop//2
+            of_end += to_crop % 2
+            x = tfl.Cropping1D((of_start, of_end))(x)
+            x = tfl.Conv1D(1, 11, padding='same', activation=activation)(x)
+            return tf.keras.Model(inp, x)
+
+        self.feature_extractor = _encoder()
+        encoded_dim = self.feature_extractor.layers[-1].output.shape[1:]
+        self.detector = _decoder(encoded_dim, activation='sigmoid')
+        self.p_picker = _decoder(encoded_dim, activation='softmax')
+        self.s_picker = _decoder(encoded_dim, activation='softmax')
+
+        self.feature_extractor.summary()
+        self.detector.summary()
+        self.p_picker.summary()
+        self.s_picker.summary()
+
+    def call(self, inputs):
+        encoded = self.feature_extractor(inputs)
+        d = self.detector(encoded)
+        p = self.p_picker(encoded)
+        s = self.s_picker(encoded)
+        return d, p, s
+
