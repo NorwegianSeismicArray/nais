@@ -33,6 +33,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  drop_channel=0.0,
                  scale_amplitude=0.0,
                  pre_emphasis=0.97,
+                 buffer=0,
                  shuffle=False
                  ):
         self.x, self.y = x_set, y_set
@@ -47,6 +48,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
 
         self.batch_size = batch_size
         self.shuffle = shuffle
+        self.p_buffer = buffer
         self.norm_mode = norm_mode
         self.augmentation = augmentation
         self.add_event = add_event
@@ -187,7 +189,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         start, end = detection
 
         if np.random.uniform(0, 1) < rate:
-            roll = np.random.randint(-start, len(X) - end)
+            roll = np.random.randint(-start+self.p_buffer, len(X) - end)
             X = np.roll(X, roll, axis=0)
             y = [np.roll(a, roll, axis=0) for a in y]
         return X, y
