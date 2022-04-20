@@ -62,6 +62,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.drop_channel = drop_channel
         self.scale_amplitude = scale_amplitude
         self.pre_emphasis = pre_emphasis
+        self.use_ramp = ramp > 0
         self.ramp = np.ones(ramp) if ramp > 0 else 0
         self.on_epoch_end()
 
@@ -208,7 +209,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             if yt[j] == 'single':
                 if not math.isnan(y[j]):
                     labels[int(y[j]),j] = 1
-                    if self.ramp:
+                    if self.use_ramp:
                         labels[:,j] = convolve(labels[:,j], self.ramp, mode='same')
             elif yt[j] == 'region':
                 start, end = y[j]
