@@ -209,7 +209,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                 if not math.isnan(y[j]):
                     labels[int(y[j]),j] = 1
                     if self.ramp:
-                        labels[int(y[j])] = convolve(labels[int(y[j])], self.ramp, mode='same')
+                        labels[:,j] = convolve(labels[:,j], self.ramp, mode='same')
             elif yt[j] == 'region':
                 start, end = y[j]
                 if not math.isnan(start and end):
