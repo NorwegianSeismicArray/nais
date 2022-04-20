@@ -306,7 +306,8 @@ class PhaseNet(tf.keras.Model):
     def __init__(self, num_classes=2, filters=None, name='PhaseNet'):
         super(PhaseNet, self).__init__(name=name)
         self.num_classes = num_classes
-        self.initializer = tf.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform")
+        self.initializer = 'glorot_normal'
+        self.dropout_rate = 0.2
 
         if filters is None:
             self.filters = [4, 8, 16, 32]
@@ -322,6 +323,7 @@ class PhaseNet(tf.keras.Model):
         x = tfl.Conv1D(self.filters[0], 7, strides=2, padding="same")(inputs)
         x = tfl.BatchNormalization()(x)
         x = tfl.Activation("relu")(x)
+        x = tfl.Dropout(self.dropout_rate)(x)
 
         previous_block_activation = x  # Set aside residual
 
@@ -331,7 +333,7 @@ class PhaseNet(tf.keras.Model):
             x = tfl.SeparableConv1D(filters, 7, padding="same", kernel_initializer=self.initializer)(x)
             x = tfl.BatchNormalization()(x)
             x = tfl.Activation("relu")(x)
-            x = tfl.Dropout(0.2)(x)
+            x = tfl.Dropout(self.dropout_rate)(x)
 
             x = tfl.SeparableConv1D(filters, 7, padding="same", kernel_initializer=self.initializer)(x)
             x = tfl.BatchNormalization()(x)
@@ -352,7 +354,7 @@ class PhaseNet(tf.keras.Model):
             x = tfl.Conv1DTranspose(filters, 7, padding="same", kernel_initializer=self.initializer)(x)
             x = tfl.BatchNormalization()(x)
             x = tfl.Activation("relu")(x)
-            x = tfl.Dropout(0.2)(x)
+            x = tfl.Dropout(self.dropout_rate)(x)
 
             x = tfl.Conv1DTranspose(filters, 7, padding="same", kernel_initializer=self.initializer)(x)
             x = tfl.BatchNormalization()(x)
@@ -369,7 +371,7 @@ class PhaseNet(tf.keras.Model):
         x = tfl.Conv1D(self.filters[0], 7, strides=1, padding="same", kernel_initializer=self.initializer)(inputs)
         x = tfl.BatchNormalization()(x)
         x = tfl.Activation("relu")(x)
-        x = tfl.Dropout(0.2)(x)
+        x = tfl.Dropout(self.dropout_rate)(x)
 
         # Add a per-pixel classification layer
         if self.num_classes is not None:
