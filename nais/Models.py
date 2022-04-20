@@ -306,6 +306,7 @@ class PhaseNet(tf.keras.Model):
     def __init__(self, num_classes=2, filters=None, name='PhaseNet'):
         super(PhaseNet, self).__init__(name=name)
         self.num_classes = num_classes
+        self.initializers = tf.keras.initializers.VarianceScaling(scale=1.0, mode="fan_avg", distribution="uniform")
 
         if filters is None:
             self.filters = [4, 8, 16, 32]
@@ -327,17 +328,17 @@ class PhaseNet(tf.keras.Model):
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for filters in self.filters[1:]:
             x = tfl.Activation("relu")(x)
-            x = tfl.SeparableConv1D(filters, 7, padding="same")(x)
+            x = tfl.SeparableConv1D(filters, 7, padding="same", kernel_initializer=self.initializer)(x)
             x = tfl.BatchNormalization()(x)
 
             x = tfl.Activation("relu")(x)
-            x = tfl.SeparableConv1D(filters, 7, padding="same")(x)
+            x = tfl.SeparableConv1D(filters, 7, padding="same", kernel_initializer=self.initializer)(x)
             x = tfl.BatchNormalization()(x)
 
             x = tfl.MaxPooling1D(4, strides=2, padding="same")(x)
 
             # Project residual
-            residual = tfl.Conv1D(filters, 1, strides=2, padding="same")(
+            residual = tfl.Conv1D(filters, 1, strides=2, padding="same", kernel_initializer=self.initializer)(
                 previous_block_activation
             )
             x = tfl.add([x, residual])  # Add back residual
@@ -347,29 +348,29 @@ class PhaseNet(tf.keras.Model):
 
         for filters in self.filters[::-1]:
             x = tfl.Activation("relu")(x)
-            x = tfl.Conv1DTranspose(filters, 7, padding="same")(x)
+            x = tfl.Conv1DTranspose(filters, 7, padding="same", kernel_initializer=self.initializer)(x)
             x = tfl.BatchNormalization()(x)
 
             x = tfl.Activation("relu")(x)
-            x = tfl.Conv1DTranspose(filters, 7, padding="same")(x)
+            x = tfl.Conv1DTranspose(filters, 7, padding="same", kernel_initializer=self.initializer)(x)
             x = tfl.BatchNormalization()(x)
 
             x = tfl.UpSampling1D(2)(x)
 
             # Project residual
             residual = tfl.UpSampling1D(2)(previous_block_activation)
-            residual = tfl.Conv1D(filters, 1, padding="same")(residual)
+            residual = tfl.Conv1D(filters, 1, padding="same", kernel_initializer=self.initializer)(residual)
             x = tfl.add([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
         # Exit block
-        x = tfl.Conv1D(self.filters[0], 7, strides=1, padding="same")(inputs)
+        x = tfl.Conv1D(self.filters[0], 7, strides=1, padding="same", kernel_initializer=self.initializer)(inputs)
         x = tfl.BatchNormalization()(x)
         x = tfl.Activation("relu")(x)
 
         # Add a per-pixel classification layer
         if self.num_classes is not None:
-            outputs = tfl.Conv1D(self.num_classes, 1, activation="softmax", padding="same")(x)
+            outputs = tfl.Conv1D(self.num_classes, 1, activation="softmax", padding="same", kernel_initializer=self.initializer)(x)
         else:
             outputs = x
 
