@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import math
+from scipy.signal import convolve
 
 class AugmentWaveformSequence(tf.keras.utils.Sequence):
     """
@@ -24,6 +25,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  y_type='single',
                  norm_mode='max',
                  augmentation=False,
+                 ramp=0,
                  add_event=0.0,
                  add_gap=0.0,
                  max_gap_size=0.1,
@@ -60,6 +62,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.drop_channel = drop_channel
         self.scale_amplitude = scale_amplitude
         self.pre_emphasis = pre_emphasis
+        self.ramp = np.ones(ramp) if ramp > 0 else 0
         self.on_epoch_end()
 
     def __len__(self):
@@ -205,6 +208,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             if yt[j] == 'single':
                 if not math.isnan(y[j]):
                     labels[int(y[j]),j] = 1
+                    if self.ramp:
+                        labels[int(y[j])] = convolve(labels[int(y[j])], self.ramp, mode='same')
             elif yt[j] == 'region':
                 start, end = y[j]
                 if not math.isnan(start and end):
