@@ -137,9 +137,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         n = X.shape[-1]
         r = np.random.uniform(0, 1)
         if r < rate:
-            X *= np.random.uniform((1, n))
+            X *= np.random.uniform(size=n)[np.newaxis]
         elif r < 2 * rate:
-            X /= np.random.uniform((1, n))
+            X /= np.random.uniform(size=n)[np.newaxis]
         return X
 
     def _drop_channel(self, X, snr, rate):
