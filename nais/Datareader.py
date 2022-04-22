@@ -145,7 +145,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
     def _drop_channel(self, X, snr, rate):
         n = X.shape[-1]
         X = np.copy(X)
-        if np.random.uniform(0, 1) < rate and all(snr >= self.min_snr):
+        if np.random.uniform(0, 1) < rate and snr >= self.min_snr:
             c = [np.random.choice([0, 1]) for _ in range(n)]
             if sum(c) > 0:
                 X[..., np.array(c) == 0] = 0
@@ -165,7 +165,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         return X
 
     def _add_noise(self, X, snr, rate):
-        if np.random.uniform(0, 1) < rate and all(snr >= self.min_snr):
+        if np.random.uniform(0, 1) < rate and snr >= self.min_snr:
             noisy_X = np.empty_like(X)
             for c in range(X.shape[-1]):
                 noisy_X[:, c] = X[:, c] + np.random.normal(
@@ -200,7 +200,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         event2 = X2[start2:end2]
         event2_size = end2 - start2
         r = np.random.uniform(0, 1)
-        if r < rate and all(snr >= self.min_snr):
+        if r < rate and snr >= self.min_snr:
             scale = 1 / np.random.uniform(1, 10)
             before = np.random.choice([True, False])
             after = not before
