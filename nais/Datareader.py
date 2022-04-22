@@ -9,11 +9,41 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         numpy array, 3D, (samples, length, channels)
     y_set :
         numpy array or list of numpy arrays.
+    event_type :
+        list, type of event, eg. earthquake.
+    snr :
+        nparray, signal-to-noise for each event.
     batch_size : int, default=32
     y_type: str, default='single'
         single value or waveform (eg. autoencoders, p/s picking etc).
         'single': single pick, y is single value
         'region': region of data, y is tuple of start and end
+    norm_mode:
+        str, max or std
+    augmentation :
+        bool
+    add_event :
+        float, stack events at prob.
+    add_gap :
+        float, mask data to zeros in period at prob.
+    max_gap_size :
+        float, max zeros gap in data. Proportion.
+    coda_ration :
+        float
+    shift_event :
+        float, move arrivals at prob.
+    drop_channel :
+        float, drop channel at prob.
+    scale_amplitude :
+        float, scale amplitude at prob.
+    pre_emphasis :
+        float
+    min_snr :
+        float, minimum snr required to perform augmentation.
+    buffer :
+        minimum steps from start of windown to p-arrival.
+    shuffle :
+        bool, shuffle the dataset on epoch end.
     """
 
     def __init__(self,
@@ -35,6 +65,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  drop_channel=0.0,
                  scale_amplitude=0.0,
                  pre_emphasis=0.97,
+                 min_snr=10.0,
                  buffer=0,
                  shuffle=False
                  ):
@@ -49,6 +80,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             self.y_type = [self.y_type]
 
         self.batch_size = batch_size
+        self.min_snr = min_snr
         self.shuffle = shuffle
         self.p_buffer = buffer
         self.norm_mode = norm_mode
@@ -113,7 +145,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
     def _drop_channel(self, X, snr, rate):
         n = X.shape[-1]
         X = np.copy(X)
-        if np.random.uniform(0, 1) < rate and all(snr >= 10.0):
+        if np.random.uniform(0, 1) < rate and all(snr >= self.min_snr):
             c = [np.random.choice([0, 1]) for _ in range(n)]
             if sum(c) > 0:
                 X[..., np.array(c) == 0] = 0
@@ -133,7 +165,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         return X
 
     def _add_noise(self, X, snr, rate):
-        if np.random.uniform(0, 1) < rate and all(snr >= 10.0):
+        if np.random.uniform(0, 1) < rate and all(snr >= self.min_snr):
             noisy_X = np.empty_like(X)
             for c in range(X.shape[-1]):
                 noisy_X[:, c] = X[:, c] + np.random.normal(
@@ -168,7 +200,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         event2 = X2[start2:end2]
         event2_size = end2 - start2
         r = np.random.uniform(0, 1)
-        if r < rate and all(snr >= 10.0):
+        if r < rate and all(snr >= self.min_snr):
             scale = 1 / np.random.uniform(1, 10)
             before = np.random.choice([True, False])
             after = not before
