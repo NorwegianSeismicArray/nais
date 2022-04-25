@@ -262,8 +262,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         labels = np.zeros((self.batch_size, self.x.shape[1], len(self.y)))
 
         for i, idx in enumerate(indexes):
-            x = self.x[idx]
-            y = [a[idx] for a in self.y]
+            x = self.x[idx].copy()
+            y = [a[idx].copy() for a in self.y]
             label = labels[i]
             label, detection = self.__convert_y_to_regions(y, self.y_type, label)
 
