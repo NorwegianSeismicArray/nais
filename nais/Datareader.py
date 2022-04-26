@@ -231,10 +231,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         crop_from_start = np.random.randint(0, start - self.p_buffer)
         crop_from_end = self.total_crop - crop_from_start
 
-        X = X[crop_from_start:-crop_from_end]
-        y = [a[crop_from_start:-crop_from_end] for a in y]
-
-        return X, y
+        return X[crop_from_start:-crop_from_end], y[crop_from_start:-crop_from_end]
 
     def _pre_emphasis(self, X, pre_emphasis=0.97):
         for ch in range(X.shape[-1]):
