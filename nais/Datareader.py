@@ -264,8 +264,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
 
     def __data_generation(self, indexes):
 
-        features = []
-        labels = np.zeros((self.batch_size, self.x.shape[1], len(self.y_type)))
+        features = np.zeros((self.batch_size, self.x.shape[1] - self.total_crop, self.x.shape[2]))
+        labels = np.zeros((self.batch_size, self.x.shape[1] - self.total_crop, len(self.y_type)))
 
         for i, idx in enumerate(indexes):
             x = self.x[idx].copy()
@@ -300,10 +300,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             if self.norm_mode is not None:
                 x = self._normalize(x, mode=self.norm_mode)
 
-            features.append(x)
+            features[i] = x
             labels[i] = label
 
-        features = np.asarray(features)
         labels = np.split(labels, len(self.y_type), axis=-1)
 
         return features, labels
