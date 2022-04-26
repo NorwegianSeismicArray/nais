@@ -60,7 +60,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  add_gap=0.0,
                  max_gap_size=0.1,
                  coda_ratio=0.4,
-                 shift_event=0.9,
+                 total_crop=None,
                  add_noise=0.0,
                  drop_channel=0.0,
                  scale_amplitude=0.0,
@@ -74,6 +74,11 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.y_type = y_type
         self.event_type = event_type
         self.snr = snr
+
+        if total_crop is None:
+            self.total_crop = int(0.2 * self.x.shape[1])
+        else:
+            self.total_crop = total_crop
 
         if not (isinstance(self.y, list) or not isinstance(self.y, tuple)):
             self.y = [self.y]
@@ -89,7 +94,6 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.add_gap = add_gap
         self.max_gap_size = max_gap_size
         self.coda_ratio = coda_ratio
-        self.shift_event = shift_event
         self.add_noise = add_noise
         self.drop_channel = drop_channel
         self.scale_amplitude = scale_amplitude
@@ -221,13 +225,15 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
 
         return X1
 
-    def _shift_event(self, X, y, detection, rate):
+    def _shift_event(self, X, y, detection):
         start, end = detection
 
-        if np.random.uniform(0, 1) < rate:
-            roll = np.random.randint(-start+self.p_buffer, len(X) - end)
-            X = np.roll(X, roll, axis=0)
-            y = [np.roll(a, roll, axis=0) for a in y]
+        crop_from_start = np.random.randint(0, start - self.p_buffer)
+        crop_from_end = self.total_crop - crop_from_start
+
+        X = X[crop_from_start:-crop_from_end]
+        y = [a[crop_from_start:-crop_from_end] for a in y]
+
         return X, y
 
     def _pre_emphasis(self, X, pre_emphasis=0.97):
@@ -289,7 +295,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                         x = self._pre_emphasis(x, self.pre_emphasis)
 
             if self.event_type[i] != 'noise':
-                x, y = self._shift_event(x, label, detection, self.shift_event / 2)
+                x, y = self._shift_event(x, label, detection)
 
             if self.norm_mode is not None:
                 x = self._normalize(x, mode=self.norm_mode)
