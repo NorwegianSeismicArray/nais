@@ -104,9 +104,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
 
     def __len__(self):
         if self.augmentation:
-            return 2 * int(np.floor(len(self.x) / self.batch_size))
+            return 2 * int(np.floor(len(self.event_type) / self.batch_size))
         else:
-            return int(np.floor(len(self.x) / self.batch_size))
+            return int(np.floor(len(self.event_type) / self.batch_size))
 
     def __getitem__(self, item):
         if self.augmentation:
@@ -239,39 +239,38 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             X[:, ch] = np.append(bpf[0], bpf[1:] - pre_emphasis * bpf[:-1])
         return X
 
-    def __convert_y_to_regions(self, y, yt, labels):
+    def __convert_y_to_regions(self, y, yt, label):
         for j in range(len(y)):
             if yt[j] == 'single':
                 i = int(y[j])
                 if not math.isnan(i):
-                    labels[i,j] = 1
+                    label[i,j] = 1
             elif yt[j] == 'region':
                 start, end = y[j]
                 if not math.isnan(start and end):
                     start, end = map(int, (start, end))
                     detection = (start, end)
-                    labels[start:end,j] = 1
+                    label[start:end,j] = 1
             else:
                 raise NotImplementedError(yt[j] + ' is not supported.')
 
             if self.use_ramp:
-                labels[:, j] = convolve(labels[:, j], self.ramp, mode='same')
+                label[:, j] = convolve(label[:, j], self.ramp, mode='same')
 
         if not 'detection' in locals():
-            detection = (y[0], y[1])
+            detection = (len(label)//4,3*len(label)//4)
 
-        return labels, detection
+        return label, detection
 
     def __data_generation(self, indexes):
 
         features = []
-        labels = np.zeros((self.batch_size, self.x.shape[1], len(self.y_type)))
-        final_labels = []
+        labels = []
 
         for i, idx in enumerate(indexes):
             x = self.x[idx].copy()
             y = [a[idx].copy() for a in self.y]
-            label = labels[i]
+            label = np.zeros((x.shape[0],len(self.y_type)))
             label, detection = self.__convert_y_to_regions(y, self.y_type, label)
 
             if self.augmentation and i > self.batch_size // 2:
@@ -284,7 +283,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                 else:
                     if self.add_event:
                         t = np.random.choice(np.where(self.event_type != 'noise')[0])
-                        _, detection2 = self.__convert_y_to_regions(0, t, labels)
+                        _, detection2 = self.__convert_y_to_regions(0, t, label)
                         x = self._add_event(x, detection, self.x[t], detection2, self.snr[i], self.add_event)
                     if self.add_noise:
                         x = self._add_noise(x, self.snr[i], self.add_noise)
@@ -295,15 +294,16 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                     if self.pre_emphasis:
                         x = self._pre_emphasis(x, self.pre_emphasis)
 
-            if self.event_type[i] != 'noise':
-                x, label = self._shift_event(x, label, detection)
-
             if self.norm_mode is not None:
                 x = self._normalize(x, mode=self.norm_mode)
 
-            features.append(x)
-            final_labels.append(label)
+            x, label = self._shift_event(x, label, detection)
 
-        features, labels = map(np.asarray, (features, final_labels))
+            if len(x) != 0 and len(label) != 0:
+                features.append(x)
+                labels.append(label)
+
+        features, labels = map(lambda a: np.stack(a,axis=0), (features, labels))
+
         labels = np.split(labels, len(self.y_type), axis=-1)
         return features, labels
