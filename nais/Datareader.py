@@ -225,11 +225,15 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
 
         return X1
 
-    def _shift_event(self, X, y, detection):
+    def _shift_crop(self, X, y, detection):
         start, end = detection
 
-        crop_from_start = np.random.randint(0, start - self.p_buffer)
-        crop_from_end = self.total_crop - crop_from_start
+        if len(X) - end < start:
+            crop_from_end = min(np.random.randint(0, len(X) - end), self.total_crop - 1)
+            crop_from_start = self.total_crop - crop_from_end
+        else:
+            crop_from_start = min(np.random.randint(0, start), self.total_crop - 1)
+            crop_from_end = self.total_crop - crop_from_start
 
         return X[crop_from_start:-crop_from_end], y[crop_from_start:-crop_from_end]
 
@@ -268,8 +272,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         labels = []
 
         for i, idx in enumerate(indexes):
-            x = self.x[idx].copy()
-            y = [a[idx].copy() for a in self.y]
+            x = self.x[idx]
+            y = [a[idx] for a in self.y]
             label = np.zeros((x.shape[0],len(self.y_type)))
             label, detection = self.__convert_y_to_regions(y, self.y_type, label)
 
@@ -297,13 +301,13 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             if self.norm_mode is not None:
                 x = self._normalize(x, mode=self.norm_mode)
 
-            x, label = self._shift_event(x, label, detection)
+            x, label = self._shift_crop(x, label, detection)
 
             if len(x) != 0 and len(label) != 0:
                 features.append(x)
                 labels.append(label)
 
-        features, labels = map(lambda a: np.stack(a,axis=0), (features, labels))
+        features, labels = map(lambda a: np.stack(a, axis=0), (features, labels))
 
         labels = np.split(labels, len(self.y_type), axis=-1)
         return features, labels
