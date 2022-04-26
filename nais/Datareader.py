@@ -239,28 +239,28 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             X[:, ch] = np.append(bpf[0], bpf[1:] - pre_emphasis * bpf[:-1])
         return X
 
-    def __convert_y_to_regions(self, y, yt, labels):
+    def __convert_y_to_regions(self, y, yt, label):
         for j in range(len(y)):
             if yt[j] == 'single':
                 i = int(y[j])
                 if not math.isnan(i):
-                    labels[i,j] = 1
+                    label[i,j] = 1
             elif yt[j] == 'region':
                 start, end = y[j]
                 if not math.isnan(start and end):
                     start, end = map(int, (start, end))
                     detection = (start, end)
-                    labels[start:end,j] = 1
+                    label[start:end,j] = 1
             else:
                 raise NotImplementedError(yt[j] + ' is not supported.')
 
             if self.use_ramp:
-                labels[:, j] = convolve(labels[:, j], self.ramp, mode='same')
+                label[:, j] = convolve(label[:, j], self.ramp, mode='same')
 
         if not 'detection' in locals():
-            detection = (y[0], y[1])
+            detection = (len(label)//4,3*len(label)//4)
 
-        return labels, detection
+        return label, detection
 
     def __data_generation(self, indexes):
 
