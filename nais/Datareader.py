@@ -245,10 +245,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
     def __convert_y_to_regions(self, y, yt, labels):
         for j in range(len(y)):
             if yt[j] == 'single':
-                if not math.isnan(y[j]):
-                    labels[int(y[j]),j] = 1
-                    if self.use_ramp:
-                        labels[:,j] = convolve(labels[:,j], self.ramp, mode='same')
+                i = int(y[j])
+                if not math.isnan(i):
+                    labels[i,j] = 1
             elif yt[j] == 'region':
                 start, end = y[j]
                 if not math.isnan(start and end):
@@ -258,14 +257,18 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             else:
                 raise NotImplementedError(yt[j] + ' is not supported.')
 
+            if self.use_ramp:
+                labels[:, j] = convolve(labels[:, j], self.ramp, mode='same')
+
         if not 'detection' in locals():
-            detection = (0, len(labels[0])//2)
+            detection = (y[0], y[1])
+
         return labels, detection
 
     def __data_generation(self, indexes):
 
         features = []
-        labels = np.zeros((self.batch_size, self.x.shape[1], len(self.y)))
+        labels = np.zeros((self.batch_size, self.x.shape[1], len(self.y_type)))
 
         for i, idx in enumerate(indexes):
             x = self.x[idx].copy()
@@ -295,7 +298,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                         x = self._pre_emphasis(x, self.pre_emphasis)
 
             if self.event_type[i] != 'noise':
-                x, y = self._shift_event(x, label, detection)
+                x, label = self._shift_event(x, label, detection)
 
             if self.norm_mode is not None:
                 x = self._normalize(x, mode=self.norm_mode)
@@ -304,6 +307,6 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             labels[i] = label
 
         features = np.asarray(features)
-        labels = np.split(labels, len(self.y), axis=-1)
+        labels = np.split(labels, len(self.y_type), axis=-1)
 
         return features, labels
