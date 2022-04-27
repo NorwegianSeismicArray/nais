@@ -228,9 +228,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
     def _shift_crop(self, X, y, detection):
         num_channels = X.shape[-1]
         image = np.concatenate([X,y], axis=-1)
-        image = np.expand_dims(image,axis=-1)
-        cropped_image = tf.image.random_crop(image, size=[self.new_length, image.shape[1], 1])
-        cropped_image = np.squeeze(cropped_image)
+        cropped_image = tf.image.random_crop(image, size=[self.new_length, image.shape[1]])
         x = cropped_image[:,:num_channels]
         y = cropped_image[:,num_channels:]
         return x, y
