@@ -229,7 +229,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         start, end = detection
         assert img.shape[0] >= self.new_length
         assert img.shape[0] == mask.shape[0]
-        y = min(start, np.random.randint(0, img.shape[0] - self.new_length))
+        y = min(start, np.random.randint(self.p_buffer, img.shape[0] - self.new_length))
         img = img[y:y + self.new_length]
         mask = mask[y:y + self.new_length]
         return img, mask
