@@ -60,7 +60,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  add_gap=0.0,
                  max_gap_size=0.1,
                  coda_ratio=0.4,
-                 total_crop=None,
+                 new_length=None,
                  add_noise=0.0,
                  drop_channel=0.0,
                  scale_amplitude=0.0,
@@ -75,10 +75,10 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.event_type = event_type
         self.snr = snr
 
-        if total_crop is None:
-            self.total_crop = int(0.2 * self.x.shape[1])
+        if new_length is None:
+            self.new_length = int(0.8 * self.x.shape[1])
         else:
-            self.total_crop = total_crop
+            self.new_length = new_length
 
         if not (isinstance(self.y, list) or not isinstance(self.y, tuple)):
             self.y = [self.y]
@@ -226,16 +226,14 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         return X1
 
     def _shift_crop(self, X, y, detection):
-        start, end = detection
-
-        if len(X) - end < start:
-            crop_from_end = min(np.random.randint(0, len(X) - end), self.total_crop - 1)
-            crop_from_start = self.total_crop - crop_from_end
-        else:
-            crop_from_start = min(np.random.randint(0, start), self.total_crop - 1)
-            crop_from_end = self.total_crop - crop_from_start
-
-        return X[crop_from_start:-crop_from_end], y[crop_from_start:-crop_from_end]
+        num_channels = X.shape[-1]
+        image = np.concatenate([X,y], axis=-1)
+        image = np.expand_dims(image,axis=-1)
+        cropped_image = tf.image.random_crop(image, size=[self.new_length, image.shape[1], 1])
+        cropped_image = np.squeeze(cropped_image)
+        x = cropped_image[:,:num_channels]
+        y = cropped_image[:,num_channels:]
+        return x, y
 
     def _pre_emphasis(self, X, pre_emphasis=0.97):
         for ch in range(X.shape[-1]):
