@@ -54,6 +54,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  batch_size=32,
                  y_type='single',
                  norm_mode='max',
+                 norm_channel_model='local',
                  augmentation=False,
                  ramp=0,
                  add_event=0.0,
@@ -89,6 +90,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.shuffle = shuffle
         self.p_buffer = buffer
         self.norm_mode = norm_mode
+        self.norm_channel_model = norm_channel_model
         self.augmentation = augmentation
         self.add_event = add_event
         self.add_gap = add_gap
@@ -123,13 +125,19 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         if self.shuffle:
             np.random.shuffle(self.indexes)
 
-    def _normalize(self, X, mode='max'):
+    def _normalize(self, X, mode='max', channel_mode='local'):
         X -= np.mean(X, axis=0, keepdims=True)
 
         if mode == 'max':
-            m = np.max(X, axis=0, keepdims=True)
+            if channel_mode == 'local':
+                m = np.max(X, axis=0, keepdims=True)
+            else:
+                m = np.max(X, keepdims=True)
         elif mode == 'std':
-            m = np.std(X, axis=0, keepdims=True)
+            if channel_mode == 'local':
+                m = np.std(X, axis=0, keepdims=True)
+            else:
+                m = np.std(X, keepdims=True)
         else:
             raise NotImplementedError(
                 f'Not supported normalization mode: {mode}')
@@ -296,7 +304,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                         x = self._pre_emphasis(x, self.pre_emphasis)
 
             if self.norm_mode is not None:
-                x = self._normalize(x, mode=self.norm_mode)
+                x = self._normalize(x, mode=self.norm_mode, channel_mode=self.norm_channel_model)
 
             x, label = self._shift_crop(x, label, detection)
 
