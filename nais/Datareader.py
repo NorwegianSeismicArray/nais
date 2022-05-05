@@ -57,6 +57,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  norm_channel_mode='local',
                  augmentation=False,
                  ramp=0,
+                 taper_alpha=0.0,
                  add_event=0.0,
                  add_gap=0.0,
                  max_gap_size=0.1,
@@ -75,6 +76,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.y_type = y_type
         self.event_type = event_type
         self.snr = snr
+        self.taper_alpha = taper_alpha
 
         if new_length is None:
             self.new_length = int(0.8 * self.x.shape[1])
@@ -311,6 +313,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                 x = self._normalize(x, mode=self.norm_mode, channel_mode=self.norm_channel_mode)
 
             x, label = self._shift_crop(x, label, detection)
+
+            if self.taper_alpha > 0:
+                x, label = self._taper(x, label, self.taper_alpha)
 
             if len(x) != 0 and len(label) != 0:
                 features.append(x)
