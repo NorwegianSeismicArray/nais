@@ -1,5 +1,10 @@
 import tensorflow as tf
-from kapre import STFT, Magnitude
+try:
+    from kapre import STFT, Magnitude
+except ImportError as e:
+    print(e)
+    print('kapre not installed')
+
 import numpy as np
 import tensorflow.keras.layers as tfl
 import tensorflow.keras.backend as K
