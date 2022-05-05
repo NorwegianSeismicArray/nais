@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import math
-from scipy.signal import convolve
+from scipy.signal import convolve, tukey
 
 class AugmentWaveformSequence(tf.keras.utils.Sequence):
     """
@@ -241,6 +241,10 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         img = img[y:y + self.new_length]
         mask = mask[y:y + self.new_length]
         return img, mask
+
+    def _taper(self, img, mask, alpha=0.1):
+        w = tukey(img.shape[0], alpha)
+        return img*w[:,np.newaxis], mask
 
     def _pre_emphasis(self, X, pre_emphasis=0.97):
         for ch in range(X.shape[-1]):
