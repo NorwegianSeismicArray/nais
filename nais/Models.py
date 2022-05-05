@@ -5,7 +5,12 @@ Author: Erik B. Myklebust, erik@norsar.no
 
 import tensorflow as tf
 import numpy as np
-from kapre import STFT, Magnitude
+try:
+    from kapre import STFT, Magnitude
+except ImportError as e:
+    print(e)
+    print('kapre not installed')
+
 import tensorflow.keras.layers as tfl
 from nais.Layers import ResidualConv1D, ResnetBlock1D, SeqSelfAttention, FeedForward
 
