@@ -382,7 +382,8 @@ class PhaseNet(tf.keras.Model):
         # Add a per-pixel classification layer
         if self.num_classes is not None:
             x = tfl.Conv1D(self.num_classes, 1, padding="same", kernel_initializer=self.initializer)(x)
-            outputs = tfl.Activation(self.output_activation, axis=0)(x)
+            f = tf.keras.activations.get(self.output_activation)
+            outputs = tfl.Lambda(lambda a: f(a, axis=1))(x)
         else:
             outputs = x
 
