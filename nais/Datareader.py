@@ -50,7 +50,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  x_set,
                  y_set,
                  event_type,
-                 snr,
+                 snr=None,
                  batch_size=32,
                  y_type='single',
                  norm_mode='max',
@@ -75,6 +75,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.num_channels = self.x.shape[-1]
         self.y_type = y_type
         self.event_type = event_type
+        if snr is None:
+            snr = np.zeros(x_set.shape[0])
         self.snr = snr
         self.taper_alpha = taper_alpha
 
@@ -239,9 +241,19 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         start, end = detection
         assert img.shape[0] >= self.new_length
         assert img.shape[0] == mask.shape[0]
-        y = max(0, min(start, np.random.randint(0, img.shape[0] - self.new_length)) - self.p_buffer)
-        img = img[y:y + self.new_length]
-        mask = mask[y:y + self.new_length]
+        of_start = np.random.randint(0, start-self.p_buffer)
+        of_end = np.random.randint(0, end+self.p_buffer)
+        while of_start + of_end < img.shape[0] - self.new_length:
+            if np.random.random() < 0.5:
+                of_start += 1
+            else:
+                of_end += 1
+
+        img = img[of_start:-of_end]
+        mask = mask[of_start:-of_end]
+
+        print(img.shape)
+
         return img, mask
 
     def _taper(self, img, mask, alpha=0.1):
