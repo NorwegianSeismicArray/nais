@@ -241,19 +241,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         start, end = detection
         assert img.shape[0] >= self.new_length
         assert img.shape[0] == mask.shape[0]
-        of_start = np.random.randint(0, start-self.p_buffer)
-        of_end = np.random.randint(0, end+self.p_buffer)
-        while of_start + of_end < img.shape[0] - self.new_length:
-            if np.random.random() < 0.5:
-                of_start += 1
-            else:
-                of_end += 1
-
-        img = img[of_start:-of_end]
-        mask = mask[of_start:-of_end]
-
-        print(img.shape)
-
+        idx = max(0, np.random.randint(start-self.p_buffer, img.shape[0] - self.new_length))
+        img = img[idx:idx + self.new_length]
+        mask = mask[idx:idx + self.new_length]
         return img, mask
 
     def _taper(self, img, mask, alpha=0.1):
