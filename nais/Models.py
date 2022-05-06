@@ -308,11 +308,12 @@ class PhaseNet(tf.keras.Model):
 
     """
 
-    def __init__(self, num_classes=2, filters=None, name='PhaseNet'):
+    def __init__(self, num_classes=2, filters=None, output_activation='linear', name='PhaseNet'):
         super(PhaseNet, self).__init__(name=name)
         self.num_classes = num_classes
         self.initializer = 'glorot_normal'
         self.dropout_rate = 0.2
+        self.output_activation = output_activation
 
         if filters is None:
             self.filters = [4, 8, 16, 32]
@@ -380,7 +381,7 @@ class PhaseNet(tf.keras.Model):
 
         # Add a per-pixel classification layer
         if self.num_classes is not None:
-            outputs = tfl.Conv1D(self.num_classes, 1, activation="softmax", padding="same", kernel_initializer=self.initializer)(x)
+            outputs = tfl.Conv1D(self.num_classes, 1, activation=self.output_activation, padding="same", kernel_initializer=self.initializer)(x)
         else:
             outputs = x
 
