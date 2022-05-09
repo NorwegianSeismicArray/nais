@@ -323,6 +323,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                 features.append(x)
                 labels.append(label)
 
+        for x in features:
+            print(x.shape)
+
         features, labels = map(lambda a: np.stack(a, axis=0), (features, labels))
 
         labels = np.split(labels, len(self.y_type), axis=-1)
