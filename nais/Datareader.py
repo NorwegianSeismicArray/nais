@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import math
-from scipy.signal import convolve, tukey
+from scipy.signal import convolve, tukey, triang
 
 class AugmentWaveformSequence(tf.keras.utils.Sequence):
     """
@@ -105,7 +105,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.scale_amplitude = scale_amplitude
         self.pre_emphasis = pre_emphasis
         self.use_ramp = ramp > 0
-        self.ramp = np.ones(ramp) if ramp > 0 else 0
+        self.ramp = triang(ramp)
         self.on_epoch_end()
 
     def __len__(self):
