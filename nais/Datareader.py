@@ -243,6 +243,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         y = np.random.randint(0, self.new_length) // 2
         s = int(middle - y)
         e = int(middle + (self.new_length-y))
+
+        print(s,e,e-s)
         return img[s:e], mask[s:e]
 
     def _taper(self, img, mask, alpha=0.1):
