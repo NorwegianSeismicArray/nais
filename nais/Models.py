@@ -312,6 +312,7 @@ class PhaseNet(tf.keras.Model):
         super(PhaseNet, self).__init__(name=name)
         self.num_classes = num_classes
         self.initializer = 'glorot_normal'
+        self.kernel_regularizer = 'l2'
         self.dropout_rate = 0.2
         self.output_activation = output_activation
 
@@ -326,7 +327,10 @@ class PhaseNet(tf.keras.Model):
         ### [First half of the network: downsampling inputs] ###
 
         # Entry block
-        x = tfl.Conv1D(self.filters[0], 7, strides=2, padding="same")(inputs)
+        x = tfl.Conv1D(self.filters[0], 7,
+                       kernel_regularizer=self.kernel_regularizer,
+                       padding="same")(inputs)
+
         x = tfl.BatchNormalization()(x)
         x = tfl.Activation("relu")(x)
         x = tfl.Dropout(self.dropout_rate)(x)
@@ -336,12 +340,16 @@ class PhaseNet(tf.keras.Model):
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for filters in self.filters[1:]:
             x = tfl.Activation("relu")(x)
-            x = tfl.Conv1D(filters, 7, padding="same", kernel_initializer=self.initializer)(x)
+            x = tfl.Conv1D(filters, 7, padding="same",
+                           kernel_regularizer=self.kernel_regularizer,
+                           kernel_initializer=self.initializer)(x)
             x = tfl.BatchNormalization()(x)
             x = tfl.Activation("relu")(x)
             x = tfl.Dropout(self.dropout_rate)(x)
 
-            x = tfl.SeparableConv1D(filters, 7, padding="same", kernel_initializer=self.initializer)(x)
+            x = tfl.Conv1D(filters, 7, padding="same",
+                           kernel_regularizer=self.kernel_regularizer,
+                           kernel_initializer=self.initializer)(x)
             x = tfl.BatchNormalization()(x)
 
             x = tfl.MaxPooling1D(4, strides=2, padding="same")(x)
@@ -357,24 +365,32 @@ class PhaseNet(tf.keras.Model):
 
         for filters in self.filters[::-1]:
             x = tfl.Activation("relu")(x)
-            x = tfl.Conv1DTranspose(filters, 7, padding="same", kernel_initializer=self.initializer)(x)
+            x = tfl.Conv1DTranspose(filters, 7, padding="same",
+                                    kernel_regularizer=self.kernel_regularizer,
+                                    kernel_initializer=self.initializer)(x)
             x = tfl.BatchNormalization()(x)
             x = tfl.Activation("relu")(x)
             x = tfl.Dropout(self.dropout_rate)(x)
 
-            x = tfl.Conv1DTranspose(filters, 7, padding="same", kernel_initializer=self.initializer)(x)
+            x = tfl.Conv1DTranspose(filters, 7, padding="same",
+                                    kernel_regularizer=self.kernel_regularizer,
+                                    kernel_initializer=self.initializer)(x)
             x = tfl.BatchNormalization()(x)
 
             x = tfl.UpSampling1D(2)(x)
 
             # Project residual
             residual = tfl.UpSampling1D(2)(previous_block_activation)
-            residual = tfl.Conv1D(filters, 1, padding="same", kernel_initializer=self.initializer)(residual)
+            residual = tfl.Conv1D(filters, 1, padding="same",
+                                  kernel_regularizer=self.kernel_regularizer,
+                                  kernel_initializer=self.initializer)(residual)
             x = tfl.add([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
         # Exit block
-        x = tfl.Conv1D(self.filters[0], 7, strides=1, padding="same", kernel_initializer=self.initializer)(x)
+        x = tfl.Conv1D(self.filters[0], 7, strides=1, padding="same",
+                       kernel_regularizer=self.kernel_regularizer,
+                       kernel_initializer=self.initializer)(x)
         x = tfl.BatchNormalization()(x)
         x = tfl.Activation("relu")(x)
         x = tfl.Dropout(self.dropout_rate)(x)
@@ -384,6 +400,7 @@ class PhaseNet(tf.keras.Model):
             outputs = tfl.Conv1D(self.num_classes,
                            1,
                            padding="same",
+                           kernel_regularizer=self.kernel_regularizer,
                            activation=self.output_activation,
                            kernel_initializer=self.initializer)(x)
         else:
