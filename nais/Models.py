@@ -328,6 +328,7 @@ class PhaseNet(tf.keras.Model):
 
         # Entry block
         x = tfl.Conv1D(self.filters[0], 7,
+                       strides=2,
                        kernel_regularizer=self.kernel_regularizer,
                        padding="same")(inputs)
 
