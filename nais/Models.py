@@ -336,7 +336,7 @@ class PhaseNet(tf.keras.Model):
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for filters in self.filters[1:]:
             x = tfl.Activation("relu")(x)
-            x = tfl.SeparableConv1D(filters, 7, padding="same", kernel_initializer=self.initializer)(x)
+            x = tfl.Conv1D(filters, 7, padding="same", kernel_initializer=self.initializer)(x)
             x = tfl.BatchNormalization()(x)
             x = tfl.Activation("relu")(x)
             x = tfl.Dropout(self.dropout_rate)(x)
