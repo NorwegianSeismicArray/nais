@@ -245,7 +245,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
 
     def _shift_crop(self, img, mask, detection):
         start, end = detection
-        c = min(start-self.p_buffer, len(img) - end - self.p_buffer)
+        c = max(min(start-self.p_buffer, len(img) - end - self.p_buffer), 1)
         k1 = np.random.randint(0, c)
         k2 = len(img) - self.new_length - k1
         return img[k1:-k2], mask[k1:-k2]
