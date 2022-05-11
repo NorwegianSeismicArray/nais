@@ -487,6 +487,8 @@ class PhaseNetDist(tf.keras.Model):
                  num_outputs=1,
                  dropout_rate=0.2,
                  pool_type='max',
+                 kernel_regularizer='l2',
+                 kernel_initializer='glorot_normal',
                  phasenet_num_classes=2,
                  phasenet_filters=None,
                  phasenet_output_activation='linear',
@@ -508,6 +510,8 @@ class PhaseNetDist(tf.keras.Model):
         self.pool_type = pool_type
         self.output_activation = output_activation
         self.num_classes = num_classes
+        kernel_regularizer = self.kernel_regularizer
+        kernel_initializer = self.kernel_initializer
 
     def build(self, input_shape):
         self.phasenet.build(input_shape)
@@ -516,7 +520,11 @@ class PhaseNetDist(tf.keras.Model):
         x = self.phasenet.encoder(inputs)
 
         for f in self.filters:
-            x = tfl.Conv1D(f, activation=None, padding='same')(x)
+            x = tfl.Conv1D(f,
+                           activation=None,
+                           padding='same',
+                           kernel_regularizer=self.kernel_regularizer,
+                           kernel_initializer=self.initializer)(x)
             x = tfl.BatchNormalization()(x)
             x = tfl.Activation('relu')(x)
             x = tfl.Dropout(self.dropout_rate)(x)
