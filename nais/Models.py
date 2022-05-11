@@ -372,6 +372,7 @@ class PhaseNet(tf.keras.Model):
             x = tfl.add([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
+        self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
 
         for filters in self.filters[::-1]:
@@ -472,6 +473,64 @@ class UTime(tf.keras.Model):
 
         output = tfl.Conv1D(self.num_classes, activation=self.output_activation, padding='same')(x)
         self.model = tf.keras.Model(inputs=inputs, outputs=outputs)
+
+    def summary(self):
+        return self.model.summary()
+
+    def call(self, inputs):
+        return self.model(inputs)
+
+class PhaseNetDist(tf.keras.Model):
+    def __init__(self,
+                 dist_filters=None,
+                 output_activation=None,
+                 num_outputs=1,
+                 dropout_rate=0.2,
+                 pool_type='max',
+                 phasenet_num_classes=2,
+                 phasenet_filters=None,
+                 phasenet_output_activation='linear',
+                 phasenet_kernel_regularizer='l2',
+                 phasenet_dropout_rate=0.2,
+                 phasenet_initializer='glorot_normal'
+                 name='PhaseNetDist'):
+        super(PhaseNetDist, self).__init__(name=name)
+        self.phasenet = PhaseNet(filters=phasenet_filters,
+                                 num_classes=phasenet_num_classes,
+                                 output_activation=phasenet_output_activation,
+                                 dropout_rate=phasenet_dropout_rate,
+                                 kernel_regularizer=phasenet_kernel_regularizer,
+                                 initializer=phasenet_initializer)
+        if dist_filters is None:
+            self.filters = [8]
+        else:
+            self.filters = dist_filters
+        self.pool_type = pool_type
+        self.output_activation = output_activation
+        self.num_classes = num_classes
+
+    def build(self, input_shape):
+        self.phasenet.build(input_shape)
+        inputs = tf.keras.Input(shape=input_shape[1:])
+        phasenet_output = self.phasenet(inputs)
+        x = self.phasenet.encoder(inputs)
+
+        for f in self.filters:
+            x = tfl.Conv1D(f, activation=None, padding='same')(x)
+            x = tfl.BatchNormalization()(x)
+            x = tfl.Activation('relu')(x)
+            x = tfl.Dropout(self.dropout_rate)(x)
+
+        if self.pool_type == 'avg':
+            x = tfl.GlobalAveragePooling1D()(x)
+        elif self.pool_type = 'max':
+            x = tfl.GlobalMaxPooling1D()(x)
+        else:
+            raise NotImplementedError(f'pool_type={self.pool_type} is not supported.')
+
+        distance_output = tfl.Dense(self.num_outputs, activation=self.output_activation)(x)
+
+        self.model = tf.keras.Model(inputs=inputs, outputs=[phasenet_output, distance_output])
 
     def summary(self):
         return self.model.summary()
