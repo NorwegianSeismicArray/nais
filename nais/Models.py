@@ -431,15 +431,22 @@ class PhaseNet(tf.keras.Model):
 
 class UTime(tf.keras.Model):
     def __init__(self,
-                 filters=None,
+                 phasenet_filters=None,
+                 output_filters=None,
                  output_activation='softmax',
                  num_classes=2,
                  pool_sizes=[4],
                  pool_strides=[2],
+                 dropout_rate=0.2,
                  pool_type='avg',
                  name='UTime'):
         super(UTime, self).__init__(name=name)
-        self.phasenet = PhaseNet(filters=filters, num_classes=None)
+        self.phasenet = PhaseNet(filters=phasenet_filters, num_classes=None)
+        if output_filters is None:
+            self.filters = [4]
+        else:
+            self.filters = output_filters
+
         self.pool_sizes = pool_sizes
         self.pool_strides = pool_strides
         self.pool_type = pool_type
@@ -450,13 +457,19 @@ class UTime(tf.keras.Model):
         self.phasenet.build(input_shape)
         inputs = tf.keras.Input(shape=input_shape[1:])
         x = self.phasenet(inputs)
-        for psize, pstride in zip(self.pool_sizes, self.pool_strides):
+        for i, psize, pstride in enumerate(zip(self.pool_sizes, self.pool_strides)):
             if self.pool_type == 'avg':
                 x = tfl.AveragePooling1D(psize, strides=pstride, padding='same')(x)
             elif self.pool_type = 'max':
                 x = tfl.MaxPooling1D(psize, strides=pstride, padding='same')(x)
             else:
                 raise NotImplementedError(f'pool_type={self.pool_type} is not supported.')
+            if i < len(self.pool_size) - 1: #skip when on last pool layer.
+                x = tfl.Conv1D(self.filters[i], activation=None, padding='same')(x)
+                x = tfl.BatchNormalization()(x)
+                x = tfl.Activation('relu')(x)
+                x = tfl.Dropout(self.dropout_rate)(x)
+
         output = tfl.Conv1D(self.num_classes, activation=self.output_activation, padding='same')(x)
         self.model = tf.keras.Model(inputs=inputs, outputs=outputs)
 
