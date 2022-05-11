@@ -296,7 +296,6 @@ class AlexNet1D(tf.keras.Model):
             x = layer(x)
         return x
 
-
 class PhaseNet(tf.keras.Model):
     """
     Adapted from https://keras.io/examples/vision/oxford_pets_image_segmentation/
@@ -402,13 +401,13 @@ class PhaseNet(tf.keras.Model):
             previous_block_activation = x  # Set aside next residual
 
         # Exit block
-        x = tfl.Conv1D(self.filters[0], 7, strides=1, padding="same",
-                       kernel_regularizer=self.kernel_regularizer,
-                       kernel_initializer=self.initializer,
-                       name='exit')(x)
-        x = tfl.BatchNormalization()(x)
-        x = tfl.Activation("relu")(x)
-        x = tfl.Dropout(self.dropout_rate)(x)
+        #x = tfl.Conv1D(self.filters[0], 7, strides=1, padding="same",
+        #               kernel_regularizer=self.kernel_regularizer,
+        #               kernel_initializer=self.initializer,
+        #               name='exit')(x)
+        #x = tfl.BatchNormalization()(x)
+        #x = tfl.Activation("relu")(x)
+        #x = tfl.Dropout(self.dropout_rate)(x)
 
         # Add a per-pixel classification layer
         if self.num_classes is not None:
@@ -430,6 +429,42 @@ class PhaseNet(tf.keras.Model):
     def call(self, inputs):
         return self.model(inputs)
 
+class UTime(tf.keras.Model):
+    def __init__(self,
+                 filters=None,
+                 output_activation='softmax',
+                 num_classes=2,
+                 pool_sizes=[4],
+                 pool_strides=[2],
+                 pool_type='avg',
+                 name='UTime'):
+        super(UTime, self).__init__(name=name)
+        self.phasenet = PhaseNet(filters=filters, num_classes=None)
+        self.pool_sizes = pool_sizes
+        self.pool_strides = pool_strides
+        self.pool_type = pool_type
+        self.output_activation = output_activation
+        self.num_classes = num_classes
+
+    def build(self, input_shape):
+        self.phasenet.build(input_shape)
+        inputs = tf.keras.Input(shape=input_shape[1:])
+        x = self.phasenet(inputs)
+        for psize, pstride in zip(self.pool_sizes, self.pool_strides):
+            if self.pool_type == 'avg':
+                x = tfl.AveragePooling1D(psize, strides=pstride, padding='same')(x)
+            elif self.pool_type = 'max':
+                x = tfl.MaxPooling1D(psize, strides=pstride, padding='same')(x)
+            else:
+                raise NotImplementedError(f'pool_type={self.pool_type} is not supported.')
+        output = tfl.Conv1D(self.num_classes, activation=self.output_activation, padding='same')(x)
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs)
+
+    def summary(self):
+        return self.model.summary()
+
+    def call(self, inputs):
+        return self.model(inputs)
 
 class WaveNet(tf.keras.Model):
     """
