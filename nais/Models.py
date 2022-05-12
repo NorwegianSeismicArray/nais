@@ -313,7 +313,7 @@ class PhaseNet(tf.keras.Model):
                  output_activation='linear',
                  kernel_regularizer='l2',
                  dropout_rate=0.2,
-                 initializer='glorot_normal'
+                 initializer='glorot_normal',
                  name='PhaseNet'):
         super(PhaseNet, self).__init__(name=name)
         self.num_classes = num_classes
