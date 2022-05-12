@@ -351,7 +351,7 @@ class PhaseNet(tf.keras.Model):
             x = tfl.Conv1D(filters, 7, padding="same",
                            kernel_regularizer=self.kernel_regularizer,
                            kernel_initializer=self.initializer,
-                           name=f'downsteps_{i}_first')(x)
+                           )(x)
             x = tfl.BatchNormalization()(x)
             x = tfl.Activation("relu")(x)
             x = tfl.Dropout(self.dropout_rate)(x)
@@ -359,14 +359,14 @@ class PhaseNet(tf.keras.Model):
             x = tfl.Conv1D(filters, 7, padding="same",
                            kernel_regularizer=self.kernel_regularizer,
                            kernel_initializer=self.initializer,
-                           name=f'downsteps_{i}_second')(x)
+                           )(x)
             x = tfl.BatchNormalization()(x)
 
             x = tfl.MaxPooling1D(4, strides=2, padding="same")(x)
 
             # Project residual
             residual = tfl.Conv1D(filters, 1, strides=2, padding="same", kernel_initializer=self.initializer,
-                                  name=f'skip_{i}')(
+                                  )(
                 previous_block_activation
             )
             x = tfl.add([x, residual])  # Add back residual
@@ -380,7 +380,7 @@ class PhaseNet(tf.keras.Model):
             x = tfl.Conv1DTranspose(filters, 7, padding="same",
                                     kernel_regularizer=self.kernel_regularizer,
                                     kernel_initializer=self.initializer,
-                                    name=f'upsteps_{i}_first')(x)
+                                    )(x)
             x = tfl.BatchNormalization()(x)
             x = tfl.Activation("relu")(x)
             x = tfl.Dropout(self.dropout_rate)(x)
@@ -388,7 +388,7 @@ class PhaseNet(tf.keras.Model):
             x = tfl.Conv1DTranspose(filters, 7, padding="same",
                                     kernel_regularizer=self.kernel_regularizer,
                                     kernel_initializer=self.initializer,
-                                    name=f'upsteps_{i}_second')(x)
+                                    )(x)
             x = tfl.BatchNormalization()(x)
             x = tfl.UpSampling1D(2)(x)
 
@@ -397,7 +397,7 @@ class PhaseNet(tf.keras.Model):
             residual = tfl.Conv1D(filters, 1, padding="same",
                                   kernel_regularizer=self.kernel_regularizer,
                                   kernel_initializer=self.initializer,
-                                  name=f'residual_{i}')(residual)
+                                  )(residual)
             x = tfl.add([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
