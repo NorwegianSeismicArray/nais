@@ -453,6 +453,7 @@ class UTime(tf.keras.Model):
         self.pool_type = pool_type
         self.output_activation = output_activation
         self.num_classes = num_classes
+        self.dropout_rate = dropout_rate
 
     def build(self, input_shape):
         self.phasenet.build(input_shape)
@@ -461,7 +462,7 @@ class UTime(tf.keras.Model):
         for i, psize, pstride in enumerate(zip(self.pool_sizes, self.pool_strides)):
             if self.pool_type == 'avg':
                 x = tfl.AveragePooling1D(psize, strides=pstride, padding='same')(x)
-            elif self.pool_type = 'max':
+            elif self.pool_type == 'max':
                 x = tfl.MaxPooling1D(psize, strides=pstride, padding='same')(x)
             else:
                 raise NotImplementedError(f'pool_type={self.pool_type} is not supported.')
@@ -471,7 +472,7 @@ class UTime(tf.keras.Model):
                 x = tfl.Activation('relu')(x)
                 x = tfl.Dropout(self.dropout_rate)(x)
 
-        output = tfl.Conv1D(self.num_classes, activation=self.output_activation, padding='same')(x)
+        outputs = tfl.Conv1D(self.num_classes, activation=self.output_activation, padding='same')(x)
         self.model = tf.keras.Model(inputs=inputs, outputs=outputs)
 
     def summary(self):
@@ -494,7 +495,7 @@ class PhaseNetDist(tf.keras.Model):
                  phasenet_output_activation='linear',
                  phasenet_kernel_regularizer='l2',
                  phasenet_dropout_rate=0.2,
-                 phasenet_initializer='glorot_normal'
+                 phasenet_initializer='glorot_normal',
                  name='PhaseNetDist'):
         super(PhaseNetDist, self).__init__(name=name)
         self.phasenet = PhaseNet(filters=phasenet_filters,
@@ -509,9 +510,10 @@ class PhaseNetDist(tf.keras.Model):
             self.filters = dist_filters
         self.pool_type = pool_type
         self.output_activation = output_activation
-        self.num_classes = num_classes
-        kernel_regularizer = self.kernel_regularizer
-        kernel_initializer = self.kernel_initializer
+        self.num_outputs = num_outputs
+        self.kernel_regularizer = kernel_regularizer
+        self.kernel_initializer = kernel_initializer
+        self.dropout_rate = dropout_rate
 
     def build(self, input_shape):
         self.phasenet.build(input_shape)
@@ -531,7 +533,7 @@ class PhaseNetDist(tf.keras.Model):
 
         if self.pool_type == 'avg':
             x = tfl.GlobalAveragePooling1D()(x)
-        elif self.pool_type = 'max':
+        elif self.pool_type == 'max':
             x = tfl.GlobalMaxPooling1D()(x)
         else:
             raise NotImplementedError(f'pool_type={self.pool_type} is not supported.')
