@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import math
 from scipy.signal import convolve, tukey, triang
+from scipy.signal.windows import gaussian
 
 class AugmentWaveformSequence(tf.keras.utils.Sequence):
     """
@@ -106,7 +107,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.pre_emphasis = pre_emphasis
         self.use_ramp = ramp > 0
         if self.use_ramp:
-            self.ramp = triang(ramp)
+            self.ramp = gaussian(new_length//10, ramp)
         self.on_epoch_end()
 
     def __len__(self):
