@@ -105,7 +105,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.scale_amplitude = scale_amplitude
         self.pre_emphasis = pre_emphasis
         self.use_ramp = ramp > 0
-        self.ramp = triang(ramp)
+        if self.use_ramp:
+            self.ramp = triang(ramp)
         self.on_epoch_end()
 
     def __len__(self):
