@@ -131,9 +131,6 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         if self.shuffle:
             np.random.shuffle(self.indexes)
 
-        remainder = len(self.indexes) % self.batch_size
-        self.indexes = self.indexes[:-remainder]
-
     def _normalize(self, X, mode='max', channel_mode='local'):
         X -= np.mean(X, axis=0, keepdims=True)
 
