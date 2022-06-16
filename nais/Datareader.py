@@ -122,8 +122,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             indexes = np.append(indexes, indexes)
         else:
             indexes = self.indexes[item * self.batch_size:(item + 1) * self.batch_size]
-        X, y = self.data_generation(indexes)
-        return X, y
+        X, y = zip(*list(map(self.data_generation, indexes)))
+        y = np.split(np.stack(y, axis=0), len(self.y_type), axis=-1)
+        return np.stack(X, axis=0), y
 
     def on_epoch_end(self):
         """Updates indexes after each epoch"""
@@ -285,51 +286,40 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
 
         return label, detection
 
-    def data_generation(self, indexes):
+    def data_generation(self, idx):
 
-        features = []
-        labels = []
+        x = self.x[idx].copy()
+        y = [a[idx].copy() for a in self.y]
+        label = np.zeros((x.shape[0],len(self.y_type)))
+        label, detection = self.__convert_y_to_regions(y, self.y_type, label)
 
-        for i, idx in enumerate(indexes):
-            x = self.x[idx].copy()
-            y = [a[idx].copy() for a in self.y]
-            label = np.zeros((x.shape[0],len(self.y_type)))
-            label, detection = self.__convert_y_to_regions(y, self.y_type, label)
+        if self.augmentation and np.random.random() > 0.5:
+            if self.event_type[idx] == 'noise':
+                if self.drop_channel:
+                    x = self._drop_channel_noise(x, self.drop_channel)
+                if self.add_gap:
+                    x = self._add_gaps(
+                        x, self.add_gap, max_size=self.max_gap_size)
+            else:
+                if self.add_event:
+                    t = np.random.choice(np.where(self.event_type != 'noise')[0])
+                    _, detection2 = self.__convert_y_to_regions(0, t, label)
+                    x = self._add_event(x, detection, self.x[t], detection2, self.snr[idx], self.add_event)
+                if self.add_noise:
+                    x = self._add_noise(x, self.snr[idx], self.add_noise)
+                if self.drop_channel:
+                    x = self._drop_channel(x, self.snr[idx], self.drop_channel)
+                if self.scale_amplitude:
+                    x = self._scale_amplitute(x, self.scale_amplitude)
+                if self.pre_emphasis:
+                    x = self._pre_emphasis(x, self.pre_emphasis)
 
-            if self.augmentation and i > self.batch_size // 2:
-                if self.event_type[i] == 'noise':
-                    if self.drop_channel:
-                        x = self._drop_channel_noise(x, self.drop_channel)
-                    if self.add_gap:
-                        x = self._add_gaps(
-                            x, self.add_gap, max_size=self.max_gap_size)
-                else:
-                    if self.add_event:
-                        t = np.random.choice(np.where(self.event_type != 'noise')[0])
-                        _, detection2 = self.__convert_y_to_regions(0, t, label)
-                        x = self._add_event(x, detection, self.x[t], detection2, self.snr[i], self.add_event)
-                    if self.add_noise:
-                        x = self._add_noise(x, self.snr[i], self.add_noise)
-                    if self.drop_channel:
-                        x = self._drop_channel(x, self.snr[i], self.drop_channel)
-                    if self.scale_amplitude:
-                        x = self._scale_amplitute(x, self.scale_amplitude)
-                    if self.pre_emphasis:
-                        x = self._pre_emphasis(x, self.pre_emphasis)
+        if self.norm_mode is not None:
+            x = self._normalize(x, mode=self.norm_mode, channel_mode=self.norm_channel_mode)
 
-            if self.norm_mode is not None:
-                x = self._normalize(x, mode=self.norm_mode, channel_mode=self.norm_channel_mode)
+        x, label = self._shift_crop(x, label, detection)
 
-            x, label = self._shift_crop(x, label, detection)
+        if self.taper_alpha > 0:
+            x, label = self._taper(x, label, self.taper_alpha)
 
-            if self.taper_alpha > 0:
-                x, label = self._taper(x, label, self.taper_alpha)
-
-            if len(x) != 0 and len(label) != 0:
-                features.append(x)
-                labels.append(label)
-
-        features, labels = map(lambda a: np.stack(a, axis=0), (features, labels))
-
-        labels = np.split(labels, len(self.y_type), axis=-1)
-        return features, labels
+        return x, label
