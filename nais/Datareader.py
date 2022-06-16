@@ -122,7 +122,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             indexes = np.append(indexes, indexes)
         else:
             indexes = self.indexes[item * self.batch_size:(item + 1) * self.batch_size]
-        X, y = self.__data_generation(indexes)
+        X, y = self.data_generation(indexes)
         return X, y
 
     def on_epoch_end(self):
@@ -285,7 +285,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
 
         return label, detection
 
-    def __data_generation(self, indexes):
+    def data_generation(self, indexes):
 
         features = []
         labels = []
