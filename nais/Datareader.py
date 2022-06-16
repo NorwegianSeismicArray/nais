@@ -163,18 +163,15 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
 
     def _drop_channel(self, X, snr, rate):
         n = X.shape[-1]
-        X = np.copy(X)
         if np.random.uniform(0, 1) < rate and snr >= self.min_snr:
-            c = [np.random.choice([0, 1]) for _ in range(n)]
-            if sum(c) > 0:
-                X[..., np.array(c) == 0] = 0
+            c = np.random.randint(0,n)
+            X[..., c] = 0
         return X
 
     def _drop_channel_noise(self, X, rate):
         return self._drop_channel(X, float('inf'), rate)
 
     def _add_gaps(self, X, rate, max_size=0.1):
-        X = np.copy(X)
         l = X.shape[0]
         gap_start = np.random.randint(0, int((1 - max_size) * l))
         gap_end = np.random.randint(gap_start, l)
@@ -295,23 +292,23 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
 
         if self.augmentation and np.random.random() > 0.5:
             if self.event_type[idx] == 'noise':
-                if self.drop_channel:
+                if self.drop_channel > 0:
                     x = self._drop_channel_noise(x, self.drop_channel)
-                if self.add_gap:
+                if self.add_gap > 0:
                     x = self._add_gaps(
                         x, self.add_gap, max_size=self.max_gap_size)
             else:
-                if self.add_event:
+                if self.add_event > 0:
                     t = np.random.choice(np.where(self.event_type != 'noise')[0])
                     _, detection2 = self.__convert_y_to_regions(0, t, label)
                     x = self._add_event(x, detection, self.x[t], detection2, self.snr[idx], self.add_event)
-                if self.add_noise:
+                if self.add_noise > 0:
                     x = self._add_noise(x, self.snr[idx], self.add_noise)
-                if self.drop_channel:
+                if self.drop_channel > 0:
                     x = self._drop_channel(x, self.snr[idx], self.drop_channel)
-                if self.scale_amplitude:
+                if self.scale_amplitude > 0:
                     x = self._scale_amplitute(x, self.scale_amplitude)
-                if self.pre_emphasis:
+                if self.pre_emphasis > 0:
                     x = self._pre_emphasis(x, self.pre_emphasis)
 
         if self.norm_mode is not None:
