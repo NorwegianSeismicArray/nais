@@ -285,8 +285,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
 
     def data_generation(self, idx):
 
-        x = self.x[idx].copy()
-        y = [a[idx].copy() for a in self.y]
+        x = self.x[idx]
+        y = [a[idx] for a in self.y]
         label = np.zeros((x.shape[0],len(self.y_type)))
         label, detection = self.__convert_y_to_regions(y, self.y_type, label)
 
