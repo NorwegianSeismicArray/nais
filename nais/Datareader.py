@@ -111,10 +111,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.on_epoch_end()
 
     def __len__(self):
-        if self.augmentation:
-            return 2 * int(np.floor(len(self.event_type) / self.batch_size))
-        else:
-            return int(np.floor(len(self.event_type) / self.batch_size))
+        return int(np.floor(len(self.event_type) / self.batch_size))
 
     def __getitem__(self, item):
         if self.augmentation:
