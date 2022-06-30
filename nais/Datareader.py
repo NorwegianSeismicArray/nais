@@ -257,11 +257,11 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         for j in range(len(y)):
             if yt[j] == 'single':
                 i = y[j]
-                if not math.isnan(i)
+                if not math.isnan(i):
                     label[int(i),j] = 1
             elif yt[j] == 'region':
                 start, end = y[j]
-                if not math.isnan(start and end):
+                if not (math.isnan(start) or math.isnan(end)):
                     start, end = map(int, (start, end))
                     start = max(0, start)
                     end = min(len(label), end)
