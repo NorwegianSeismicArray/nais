@@ -114,11 +114,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         return int(np.floor(len(self.event_type) / self.batch_size))
 
     def __getitem__(self, item):
-        if self.augmentation:
-            indexes = self.indexes[item * self.batch_size // 2:(item + 1) * self.batch_size // 2]
-            indexes = np.append(indexes, indexes)
-        else:
-            indexes = self.indexes[item * self.batch_size:(item + 1) * self.batch_size]
+        indexes = self.indexes[item * self.batch_size:(item + 1) * self.batch_size]
         X, y = zip(*list(map(self.data_generation, indexes)))
         y = np.split(np.stack(y, axis=0), len(self.y_type), axis=-1)
         return np.stack(X, axis=0), y
@@ -261,7 +257,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         for j in range(len(y)):
             if yt[j] == 'single':
                 i = y[j]
-                if not math.isnan(i) and i > 0:
+                if not math.isnan(i)
                     label[int(i),j] = 1
             elif yt[j] == 'region':
                 start, end = y[j]
