@@ -285,7 +285,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         label = np.zeros((x.shape[0],len(self.y_type)))
         label, detection = self.__convert_y_to_regions(y, self.y_type, label)
 
-        if self.augmentation and np.random.random() > 0.5:
+        do_aug = self.augmentation and np.random.random() > 0.5
+        if do_aug:
             if self.event_type[idx] == 'noise':
                 if self.drop_channel > 0:
                     x = self._drop_channel_noise(x, self.drop_channel)
@@ -314,6 +315,6 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         if self.taper_alpha > 0:
             x, label = self._taper(x, label, self.taper_alpha)
 
-        print(label.shape)
+        print(do_aug, label.shape)
 
         return x, label
