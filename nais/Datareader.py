@@ -241,7 +241,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         #c = max(min(start-self.p_buffer, len(img) - end - self.p_buffer), 1)
         k1 = np.random.randint(0, len(img)-self.new_length)
         k2 = len(img) - self.new_length - k1
-        return img[k1:-k2], mask[k1:-k2]
+        x, y = img[k1:-k2], mask[k1:-k2]
+        assert x.shape[0] == self.new_length
+        return x, y
 
     def _taper(self, img, mask, alpha=0.1):
         w = tukey(img.shape[0], alpha)
@@ -283,12 +285,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         x = self.x[idx]
         y = [a[idx] for a in self.y]
         label = np.zeros((x.shape[0],len(self.y_type)))
-        print('')
-
-        print(label.shape)
-
         label, detection = self.__convert_y_to_regions(y, self.y_type, label)
-        print(label.shape)
+
         do_aug = self.augmentation and np.random.random() > 0.5
         if do_aug:
             if self.event_type[idx] == 'noise':
@@ -315,11 +313,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             x = self._normalize(x, mode=self.norm_mode, channel_mode=self.norm_channel_mode)
 
         x, label = self._shift_crop(x, label, detection)
-        print(label.shape)
-
         if self.taper_alpha > 0:
             x, label = self._taper(x, label, self.taper_alpha)
-
-        print(label.shape)
 
         return x, label
