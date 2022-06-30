@@ -314,4 +314,6 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         if self.taper_alpha > 0:
             x, label = self._taper(x, label, self.taper_alpha)
 
+        print(label.shape)
+
         return x, label
