@@ -107,7 +107,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.pre_emphasis = pre_emphasis
         self.use_ramp = ramp > 0
         if self.use_ramp:
-            self.ramp = gaussian(new_length//10, ramp)
+            self.ramp = triang(ramp)
         self.on_epoch_end()
 
     def __len__(self):
@@ -273,7 +273,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                 raise NotImplementedError(yt[j] + ' is not supported.')
 
             if self.use_ramp:
-                label[:, j] = convolve(label[:, j], self.ramp, mode='same')
+                label[:, j] = convolve(label[:, j], self.ramp, mode='same', method='direct')
 
         if not 'detection' in locals():
             detection = (len(label)//4,3*len(label)//4)
