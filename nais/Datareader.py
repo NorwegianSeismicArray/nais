@@ -230,16 +230,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
 
         return X1
 
-    #def _shift_crop(self, img, mask, detection):
-        #start, end = detection
-        #s = np.random.randint(0,self.new_length)
-        #e = s + self.new_length
-        #return img[s:e], mask[s:e]
-
     def _shift_crop(self, img, mask, detection):
         start, end = detection
-        #c = max(min(start-self.p_buffer, len(img) - end - self.p_buffer), 1)
-        k1 = np.random.randint(0, len(img)-self.new_length)
+        k1 = np.random.randint(0, start-self.p_buffer)
         k2 = len(img) - self.new_length - k1
         x, y = img[k1:-k2], mask[k1:-k2]
         assert x.shape[0] == self.new_length
