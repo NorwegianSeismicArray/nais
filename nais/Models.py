@@ -713,11 +713,6 @@ class EarthQuakeTransformer(tf.keras.Model):
         self.p_picker = _decoder(encoded_dim, activation='sigmoid')
         self.s_picker = _decoder(encoded_dim, activation='sigmoid')
 
-        self.feature_extractor.summary()
-        self.detector.summary()
-        self.p_picker.summary()
-        self.s_picker.summary()
-
     def call(self, inputs):
         encoded = self.feature_extractor(inputs)
         d = self.detector(encoded)
