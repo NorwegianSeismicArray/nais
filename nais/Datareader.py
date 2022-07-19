@@ -235,7 +235,6 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         k1 = np.random.randint(0, start-self.p_buffer)
         k2 = len(img) - self.new_length - k1
         x, y = img[k1:-k2], mask[k1:-k2]
-        assert x.shape[0] == self.new_length
         return x, y
 
     def _taper(self, img, mask, alpha=0.1):
@@ -248,7 +247,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             X[:, ch] = np.append(bpf[0], bpf[1:] - pre_emphasis * bpf[:-1])
         return X
 
-    def __convert_y_to_regions(self, y, yt, label):
+    def _convert_y_to_regions(self, y, yt, label):
         for j in range(len(y)):
             if yt[j] == 'single':
                 i = y[j]
@@ -268,6 +267,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             if self.use_ramp:
                 label[:, j] = convolve(label[:, j], self.ramp, mode='same', method='direct')
 
+        label = np.clip(label, 0, 1)
+
         if not 'detection' in locals():
             detection = (len(label)//4,3*len(label)//4)
 
@@ -278,7 +279,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         x = self.x[idx]
         y = [a[idx] for a in self.y]
         label = np.zeros((x.shape[0],len(self.y_type)))
-        label, detection = self.__convert_y_to_regions(y, self.y_type, label)
+        label, detection = self._convert_y_to_regions(y, self.y_type, label)
 
         do_aug = self.augmentation and np.random.random() > 0.5
         if do_aug:
@@ -291,7 +292,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             else:
                 if self.add_event > 0:
                     t = np.random.choice(np.where(self.event_type != 'noise')[0])
-                    _, detection2 = self.__convert_y_to_regions(0, t, label)
+                    _, detection2 = self._convert_y_to_regions([], t, label)
                     x = self._add_event(x, detection, self.x[t], detection2, self.snr[idx], self.add_event)
                 if self.add_noise > 0:
                     x = self._add_noise(x, self.snr[idx], self.add_noise)
