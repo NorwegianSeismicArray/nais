@@ -267,7 +267,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             if self.use_ramp:
                 label[:, j] = convolve(label[:, j], self.ramp, mode='same', method='direct')
 
-        label = np.clip(label, 0, 1)
+        label /= np.amax(label, axis=0, keepdims=True)
 
         if not 'detection' in locals():
             detection = (len(label)//4,3*len(label)//4)
