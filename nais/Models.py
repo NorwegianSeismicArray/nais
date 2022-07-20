@@ -689,10 +689,10 @@ class EarthQuakeTransformer(tf.keras.Model):
                                         tfl.Activation('relu'),
                                         tfl.Dropout(0.1)])
 
-        def _decoder(input_shape, activation='sigmoid'):
+        def _decoder(input_shape, attention=False, activation='sigmoid'):
             inp = tfl.Input(input_shape)
             x = inp
-            if activation != 'sigmoid':
+            if attention:
                 x = tfl.LSTM(filters[1], return_sequences=True,
                              dropout=0.1,
                              recurrent_dropout=0.1)(x)
@@ -709,9 +709,9 @@ class EarthQuakeTransformer(tf.keras.Model):
 
         self.feature_extractor = _encoder()
         encoded_dim = self.feature_extractor.layers[-1].output.shape[1:]
-        self.detector = _decoder(encoded_dim, activation='sigmoid')
-        self.p_picker = _decoder(encoded_dim, activation='sigmoid')
-        self.s_picker = _decoder(encoded_dim, activation='sigmoid')
+        self.detector = _decoder(encoded_dim, attention=False, activation='sigmoid')
+        self.p_picker = _decoder(encoded_dim, attention=True, activation='sigmoid')
+        self.s_picker = _decoder(encoded_dim, attention=True, activation='sigmoid')
 
     def call(self, inputs):
         encoded = self.feature_extractor(inputs)
