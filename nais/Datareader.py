@@ -305,11 +305,11 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                 if self.pre_emphasis > 0:
                     x = self._pre_emphasis(x, self.pre_emphasis)
 
-        if self.norm_mode is not None:
-            x = self._normalize(x, mode=self.norm_mode, channel_mode=self.norm_channel_mode)
-
         x, label = self._shift_crop(x, label, detection)
         if self.taper_alpha > 0:
             x, label = self._taper(x, label, self.taper_alpha)
+
+        if self.norm_mode is not None:
+            x = self._normalize(x, mode=self.norm_mode, channel_mode=self.norm_channel_mode)
 
         return x, label
