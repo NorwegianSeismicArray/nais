@@ -650,11 +650,10 @@ class EarthQuakeTransformer(tf.keras.Model):
         def block_BiLSTM(f, x):
             'Returns LSTM residual block'
             inp = x
-            a = inp.shape[-1]
             x = tfl.Bidirectional(tfl.LSTM(f, return_sequences=True))(x)
-            x = tfl.Conv1D(a, 1, padding='same')(x)
+            x = tfl.Conv1D(f, 1, padding='same')(x)
             x = tfl.BatchNormalization()(x)
-            return tfl.Add()([inp, x])
+            return tfl.Concatenate()([inp, x])
 
         def block_transformer(f, width, x):
             att, w = SeqSelfAttention(return_attention=True,
