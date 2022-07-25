@@ -647,12 +647,13 @@ class EarthQuakeTransformer(tf.keras.Model):
                                         tfl.Dropout(0.1),
                                         tfl.MaxPooling1D(2, padding='same')])
 
-        def block_BiLSTM(f,x):
+        def block_BiLSTM(f, x):
             'Returns LSTM residual block'
-            x = tfl.Bidirectional(tfl.LSTM(f, return_sequences=True, dropout=0.1, recurrent_dropout=0.1))(x)
+            inp = x
+            x = tfl.Bidirectional(tfl.LSTM(f, return_sequences=True))(x)
             x = tfl.Conv1D(f, 1, padding='same')(x)
             x = tfl.BatchNormalization()(x)
-            return x
+            return tfl.Concatenate()([inp, x])
 
         def block_transformer(f, width, x):
             att, w = SeqSelfAttention(return_attention=True,
@@ -693,9 +694,7 @@ class EarthQuakeTransformer(tf.keras.Model):
             inp = tfl.Input(input_shape)
             x = inp
             if attention:
-                x = tfl.LSTM(filters[1], return_sequences=True,
-                             dropout=0.1,
-                             recurrent_dropout=0.1)(x)
+                x = tfl.LSTM(filters[1], return_sequences=True)(x)
                 x, w = SeqSelfAttention(return_attention=True,
                                                          attention_width=3)(x)
 
