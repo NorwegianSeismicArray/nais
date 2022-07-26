@@ -233,11 +233,10 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         return X1
 
     def _shift_crop(self, img, mask, detection):
-        start, end = detection
-        k1 = np.random.randint(0, start-self.p_buffer)
-        k2 = len(img) - self.new_length - k1
-        x, y = img[k1:-k2], mask[k1:-k2]
-        return x, y
+        y = np.random.randint(0, len(img) - self.new_length)
+        img = img[y:y + self.new_length]
+        mask = mask[y:y + self.new_length]
+        return img, mask
 
     def _taper(self, img, mask, alpha=0.1):
         w = tukey(img.shape[0], alpha)
