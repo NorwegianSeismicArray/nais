@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import math
-from scipy.signal import convolve, tukey, triang
+from scipy.signal import convolve, tukey, triang, fftconvolve, oaconvolve
 from scipy.signal.windows import gaussian
 
 class AugmentWaveformSequence(tf.keras.utils.Sequence):
@@ -106,9 +106,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.drop_channel = drop_channel
         self.scale_amplitude = scale_amplitude
         self.pre_emphasis = pre_emphasis
-        self.use_ramp = ramp > 0
-        if self.use_ramp:
-            self.ramp = triang(ramp)
+        self.ramp = ramp
 
         self.on_epoch_end()
 
@@ -233,7 +231,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         return X1
 
     def _shift_crop(self, img, mask, detection):
-        y = np.random.randint(0, len(img) - self.new_length)
+        y = np.random.randint(max(0,self.ramp), len(img) - self.new_length)
         img = img[y:y + self.new_length]
         mask = mask[y:y + self.new_length]
         return img, mask
@@ -253,7 +251,13 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             if yt[j] == 'single':
                 i = y[j]
                 if not math.isnan(i):
-                    label[int(i),j] = 1
+                    if self.ramp > 0:
+                        t = triang(self.ramp)
+                        s = int(i) - len(t)//2
+                        e = int(i) + len(t)//2 + len(t) % 2
+                        label[s:e,j] = t
+                    else:
+                        label[int(i),j] = 1
             elif yt[j] == 'region':
                 start, end = y[j]
                 if not (math.isnan(start) or math.isnan(end)):
@@ -262,11 +266,13 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                     end = min(len(label), end)
                     detection = (start, end)
                     label[start:end,j] = 1
+                    if self.ramp > 0:
+                        t = triang(self.ramp)
+                        t1, t2 = t[:len(t)//2], t[len(t)//2:]
+                        label[start - len(t1):start,j] = t1
+                        label[end:end + len(t2),j] = t2
             else:
                 raise NotImplementedError(yt[j] + ' is not supported.')
-
-            if self.use_ramp:
-                label[:, j] = convolve(label[:, j], self.ramp, mode='same', method='direct')
 
         m = np.amax(label, axis=0, keepdims=True)
         m[m == 0] = 1
