@@ -90,7 +90,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             self.y = [self.y]
             self.y_type = [self.y_type]
 
-        if self.norm_mode is not None:
+        if norm_mode is not None:
             x_set = list(map(lambda x: self._normalize(x, mode=norm_mode, channel_mode=norm_channel_mode), x_set))
 
         self.batch_size = batch_size
