@@ -91,6 +91,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             self.y_type = [self.y_type]
 
         self.norm_mode = norm_mode
+        self.norm_channel_mode = norm_channel_mode
         self.batch_size = batch_size
         self.min_snr = min_snr
         self.shuffle = shuffle
