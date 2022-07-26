@@ -90,9 +90,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             self.y = [self.y]
             self.y_type = [self.y_type]
 
-        if norm_mode is not None:
-            x_set = list(map(lambda x: self._normalize(x, mode=norm_mode, channel_mode=norm_channel_mode), x_set))
-
+        self.norm_mode = norm_mode
         self.batch_size = batch_size
         self.min_snr = min_snr
         self.shuffle = shuffle
@@ -315,5 +313,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         x, label = self._shift_crop(x, label, detection)
         if self.taper_alpha > 0:
             x, label = self._taper(x, label, self.taper_alpha)
+
+        if self.norm_mode is not None:
+            x = self._normalize(x, mode=self.norm_mode, channel_mode=self.norm_channel_mode)
 
         return x, label
