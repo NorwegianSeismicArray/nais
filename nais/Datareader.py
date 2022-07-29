@@ -215,14 +215,17 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             before = np.random.choice([True, False])
             after = not before
 
-            if event2_size < start1 - space and before:
+            space_before = start1 - space
+            space_after = len(X1) - end1 - space
+
+            if event2_size < space_before and before:
                 # before first event
                 t = np.zeros_like(X1[:start1 - space])
                 t[:len(event2)] = event2
                 t = np.roll(t, np.random.randint(
                     0, len(t) - len(event2)), axis=0)
                 X1[:len(t)] += t * scale
-            elif event2_size < len(X1) - end1 - space and after:
+            elif event2_size < space_after and after:
                 # after first event
                 t = np.zeros_like(X1[end1 + space:])
                 t[:len(event2)] = event2
