@@ -69,6 +69,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  scale_amplitude=0.0,
                  pre_emphasis=0.97,
                  min_snr=10.0,
+                 add_event_space=40,
                  buffer=0,
                  shuffle=False
                  ):
@@ -90,6 +91,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             self.y = [self.y]
             self.y_type = [self.y_type]
 
+        self.add_event_space = add_event_space
         self.norm_mode = norm_mode
         self.norm_channel_mode = norm_channel_mode
         self.batch_size = batch_size
@@ -209,7 +211,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         event2_size = end2 - start2
         r = np.random.uniform(0, 1)
         if r < rate and snr >= self.min_snr:
-            scale = 1 / np.random.uniform(1, 10)
+            scale = 1 / np.random.uniform(1, 5)
             before = np.random.choice([True, False])
             after = not before
             if event2_size < start1 - space and before:
@@ -300,8 +302,10 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             else:
                 if self.add_event > 0:
                     t = np.random.choice(np.where(self.event_type != 'noise')[0])
-                    _, detection2 = self._convert_y_to_regions([], t, label)
-                    x = self._add_event(x, detection, self.x[t], detection2, self.snr[idx], self.add_event)
+                    label2 = np.zeros((x.shape[0], len(self.y_type)))
+                    label2, detection2 = self._convert_y_to_regions([a[t] for a in self.y], self.y_type, label2)
+                    x = self._add_event(x, detection, self.x[t], detection2, self.snr[idx], self.add_event, self.add_event_space)
+                    label = np.amax([label, label2], axis=0)
                 if self.add_noise > 0:
                     x = self._add_noise(x, self.snr[idx], self.add_noise)
                 if self.drop_channel > 0:
@@ -310,6 +314,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                     x = self._scale_amplitute(x, self.scale_amplitude)
                 if self.pre_emphasis > 0:
                     x = self._pre_emphasis(x, self.pre_emphasis)
+                if self.add_gap > 0:
+                    x = self._add_gaps(
+                        x, self.add_gap, max_size=self.max_gap_size)
 
         x, label = self._shift_crop(x, label, detection)
         if self.taper_alpha > 0:
