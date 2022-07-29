@@ -211,9 +211,10 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         event2_size = end2 - start2
         r = np.random.uniform(0, 1)
         if r < rate and snr >= self.min_snr:
-            scale = 1 / np.random.uniform(1, 5)
+            scale = 1 / np.random.uniform(1, 10)
             before = np.random.choice([True, False])
             after = not before
+
             if event2_size < start1 - space and before:
                 # before first event
                 t = np.zeros_like(X1[:start1 - space])
@@ -221,7 +222,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                 t = np.roll(t, np.random.randint(
                     0, len(t) - len(event2)), axis=0)
                 X1[:len(t)] += t * scale
-            elif event2_size > len(X1) - end1 + space and after:
+            elif event2_size < len(X1) - end1 - space and after:
                 # after first event
                 t = np.zeros_like(X1[end1 + space:])
                 t[:len(event2)] = event2
