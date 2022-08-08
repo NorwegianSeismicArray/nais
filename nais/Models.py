@@ -622,17 +622,29 @@ class EarthQuakeTransformer(tf.keras.Model):
 
     """
 
-
-    def __init__(self, input_dim, name='EarthQuakeTransformer'):
+    def __init__(self,
+                 input_dim,
+                 filters=None,
+                 kernelsizes=None,
+                 resfilters=None,
+                 reskernelsizes=None,
+                 lstmfilters=None,
+                 classify=True,
+                 name='EarthQuakeTransformer'):
         super(EarthQuakeTransformer, self).__init__(name=name)
 
-        filters         = [8, 16, 16, 32, 32, 64, 64]
-        kernelsizes     = [11, 9, 7, 7, 5, 5, 3]
-        invfilters      = filters[::-1]
-        invkernelsizes  = kernelsizes[::-1]
-        resfilters      = [64, 64, 64, 64, 64]
-        reskernelsizes  = [3, 3, 3, 2, 2]
-        lstmfilters     = [16, 16]
+        if filters is None:
+            filters = [8, 16, 16, 32, 32, 64, 64]
+        if kernelsizes is None:
+            kernelsizes = [11, 9, 7, 7, 5, 5, 3]
+        invfilters = filters[::-1]
+        invkernelsizes = kernelsizes[::-1]
+        if resfilters is None:
+            resfilters = [64, 64, 64, 64, 64]
+        if reskernelsizes is None:
+            reskernelsizes = [3, 3, 3, 2, 2]
+        if lstmfilters is None:
+            lstmfilters = [16, 16]
 
         try:
             assert resfilters[0] == filters[-1]
@@ -702,14 +714,15 @@ class EarthQuakeTransformer(tf.keras.Model):
             of_start, of_end = to_crop//2, to_crop//2
             of_end += to_crop % 2
             x = tfl.Cropping1D((of_start, of_end))(x)
-            x = tfl.Conv1D(1, 11, padding='same', activation=activation)(x)
+            if not (activation is None):
+                x = tfl.Conv1D(1, 11, padding='same', activation=activation)(x)
             return tf.keras.Model(inp, x)
 
         self.feature_extractor = _encoder()
         encoded_dim = self.feature_extractor.layers[-1].output.shape[1:]
-        self.detector = _decoder(encoded_dim, attention=False, activation='sigmoid')
-        self.p_picker = _decoder(encoded_dim, attention=True, activation='sigmoid')
-        self.s_picker = _decoder(encoded_dim, attention=True, activation='sigmoid')
+        self.detector = _decoder(encoded_dim, attention=False, activation='sigmoid' if classify else None)
+        self.p_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None)
+        self.s_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None)
 
     def call(self, inputs):
         encoded = self.feature_extractor(inputs)
