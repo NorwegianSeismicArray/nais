@@ -629,6 +629,8 @@ class EarthQuakeTransformer(tf.keras.Model):
                  resfilters=None,
                  reskernelsizes=None,
                  lstmfilters=None,
+                 attention_width=3,
+                 dropout=0.0,
                  kernel_regularizer=None,
                  classify=True,
                  name='EarthQuakeTransformer'):
@@ -657,7 +659,7 @@ class EarthQuakeTransformer(tf.keras.Model):
             return tf.keras.Sequential([tfl.Conv1D(f, kz, padding='same', kernel_regularizer=kernel_regularizer),
                                         tfl.BatchNormalization(),
                                         tfl.Activation('relu'),
-                                        tfl.Dropout(0.1),
+                                        tfl.Dropout(dropout),
                                         tfl.MaxPooling1D(2, padding='same')])
 
         def block_BiLSTM(f, x):
@@ -673,7 +675,7 @@ class EarthQuakeTransformer(tf.keras.Model):
             att = tfl.Add()([x, att])
             norm = tfl.LayerNormalization()(att)
             ff = tf.keras.Sequential([tfl.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
-                                      tfl.Dropout(0.1),
+                                      tfl.Dropout(dropout),
                                       tfl.Dense(norm.shape[2]),
                                       ])(norm)
             ff_add = tfl.Add()([norm, ff])
@@ -686,7 +688,7 @@ class EarthQuakeTransformer(tf.keras.Model):
                 for f, kz in zip(filters, kernelsizes):
                     x = conv_block(f, kz)(x)
                 for f, kz in zip(resfilters, reskernelsizes):
-                    x = ResnetBlock1D(f, kz, dropout=0.1, kernel_regularizer=kernel_regularizer)(x)
+                    x = ResnetBlock1D(f, kz, dropout=dropout, kernel_regularizer=kernel_regularizer)(x)
                 for f in lstmfilters:
                     x = block_BiLSTM(f, x)
                 x = tfl.LSTM(64, return_sequences=True, kernel_regularizer=kernel_regularizer)(x)
@@ -700,15 +702,14 @@ class EarthQuakeTransformer(tf.keras.Model):
                                         tfl.Conv1D(f, kz,padding='same', kernel_regularizer=kernel_regularizer),
                                         tfl.BatchNormalization(),
                                         tfl.Activation('relu'),
-                                        tfl.Dropout(0.1)])
+                                        tfl.Dropout(dropout)])
 
         def _decoder(input_shape, attention=False, activation='sigmoid'):
             inp = tfl.Input(input_shape)
             x = inp
             if attention:
                 x = tfl.LSTM(filters[1], return_sequences=True, kernel_regularizer=kernel_regularizer)(x)
-                x, w = SeqSelfAttention(return_attention=True,
-                                                         attention_width=3)(x)
+                x, w = SeqSelfAttention(return_attention=True, attention_width=attention_width)(x)
 
             x = tf.keras.Sequential([inv_conv_block(f, kz) for f, kz in zip(invfilters, invkernelsizes)])(x)
             to_crop = x.shape[1] - input_dim[0]
