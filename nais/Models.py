@@ -311,7 +311,7 @@ class PhaseNet(tf.keras.Model):
                  num_classes=2,
                  filters=None,
                  output_activation='linear',
-                 kernel_regularizer='l2',
+                 kernel_regularizer=None,
                  dropout_rate=0.2,
                  initializer='glorot_normal',
                  name='PhaseNet'):
@@ -488,12 +488,12 @@ class PhaseNetDist(tf.keras.Model):
                  num_outputs=1,
                  dropout_rate=0.2,
                  pool_type='max',
-                 kernel_regularizer='l2',
+                 kernel_regularizer=None,
                  kernel_initializer='glorot_normal',
                  phasenet_num_classes=2,
                  phasenet_filters=None,
                  phasenet_output_activation='linear',
-                 phasenet_kernel_regularizer='l2',
+                 phasenet_kernel_regularizer=None,
                  phasenet_dropout_rate=0.2,
                  phasenet_initializer='glorot_normal',
                  name='PhaseNetDist'):
@@ -704,7 +704,7 @@ class EarthQuakeTransformer(tf.keras.Model):
                                         tfl.Activation('relu'),
                                         tfl.Dropout(dropout)])
 
-        def _decoder(input_shape, attention=False, activation='sigmoid'):
+        def _decoder(input_shape, attention=False, activation='sigmoid', output_name=None):
             inp = tfl.Input(input_shape)
             x = inp
             if attention:
@@ -717,14 +717,14 @@ class EarthQuakeTransformer(tf.keras.Model):
             of_end += to_crop % 2
             x = tfl.Cropping1D((of_start, of_end))(x)
             if not (activation is None):
-                x = tfl.Conv1D(1, 11, padding='same', activation=activation)(x)
+                x = tfl.Conv1D(1, 11, padding='same', activation=activation, name='output_name')(x)
             return tf.keras.Model(inp, x)
 
         self.feature_extractor = _encoder()
         encoded_dim = self.feature_extractor.layers[-1].output.shape[1:]
-        self.detector = _decoder(encoded_dim, attention=False, activation='sigmoid' if classify else None)
-        self.p_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None)
-        self.s_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None)
+        self.detector = _decoder(encoded_dim, attention=False, activation='sigmoid' if classify else None, name='detection')
+        self.p_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, name='p_phase')
+        self.s_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, name='s_phase')
 
     def call(self, inputs):
         encoded = self.feature_extractor(inputs)
