@@ -717,14 +717,14 @@ class EarthQuakeTransformer(tf.keras.Model):
             of_end += to_crop % 2
             x = tfl.Cropping1D((of_start, of_end))(x)
             if not (activation is None):
-                x = tfl.Conv1D(1, 11, padding='same', activation=activation, name='output_name')(x)
+                x = tfl.Conv1D(1, 11, padding='same', activation=activation, name=output_name)(x)
             return tf.keras.Model(inp, x)
 
         self.feature_extractor = _encoder()
         encoded_dim = self.feature_extractor.layers[-1].output.shape[1:]
-        self.detector = _decoder(encoded_dim, attention=False, activation='sigmoid' if classify else None, name='detection')
-        self.p_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, name='p_phase')
-        self.s_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, name='s_phase')
+        self.detector = _decoder(encoded_dim, attention=False, activation='sigmoid' if classify else None, output_name='detection')
+        self.p_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, output_name='p_phase')
+        self.s_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, output_name='s_phase')
 
     def call(self, inputs):
         encoded = self.feature_extractor(inputs)
