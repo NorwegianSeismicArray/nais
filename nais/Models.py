@@ -369,7 +369,7 @@ class PhaseNet(tf.keras.Model):
                                   )(
                 previous_block_activation
             )
-            x = tfl.add([x, residual])  # Add back residual
+            x = tfl.concatenate([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
         self.encoder = tf.keras.Model(inputs, x)
@@ -398,7 +398,7 @@ class PhaseNet(tf.keras.Model):
                                   kernel_regularizer=self.kernel_regularizer,
                                   kernel_initializer=self.initializer,
                                   )(residual)
-            x = tfl.add([x, residual])  # Add back residual
+            x = tfl.concatenate([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
         # Exit block
