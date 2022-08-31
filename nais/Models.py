@@ -402,13 +402,13 @@ class PhaseNet(tf.keras.Model):
             previous_block_activation = x  # Set aside next residual
 
         # Exit block
-        #x = tfl.Conv1D(self.filters[0], 7, strides=1, padding="same",
-        #               kernel_regularizer=self.kernel_regularizer,
-        #               kernel_initializer=self.initializer,
-        #               name='exit')(x)
-        #x = tfl.BatchNormalization()(x)
-        #x = tfl.Activation("relu")(x)
-        #x = tfl.Dropout(self.dropout_rate)(x)
+        x = tfl.Conv1D(self.filters[0], 7, strides=1, padding="same",
+                       kernel_regularizer=self.kernel_regularizer,
+                       kernel_initializer=self.initializer,
+                       name='exit')(x)
+        x = tfl.BatchNormalization()(x)
+        x = tfl.Activation("relu")(x)
+        x = tfl.Dropout(self.dropout_rate)(x)
 
         # Add a per-pixel classification layer
         if self.num_classes is not None:
