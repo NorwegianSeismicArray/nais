@@ -176,14 +176,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
 
     def _add_noise(self, X, snr, rate):
         if np.random.uniform(0, 1) < rate and snr >= self.min_snr:
-            noisy_X = np.empty_like(X)
-            for c in range(X.shape[-1]):
-                noisy_X[:, c] = X[:, c] + np.random.normal(
-                    0, np.random.uniform(0.01, 0.15) * max(X[:, c]), X.shape[0])
-        else:
-            noisy_X = X
-
-        return noisy_X
+            N = np.stack([np.random.normal(loc=np.random.uniform(0.01, 0.15) * m, size=X.shape[0]) for m in X.max(axis=0)], axis=-1)
+            X += N
+        return X
 
     def _adjust_amplitute_for_multichannels(self, X):
         t = np.max(np.abs(X), axis=0, keepdims=True)
@@ -223,16 +218,18 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             if event2_size < space_before and before:
                 # before first event
                 left_over = space_before - event2_size
-                s = np.random.randint(0, left_over-space)
-                e = s + len(event2)
-                X1[s:e] += event2 * scale
+                if left_over - space > 0:
+                    s = np.random.randint(0, left_over-space)
+                    e = s + len(event2)
+                    X1[s:e] += event2 * scale
 
             elif event2_size < space_after and after:
                 # after first event
                 left_over = space_after - event2_size
-                s = np.random.randint(space, left_over)
-                e = s + len(event2)
-                X1[end1+s:end1+e] += event2 * scale
+                if left_over > space:
+                    s = np.random.randint(space, left_over)
+                    e = s + len(event2)
+                    X1[end1+s:end1+e] += event2 * scale
 
         return X1, scale
 
@@ -247,10 +244,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         return img*w[:,np.newaxis], mask
 
     def _pre_emphasis(self, X, pre_emphasis=0.97):
-        for ch in range(X.shape[-1]):
-            bpf = X[:, ch]
-            X[:, ch] = np.append(bpf[0], bpf[1:] - pre_emphasis * bpf[:-1])
-        return X
+        return np.stack([np.append(X[0,c], X[1:,c] - pre_emphasis * X[:-1,c]) for c in range(X.shape[1])], axis=-1)
 
     def _convert_y_to_regions(self, y, yt, label):
         for j in range(len(y)):
