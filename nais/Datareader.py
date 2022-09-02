@@ -67,7 +67,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  add_noise=0.0,
                  drop_channel=0.0,
                  scale_amplitude=0.0,
-                 pre_emphasis=0.97,
+                 pre_emphasis=0.0,
                  min_snr=10.0,
                  add_event_space=40,
                  buffer=0,
@@ -108,6 +108,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.scale_amplitude = scale_amplitude
         self.pre_emphasis = pre_emphasis
         self.ramp = ramp
+        self.non_noise_events = np.where(self.event_type != 'noise')[0]
 
         self.on_epoch_end()
 
@@ -305,7 +306,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                         x, self.add_gap, max_size=self.max_gap_size)
             else:
                 if self.add_event > 0:
-                    t = np.random.choice(np.where(self.event_type != 'noise')[0])
+                    t = np.random.choice(self.non_noise_events)
                     label2 = np.zeros((x.shape[0], len(self.y_type)))
                     label2, detection2 = self._convert_y_to_regions([a[t] for a in self.y], self.y_type, label2)
                     x, scale = self._add_event(x, detection, self.x[t], detection2, self.snr[idx], self.add_event, self.add_event_space)
