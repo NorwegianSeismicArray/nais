@@ -401,23 +401,14 @@ class PhaseNet(tf.keras.Model):
             x = tfl.concatenate([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
-        # Exit block
-        x = tfl.Conv1D(self.filters[0], 7, strides=1, padding="same",
-                       kernel_regularizer=self.kernel_regularizer,
-                       kernel_initializer=self.initializer,
-                       name='exit')(x)
-        x = tfl.BatchNormalization()(x)
-        x = tfl.Activation("relu")(x)
-        x = tfl.Dropout(self.dropout_rate)(x)
+        
 
         # Add a per-pixel classification layer
         if self.num_classes is not None:
             outputs = tfl.Conv1D(self.num_classes,
-                           1,
+                           3,
                            padding="same",
-                           kernel_regularizer=self.kernel_regularizer,
-                           activation=self.output_activation,
-                           kernel_initializer=self.initializer)(x)
+                           activation=self.output_activation)(x)
         else:
             outputs = x
 
@@ -717,7 +708,7 @@ class EarthQuakeTransformer(tf.keras.Model):
             of_end += to_crop % 2
             x = tfl.Cropping1D((of_start, of_end))(x)
             if not (activation is None):
-                x = tfl.Conv1D(1, 11, padding='same', activation=activation, name=output_name)(x)
+                x = tfl.Conv1D(1, 3, padding='same', activation=activation, name=output_name)(x)
             return tf.keras.Model(inp, x)
 
         self.feature_extractor = _encoder()
