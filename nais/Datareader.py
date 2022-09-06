@@ -71,7 +71,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  min_snr=10.0,
                  add_event_space=40,
                  buffer=0,
-                 shuffle=False
+                 shuffle=False,
+                 random_crop=True
                  ):
         self.x, self.y = x_set, y_set
         self.num_channels = self.x.shape[-1]
@@ -91,6 +92,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             self.y = [self.y]
             self.y_type = [self.y_type]
 
+        self.random_crop = random_crop
         self.add_event_space = add_event_space
         self.norm_mode = norm_mode
         self.norm_channel_mode = norm_channel_mode
@@ -234,7 +236,11 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         return X1, scale
 
     def _shift_crop(self, img, mask, detection):
-        y = np.random.randint(max(0,self.ramp), len(img) - self.new_length)
+        if self.random_crop:
+            y = np.random.randint(max(0,self.ramp), len(img) - self.new_length)
+        else:
+            y = int((len(img) - self.new_length) / 2)
+
         img = img[y:y + self.new_length]
         mask = mask[y:y + self.new_length]
         return img, mask
@@ -324,4 +330,4 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         if self.norm_mode is not None:
             x = self._normalize(x, mode=self.norm_mode, channel_mode=self.norm_channel_mode)
 
-        return x, label
+        return x, labe
