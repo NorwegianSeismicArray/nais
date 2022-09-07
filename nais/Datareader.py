@@ -338,4 +338,4 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         if self.norm_mode is not None:
             x = self._normalize(x, mode=self.norm_mode, channel_mode=self.norm_channel_mode)
 
-        return x, labe
+        return x, label
