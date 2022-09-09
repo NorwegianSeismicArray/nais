@@ -72,7 +72,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  add_event_space=40,
                  buffer=0,
                  shuffle=False,
-                 random_crop=True
+                 random_crop=True,
+                 create_label=False
                  ):
         self.x, self.y = x_set, y_set
         self.num_channels = self.x.shape[-1]
@@ -92,6 +93,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             self.y = [self.y]
             self.y_type = [self.y_type]
 
+        self.detection_index = np.where(self.y_type == 'region')[0][0]
+        self.phase_index = np.where(self.y_type != 'region')[0][0]
+
         self.random_crop = random_crop
         self.add_event_space = add_event_space
         self.norm_mode = norm_mode
@@ -110,6 +114,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.scale_amplitude = scale_amplitude
         self.pre_emphasis = pre_emphasis
         self.ramp = ramp
+        self.create_label = create_label
         self.non_noise_events = np.where(self.event_type != 'noise')[0]
 
         self.on_epoch_end()
@@ -292,8 +297,13 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
 
         x = self.x[idx]
         y = [a[idx] for a in self.y]
-        label = np.zeros((x.shape[0],len(self.y_type)))
-        label, detection = self._convert_y_to_regions(y, self.y_type, label)
+        if self.create_label:
+            label = np.zeros((x.shape[0],len(self.y_type)))
+            label, detection = self._convert_y_to_regions(y, self.y_type, label)
+        else:
+            label = y[:, self.phase_index]
+            detection = np.where(y[:, self.detection_index] == 1)[0]
+            detection = (detection[0], detection[-1])
 
         do_aug = self.augmentation and np.random.random() > 0.5
         if do_aug:
@@ -306,8 +316,14 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             else:
                 if self.add_event > 0:
                     t = np.random.choice(self.non_noise_events)
-                    label2 = np.zeros((x.shape[0], len(self.y_type)))
-                    label2, detection2 = self._convert_y_to_regions([a[t] for a in self.y], self.y_type, label2)
+                    y2 = [a[t] for a in self.y]
+                    if self.create_label:
+                        label2 = np.zeros((x.shape[0], len(self.y_type)))
+                        label2, detection2 = self._convert_y_to_regions(y2, self.y_type, label2)
+                    else:
+                        label2 = y[:,self.phase_index]
+                        detection2 = np.where(y[:,self.detection_index]==1)[0]
+                        detection2 = (detection2[0], detection2[-1])
                     x, scale = self._add_event(x, detection, self.x[t], detection2, self.snr[idx], self.add_event, self.add_event_space)
                     label = np.amax([label, label2*scale], axis=0)
                 if self.add_noise > 0:
