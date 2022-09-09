@@ -93,8 +93,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             self.y = [self.y]
             self.y_type = [self.y_type]
 
-        self.detection_index = np.where(self.y_type == 'region')[0][0]
-        self.phase_index = np.where(self.y_type != 'region')[0][0]
+        self.detection_index = np.where(np.array(self.y_type) == 'region')[0][0]
+        self.phase_index = np.where(np.array(self.y_type) != 'region')[0]
 
         self.random_crop = random_crop
         self.add_event_space = add_event_space
