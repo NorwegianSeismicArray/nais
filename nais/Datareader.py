@@ -301,7 +301,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             label = np.zeros((x.shape[0],len(self.y_type)))
             label, detection = self._convert_y_to_regions(y, self.y_type, label)
         else:
-            label = np.concatenate([y[self.detection_index], np.stack([y[i] for i in self.phase_index], axis=-1)], axis=-1)
+            label = np.concatenate([np.expand_dims(y[self.detection_index],axis=-1), np.stack([y[i] for i in self.phase_index], axis=-1)], axis=-1)
             detection = np.where(y[self.detection_index] == 1)[0]
             detection = (detection[0], detection[-1])
 
@@ -321,7 +321,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                         label2 = np.zeros((x.shape[0], len(self.y_type)))
                         label2, detection2 = self._convert_y_to_regions(y2, self.y_type, label2)
                     else:
-                        label2 = np.concatenate([y2[self.detection_index], np.stack([y2[i] for i in self.phase_index], axis=-1)],
+                        label2 = np.concatenate([np.expand_dims(y2[self.detection_index], axis=-1), np.stack([y2[i] for i in self.phase_index], axis=-1)],
                                                axis=-1)
                         detection2 = np.where(y2[self.detection_index] == 1)[0]
                         detection2 = (detection2[0], detection2[-1])
