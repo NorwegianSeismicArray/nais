@@ -51,6 +51,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  x_set,
                  y_set,
                  event_type,
+                 detection=None,
                  snr=None,
                  batch_size=32,
                  y_type='single',
@@ -76,6 +77,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  create_label=False
                  ):
         self.x, self.y = x_set, y_set
+        self.detection = detection
         self.num_channels = self.x.shape[-1]
         self.y_type = y_type
         self.event_type = event_type
@@ -302,8 +304,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             label, detection = self._convert_y_to_regions(y, self.y_type, label)
         else:
             label = np.concatenate([np.expand_dims(y[self.detection_index],axis=-1), np.stack([y[i] for i in self.phase_index], axis=-1)], axis=-1)
-            detection = np.where(y[self.detection_index] == 1)[0]
-            detection = (detection[0], detection[-1])
+            detection = self.detection[i]
 
         do_aug = self.augmentation and np.random.random() > 0.5
         if do_aug:
@@ -323,8 +324,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                     else:
                         label2 = np.concatenate([np.expand_dims(y2[self.detection_index], axis=-1), np.stack([y2[i] for i in self.phase_index], axis=-1)],
                                                axis=-1)
-                        detection2 = np.where(y2[self.detection_index] == 1)[0]
-                        detection2 = (detection2[0], detection2[-1])
+                        detection2 = self.detection[t]
                     x, scale = self._add_event(x, detection, self.x[t], detection2, self.snr[idx], self.add_event, self.add_event_space)
                     label = np.amax([label, label2*scale], axis=0)
                 if self.add_noise > 0:
