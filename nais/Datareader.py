@@ -248,6 +248,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         else:
             y1 = int((len(img) - self.new_length) / 2)
 
+        img = img[y1:y1 + self.new_length]
         mask = mask[y1:y1 + self.new_length]
         return img, mask
 
