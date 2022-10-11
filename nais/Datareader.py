@@ -327,8 +327,8 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                     else:
                         detection2 = self.detection[t]
                         label2 = np.concatenate([np.expand_dims(detection2, axis=-1), np.stack(y2, axis=-1)], axis=-1)
-                        d1 = (np.where(detection > 0)[0], np.where(detection > 0)[-1])
-                        d2 = (np.where(detection2 > 0)[0], np.where(detection2 > 0)[-1])
+                        d1 = (np.where(detection > 0)[0][0], np.where(detection > 0)[0][-1])
+                        d2 = (np.where(detection2 > 0)[0][0], np.where(detection2 > 0)[0][-1])
 
                     x, scale = self._add_event(x, d1, self.x[t], d2, self.snr[idx], self.add_event, self.add_event_space)
                     label = np.amax([label, label2*scale], axis=0)
