@@ -325,9 +325,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                     else:
                         detection2 = self.detection[t]
                         label2 = np.concatenate([np.expand_dims(detection2, axis=-1), np.stack(y2, axis=-1)], axis=-1)
-                    roll = np.random.uniform(0, label.shape[0])
-                    label = np.roll(label, roll)
-                    x2 = np.roll(self.x[t], roll)
+                    roll = np.random.randint(0, label.shape[0])
+                    label = np.roll(label, roll, axis=0)
+                    x2 = np.roll(self.x[t], roll, axis=0)
                     scale = 1 / np.random.uniform(1, 10)
                     label = np.amax([label, label2 * scale], axis=0)
                     x = x + x2
