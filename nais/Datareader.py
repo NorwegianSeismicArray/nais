@@ -316,7 +316,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                     x = self._add_gaps(
                         x, self.add_gap, max_size=self.max_gap_size)
             else:
-                if self.add_event > 0:
+                if self.add_event > np.random.uniform(0,1) and self.snr[idx] >= self.min_snr:
                     t = np.random.choice(self.non_noise_events)
                     y2 = [a[t] for a in self.y]
                     if self.create_label:
