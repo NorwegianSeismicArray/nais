@@ -322,16 +322,16 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                     if self.create_label:
                         label2 = np.zeros((x.shape[0], len(self.y_type)))
                         label2, detection2 = self._convert_y_to_regions(y2, self.y_type, label2)
-                        d1 = detection
-                        d2 = detection2
                     else:
                         detection2 = self.detection[t]
                         label2 = np.concatenate([np.expand_dims(detection2, axis=-1), np.stack(y2, axis=-1)], axis=-1)
-                        d1 = (np.where(detection > 0)[0][0], np.where(detection > 0)[0][-1])
-                        d2 = (np.where(detection2 > 0)[0][0], np.where(detection2 > 0)[0][-1])
+                    roll = np.random.uniform(0, label.shape[0])
+                    label = np.roll(label, roll)
+                    x2 = np.roll(self.x[t], roll)
+                    scale = 1 / np.random.uniform(1, 10)
+                    label = np.amax([label, label2 * scale], axis=0)
+                    x = x + x2
 
-                    x, scale = self._add_event(x, d1, self.x[t], d2, self.snr[idx], self.add_event, self.add_event_space)
-                    label = np.amax([label, label2*scale], axis=0)
                 if self.add_noise > 0:
                     x = self._add_noise(x, self.snr[idx], self.add_noise)
                 if self.drop_channel > 0:
