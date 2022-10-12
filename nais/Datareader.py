@@ -330,7 +330,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                     x2 = np.roll(self.x[t], roll, axis=0)
                     scale = 1 / np.random.uniform(1, 10)
                     label = np.amax([label, label2 * scale], axis=0)
-                    x = x + x2
+                    x = x + scale * x2
 
                 if self.add_noise > 0:
                     x = self._add_noise(x, self.snr[idx], self.add_noise)
