@@ -12,7 +12,8 @@ except ImportError as e:
     print('kapre not installed')
 
 import tensorflow.keras.layers as tfl
-from nais.Layers import ResidualConv1D, ResnetBlock1D, SeqSelfAttention, FeedForward
+from nais.Layers import ResidualConv1D, ResnetBlock1D, SeqSelfAttention, FeedForward, Scattering
+from nais.Mixture import GMM
 
 class ImageEncoder(tf.keras.Model):
     def __init__(self, depth=1):
@@ -724,3 +725,148 @@ class EarthQuakeTransformer(tf.keras.Model):
         s = self.s_picker(encoded)
         return d, p, s
 
+
+class ScatNet(tf.keras.Model):
+    def __init__(self,
+                 input_shape,
+                 j=[4,6,8],
+                 q=[8,2,1],
+                 k=7,
+                 pooling_type='avg',
+                 decimation=2,
+                 pooling_size=1024,
+                 eps=1e-3,
+                 n_pca=5,
+                 n_clusters=10,
+                 moving_pca=0.9,
+                 name='scatnet'
+                 ):
+        super(ScatNet, self).__init__(name=name)
+
+        self.batch_size = input_shape[0]
+        self.n_pca = n_pca
+        self.moving_pca = moving_pca
+        self.n_clusters = n_clusters
+        self.eps = eps
+        depth = len(j)
+        self.ls = [Scattering(batch_size=self.batch_size,
+                             index=0,
+                             j=j,
+                             q=q,
+                             k=k,
+                             decimation=decimation,
+                             pooling=pooling_size,
+                             pooling_type=pooling_type)]
+
+        for i in range(1,depth):
+            layer = Scattering(batch_size=self.batch_size,
+                               index=i,
+                             j=j,
+                             q=q,
+                             k=k,
+                             decimation=decimation,
+                             pooling=pooling_size,
+                             pooling_type=pooling_type)
+
+            self.ls.append(layer)
+
+        self.total_loss_tracker = tf.keras.metrics.Mean(name="total_loss")
+        self.reconstruction_loss_tracker = tf.keras.metrics.Mean(name="reconstruction_loss")
+        self.gmm_loss_tracker = tf.keras.metrics.Mean(name="gmm_loss")
+
+    @property
+    def metrics(self):
+        return [
+            self.total_loss_tracker,
+            self.reconstruction_loss_tracker,
+            self.gmm_loss_tracker,
+        ]
+
+    def forward(self, x, training=False):
+        def renorm(child, parent, epsilon=1e-3):
+            # Extract all shapes.
+            batch_size, *_, samples = child.shape
+            if epsilon > 0:
+                s = tf.experimental.numpy.swapaxes(child,1,2) / (tf.expand_dims(parent, -2) + epsilon)
+                batch_size, *_, samples = s.shape
+                return tf.reshape(s, [batch_size, -1, samples])
+            else:
+                return tf.reshape(child, [batch_size, -1, samples])
+
+        x = tf.experimental.numpy.swapaxes(x, 1, 2)
+        us, ss = [], []
+        for layer in self.ls:
+            u, s = layer(x)
+            x = u
+            us.append(u)
+            ss.append(s)
+
+        r = []
+        for i in range(1, len(ss)):
+            r.append(renorm(ss[i], ss[i-1], self.eps))
+
+        sx = tf.concat(r, axis=1)
+        sx = tf.math.log(sx + tf.keras.backend.epsilon())
+        sx = tf.reshape(sx, (self.batch_size, -1))
+        sx -= tf.math.reduce_mean(sx,axis=1,keepdims=True)
+
+        #PCA
+        singular_values, u, v = tf.linalg.svd(sx, full_matrices=False)
+        sigma = tf.linalg.diag(singular_values)
+
+        if not hasattr(self, 'moving_sigma') and training:
+           self.moving_sigma = tf.Variable(sigma, name='sigma')
+        else:
+            self.moving_sigma.assign(self.moving_pca*self.moving_sigma + (1-self.moving_pca)*sigma)
+
+        pca = tf.linalg.matmul(u, self.moving_sigma)[..., :self.n_pca]
+
+        return pca
+
+    def predict_step(self, data):
+        print('Predicting', data)
+        if type(data) == tuple:
+            data, _ = data
+        x = data
+        proj = self.forward(x, training=False)
+        sample, prob, mean, logvar = self.gmm(tf.ones((proj.shape[0],1)))
+        log_likelihood = self.gmm.log_likelihood(proj, prob, mean, logvar)
+
+        return tf.argmax(input=prob, axis=1)
+
+    def train_step(self, data):
+        if type(data) == tuple:
+            data, _ = data
+
+        x = data
+
+        with tf.GradientTape() as tape:
+
+            proj = self.forward(x, training=True)
+
+            reconstruction_loss = tf.reduce_sum([layer.losses for layer in self.ls])
+
+            if not hasattr(self,'gmm'):
+                self.gmm = GMM(proj.shape[1], self.n_clusters)
+
+            sample, prob, mean, logvar = self.gmm(tf.ones((proj.shape[0],1)))
+            log_likelihood = self.gmm.log_likelihood(proj, prob, mean, logvar)
+
+            total_loss = log_likelihood + reconstruction_loss
+
+        w = []
+        for layer in self.ls:
+            w += layer.variables
+        w += self.gmm.variables
+
+        grads = tape.gradient(total_loss, w)
+        self.optimizer.apply_gradients(zip(grads, w))
+        self.reconstruction_loss_tracker.update_state(reconstruction_loss)
+        self.total_loss_tracker.update_state(total_loss)
+        self.gmm_loss_tracker.update_state(log_likelihood)
+
+        return {
+            "loss": self.total_loss_tracker.result(),
+            "reconstruction_loss": self.reconstruction_loss_tracker.result(),
+            "gmm_loss": self.gmm_loss_tracker.result(),
+        }

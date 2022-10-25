@@ -4,6 +4,10 @@ Author: Erik B. Myklebust, erik@norsar.no
 """
 import urllib3
 import numpy as np
+import tensorflow as tf
+
+HERMITE = [[1, 0, -3, 2], [0, 0, 3, -2], [0, 1, -2, 1], [0, 0, -1, 1]]
+FORMAT = 'float32'
 
 def spectrogram_standard_scaler(spectrograms):
     return spectrograms - spectrograms.mean(axis=0)[np.newaxis,:] / spectrograms.std(axis=0)[np.newaxis,:]
@@ -46,7 +50,6 @@ def extract_weights(filename, dest='models'):
        zipObj.extractall(dest)
 
 
-      
 def get_model_memory_usage(batch_size, model):
     import numpy as np
     from tensorflow.keras import backend as K
@@ -79,3 +82,110 @@ def get_model_memory_usage(batch_size, model):
     total_memory = number_size * (batch_size * shapes_mem_count + trainable_count + non_trainable_count)
     gbytes = np.round(total_memory / (1024.0 ** 3), 3) + internal_model_mem_count
     return gbytes
+
+def complex_hermite_interp(xi, x, m, p):
+    """Complex interpolation with hermite polynomials.
+
+    Arguments
+    ---------
+        x: array-like
+            The knots onto the function is defined (derivative and
+            antiderivative).
+        t: array-like
+            The points where the interpolation is required.
+        m: array-like
+            The complex values of amplitude onto knots.
+        p: array-like
+            The complex values of derivatives onto knots.
+
+    Returns
+    -------
+        yi: array-like
+            The interpolated complex-valued function.
+    """
+    # Hermite polynomial coefficients
+    h = tf.Variable(np.array(HERMITE).astype(FORMAT), trainable=False)
+
+    # Concatenate coefficients onto shifted knots (1, n_knots - 1)
+    # The knots are defined at each scales, so xx is (n_scales, n_knots - 1, 2)
+    xx = tf.stack([x[:, :-1], x[:, 1:]], axis=2)
+
+    # The concatenated coefficients are of shape (2, n_knots - 1, 2)
+    mm = tf.stack([m[:, :-1], m[:, 1:]], axis=2)
+    pp = tf.stack([p[:, :-1], p[:, 1:]], axis=2)
+
+    # Define the full function y to interpolate (2, n_knots - 1, 4)
+    # on the shifted knots
+    y = tf.concat([mm, pp], axis=2)
+
+    # Extract Hermite polynomial coefficients from y (n_knots - 1, 4)
+    yh = tf.einsum('iab,bc->iac', y, h)
+
+    # Extract normalized piecewise interpolation vector
+    # (n_scales, n_knots - 1, n_interp)
+    xi_ = tf.expand_dims(tf.expand_dims(xi, 0), 0)
+    x0_ = tf.expand_dims(xx[:, :, 0], 2)
+    x1_ = tf.expand_dims(xx[:, :, 1], 2)
+    xn = (xi_ - x0_) / (x1_ - x0_)
+
+    # Calculate powers of normalized interpolation vector
+    mask = tf.logical_and(tf.greater_equal(xn, 0.), tf.less(xn, 1.))
+    mask = tf.cast(mask, tf.float32)
+    xp = tf.pow(tf.expand_dims(xn, -1), [0, 1, 2, 3])
+
+    # Interpolate
+    return tf.einsum('irf,srtf->ist', yh, xp * tf.expand_dims(mask, -1))
+
+
+def real_hermite_interp(xi, x, m, p):
+    """Real interpolation with hermite polynomials.
+
+    Arguments
+    ---------
+        x: array-like
+            The knots onto the function is defined (derivative and
+            antiderivative).
+        t: array-like
+            The points where the interpolation is required.
+        m: array-like
+            The real values of amplitude onto knots.
+        p: array-like
+            The real values of derivatives onto knots.
+
+    Returns
+    -------
+        yi: array-like
+            The interpolated real-valued function.
+    """
+    # Hermite polynomial coefficients
+    h = tf.Variable(np.array(HERMITE).astype(FORMAT), trainable=False)
+
+    # Concatenate coefficients onto shifted knots (1, n_knots - 1)
+    # The knots are defined at each scales, so xx is (n_scales, n_knots - 1, 2)
+    xx = tf.stack([x[:, :-1], x[:, 1:]], axis=2)
+
+    # The concatenated coefficients are of shape (n_knots - 1, 2)
+    mm = tf.stack([m[:-1], m[1:]], axis=1)
+    pp = tf.stack([p[:-1], p[1:]], axis=1)
+
+    # Define the full function y to interpolate (n_knots - 1, 4)
+    # on the shifted knots
+    y = tf.concat([mm, pp], axis=1)
+
+    # Extract Hermite polynomial coefficients from y (n_knots - 1, 4)
+    yh = tf.matmul(y, h)
+
+    # Extract normalized piecewise interpolation vector
+    # (n_scales, n_knots - 1, n_interp)
+    xi_ = tf.expand_dims(tf.expand_dims(xi, 0), 0)
+    x0_ = tf.expand_dims(xx[:, :, 0], 2)
+    x1_ = tf.expand_dims(xx[:, :, 1], 2)
+    xn = (xi_ - x0_) / (x1_ - x0_)
+
+    # Calculate powers of normalized interpolation vector
+    mask = tf.logical_and(tf.greater_equal(xn, 0.), tf.less(xn, 1.))
+    mask = tf.cast(mask, tf.float32)
+    xp = tf.pow(tf.expand_dims(xn, -1), [0, 1, 2, 3])
+
+    # Interpolate
+    return tf.einsum('rf,srtf->st', yh, xp * tf.expand_dims(mask, -1))
