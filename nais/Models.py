@@ -739,7 +739,10 @@ class ScatNet(tf.keras.Model):
                  n_pca=5,
                  n_clusters=10,
                  moving_pca=0.9,
-                 name='scatnet'
+                 name='scatnet',
+                 loss_weights=(1e-5, 1),
+                 return_prob=False,
+                 **filters_kw
                  ):
         super(ScatNet, self).__init__(name=name)
 
@@ -748,6 +751,9 @@ class ScatNet(tf.keras.Model):
         self.moving_pca = moving_pca
         self.n_clusters = n_clusters
         self.eps = eps
+        self.loss_weights = loss_weights
+        self.return_prob = return_prob
+
         depth = len(j)
         self.ls = [Scattering(batch_size=self.batch_size,
                              index=0,
@@ -756,7 +762,8 @@ class ScatNet(tf.keras.Model):
                              k=k,
                              decimation=decimation,
                              pooling=pooling_size,
-                             pooling_type=pooling_type)]
+                             pooling_type=pooling_type,
+                             **filters_kw)]
 
         for i in range(1,depth):
             layer = Scattering(batch_size=self.batch_size,
@@ -766,7 +773,8 @@ class ScatNet(tf.keras.Model):
                              k=k,
                              decimation=decimation,
                              pooling=pooling_size,
-                             pooling_type=pooling_type)
+                             pooling_type=pooling_type,
+                             **filters_kw)
 
             self.ls.append(layer)
 
@@ -824,7 +832,6 @@ class ScatNet(tf.keras.Model):
         return pca
 
     def predict_step(self, data):
-        print('Predicting', data)
         if type(data) == tuple:
             data, _ = data
         x = data
@@ -832,7 +839,10 @@ class ScatNet(tf.keras.Model):
         sample, prob, mean, logvar = self.gmm(tf.ones((proj.shape[0],1)))
         log_likelihood = self.gmm.log_likelihood(proj, prob, mean, logvar)
 
-        return tf.argmax(input=prob, axis=1)
+        if self.return_prob:
+            return prob
+        else:
+            return tf.argmax(input=prob, axis=1)
 
     def train_step(self, data):
         if type(data) == tuple:
@@ -840,11 +850,12 @@ class ScatNet(tf.keras.Model):
 
         x = data
 
+        total_loss = 0
+
         with tf.GradientTape() as tape:
 
             proj = self.forward(x, training=True)
-
-            reconstruction_loss = tf.reduce_sum([layer.losses for layer in self.ls])
+            scat_layers_loss = self.loss_weights[0] * tf.reduce_sum([sum(layer.losses) for layer in self.ls])
 
             if not hasattr(self,'gmm'):
                 self.gmm = GMM(proj.shape[1], self.n_clusters)
@@ -852,7 +863,9 @@ class ScatNet(tf.keras.Model):
             sample, prob, mean, logvar = self.gmm(tf.ones((proj.shape[0],1)))
             log_likelihood = self.gmm.log_likelihood(proj, prob, mean, logvar)
 
-            total_loss = log_likelihood + reconstruction_loss
+            gmm_loss = self.loss_weights[1] * log_likelihood
+
+            total_loss = scat_layers_loss + gmm_loss
 
         w = []
         for layer in self.ls:
@@ -861,9 +874,9 @@ class ScatNet(tf.keras.Model):
 
         grads = tape.gradient(total_loss, w)
         self.optimizer.apply_gradients(zip(grads, w))
-        self.reconstruction_loss_tracker.update_state(reconstruction_loss)
         self.total_loss_tracker.update_state(total_loss)
-        self.gmm_loss_tracker.update_state(log_likelihood)
+        self.gmm_loss_tracker.update_state(gmm_loss)
+        self.reconstruction_loss_tracker.update_state(scat_layers_loss)
 
         return {
             "loss": self.total_loss_tracker.result(),

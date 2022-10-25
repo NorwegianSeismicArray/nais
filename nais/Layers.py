@@ -648,7 +648,11 @@ class Scattering(tf.keras.layers.Layer):
                  pooling=2,
                  index=0,
                  name='scattering',
-                 **filters_kw):
+                 learn_filters=True,
+                 learn_knots=False,
+                 learn_scales=False,
+                 hilbert=False):
+
         """Scattering network layer.
 
         Computes the convolution modulus and scattering coefficients of the
@@ -662,25 +666,15 @@ class Scattering(tf.keras.layers.Layer):
         super(Scattering, self).__init__(name=name)
         self.decimation = decimation
         self.batch_size = batch_size
-
+        self.learn_filters = learn_filters
+        self.learn_knots = learn_knots
+        self.learn_scales = learn_scales
+        self.hilbert = hilbert
         # Filter bank properties
-        self.j = j = j[index] if type(j) is list else j
-        self.q = q = q[index] if type(q) is list else q
-        self.k = k = k[index] if type(k) is list else k
+        self.j = j[index] if type(j) is list else j
+        self.q = q[index] if type(q) is list else q
+        self.k = k[index] if type(k) is list else k
 
-        # Initialize filter bank (n_features, n_samples), then concatenate the
-        # real and imaginary parts to do a single convolution with stacked
-        # filters (2 * n_features, n_samples) and reshape filter bank with the
-        # same logical dimensions of input data (n_samples, 1, 2 * n_features)
-        filters = self.init_filters(j, q, k, **filters_kw)
-        self.n_filters, self.kernel_size = filters.get_shape().as_list()
-        filters_concat = tf.concat([tf.math.real(filters), tf.math.imag(filters)], 0)
-        self.filters_kernel = tf.expand_dims(tf.transpose(a=filters_concat), 1)
-
-        # Differentiate the case of one input channel or multiple
-        # which needs reshaping in order to treat them independently
-
-        # Scattering pooling setup
         if pooling_type == 'avg':
             self.pool = lambda x: tf.nn.avg_pool1d(x, pooling // (decimation ** (index + 1)),
                 pooling // (decimation ** (index + 1)), padding='VALID', data_format='NWC')
@@ -690,24 +684,89 @@ class Scattering(tf.keras.layers.Layer):
         else:
             self.pool = lambda x: x
 
+    def get_filters(self):
+        scales_base = 2 ** (tf.range(self.j * self.q, dtype=tf.float32) / np.float32(self.q))
+        scales = scales_base + self.scales_delta
+
+        knots_sum = tf.cumsum(
+            tf.clip_by_value(
+                tf.expand_dims(self.knots_base, 0) * tf.expand_dims(scales, 1),
+                1, self.num_filters - self.k), exclusive=True, axis=1)
+        knots = knots_sum - (self.k // 2) * tf.expand_dims(scales, 1)
+
+        if self.hilbert:
+            # Boundary Conditions and centering
+            mask = np.ones(self.k, dtype=np.float32)
+            mask[0], mask[-1] = 0, 0
+            m_null = self.m - tf.reduce_mean(self.m[1:-1])
+            filters = real_hermite_interp(self.time_grid, knots, m_null * mask, self.p * mask)
+
+            # Renorm and set filter-bank
+            filters_renorm = filters / tf.reduce_max(filters, 1, keepdims=True)
+            filters_fft = tf.spectral.rfft(filters_renorm)
+            filters = tf.ifft(tf.concat([filters_fft, tf.zeros_like(filters_fft)], 1))
+
+        else:
+            # Boundary Conditions and centering
+            mask = np.ones((1, self.k), dtype=np.float32)
+            mask[0, 0], mask[0, -1] = 0, 0
+            m_null = self.m - tf.reduce_mean(self.m[:, 1:-1], axis=1, keepdims=True)
+            filters = complex_hermite_interp(self.time_grid, knots, m_null * mask, self.p * mask)
+
+            # Renorm and set filter-bank
+            filters_renorm = filters / tf.reduce_max(filters, 2, keepdims=True)
+            filters = tf.complex(filters_renorm[0], filters_renorm[1])
+
+        filters_concat = tf.concat([tf.math.real(filters), tf.math.imag(filters)], 0)
+        filters_kernel = tf.expand_dims(tf.transpose(a=filters_concat), 1)
+        return filters_kernel
+
+    def build(self, input_shape):
+        extra_octave = 1 if self.learn_scales else 0
+        self.num_filters = self.k * 2 ** (self.j + extra_octave)
+        time_max = np.float32(self.k * 2 ** (self.j - 1 + extra_octave))
+        self.time_grid = tf.linspace(-time_max, time_max, self.num_filters)
+
+        self.scales_delta = tf.Variable(tf.zeros(self.j * self.q), trainable=self.learn_scales, name='scales')
+        self.knots_base = tf.Variable(tf.ones(self.k), trainable=self.learn_knots, name='knots')
+
+        if self.hilbert:
+            # Create the (real) parameters
+            m = (np.cos(np.arange(self.k) * np.pi) * np.hamming(self.k)).astype(FORMAT)
+            p = (np.zeros(self.k)).astype(FORMAT)
+        else:
+            # Create the (complex) parameters
+            m = np.stack([np.cos(np.arange(self.k) * np.pi) * np.hamming(self.k),
+                          np.zeros(self.k) * np.hamming(self.k)]).astype(FORMAT)
+            p = np.stack([np.zeros(self.k),
+                          np.cos(np.arange(self.k) * np.pi) * np.hamming(self.k)]
+                         ).astype(FORMAT)
+
+        self.m = tf.Variable(m, name='m', trainable=self.learn_filters)
+        self.p = tf.Variable(p, name='p', trainable=self.learn_filters)
+
     def call(self, x):
         input_shape = (self.batch_size, *x.shape[1:])
 
+        filters = self.get_filters()
+        kernel_size, _, n_filters = filters.shape
+        n_filters //= 2
+
         x_reshaped = tf.reshape(x, [np.prod(input_shape[:-1]), input_shape[-1], 1])
-        p = [0, 0], [self.kernel_size // 2 - 1, self.kernel_size // 2 + 1], [0, 0]
+        p = [0, 0], [kernel_size // 2 - 1, kernel_size // 2 + 1], [0, 0]
         x_padded = tf.pad(x_reshaped, p, mode='symmetric')
 
         x_conv = tf.nn.conv1d(input=x_padded,
-                              filters=self.filters_kernel,
+                              filters=filters,
                               stride=self.decimation,
                               padding='VALID',
                               data_format='NWC'
                               )
 
-        u = tf.math.sqrt(tf.math.square(x_conv[..., :self.n_filters]) +
-                         tf.math.square(x_conv[..., self.n_filters:]))
+        u = tf.math.sqrt(tf.math.square(x_conv[..., :n_filters]) +
+                         tf.math.square(x_conv[..., n_filters:]))
 
-        out_u = tf.reshape(u, (*input_shape[:-1], self.n_filters, -1))
+        out_u = tf.reshape(u, (*input_shape[:-1], n_filters, -1))
         out_u = tf.experimental.numpy.swapaxes(out_u, 1, 2)
 
         pooled = self.pool(u)
@@ -715,118 +774,7 @@ class Scattering(tf.keras.layers.Layer):
 
         out_s = tf.reshape(pooled, (*input_shape[:-1], self.j * self.q, -1))
         inverse = tf.gradients(ys=x_conv, xs=x, grad_ys=x_conv)[0]
-
-        self.add_loss(tf.nn.l2_loss(inverse - tf.stop_gradient(x)) / np.prod(input_shape))
+        loss = tf.keras.metrics.mean_squared_error(inverse, tf.stop_gradient(x))
+        self.add_loss(tf.math.reduce_mean(loss))
 
         return out_u, out_s
-
-    def init_filters(self, j, q, k,
-                     learn_scales=False,
-                     learn_knots=False,
-                     learn_filters=True,
-                     hilbert=False):
-        """Create the filter bank."""
-        # If the scales are learnable, allows to go toward lower frequencies.
-        extra_octave = 1 if learn_scales else 0
-        self.filter_samples = k * 2 ** (j + extra_octave)
-
-        # Define the time grid onto integers such as
-        # [-k * 2 ** (j - 1), ..., -1, 0, 1, ..., k * 2 ** (j - 1)]
-        # We change the range depending on if the extra octave was added
-        time_max = np.float32(k * 2**(j - 1 + extra_octave))
-        time_grid = tf.linspace(-time_max, time_max, self.filter_samples)
-
-        # Scales
-        # ------
-        # The first scale is at the Nyquist frequency, the increasing scales
-        # go to lower frequencies.
-        # Note: the following method might not be computationally optimal but
-        # is the most stable for learning and precision.
-        scales_base = 2**(tf.range(j * q, dtype=tf.float32) / np.float32(q))
-        scales_delta = tf.Variable(
-            tf.zeros(j * q), trainable=learn_scales, name='scales')
-        scales = scales_base + scales_delta
-
-        # Now ensure that the scales are strictly increasing in case of
-        # delta scales are too high amplitude. If not, shift by the right
-        # amount get the correcting shifts being the cases with negative
-        # increase of the scales and the nyquist offset which ensures that the
-        # smallest filter has scale of at least 1.
-        nyquist_offset = scales + \
-            tf.stop_gradient(tf.one_hot(0, j * q) * tf.nn.relu(1 - scales[0]))
-        scales_correction = tf.concat(
-            [tf.zeros(1),
-             tf.nn.relu(nyquist_offset[:-1] - nyquist_offset[1:])], 0)
-        self.scales = nyquist_offset + \
-            tf.stop_gradient(tf.cumsum(scales_correction))
-
-        # The knots are defined at each scale. We start from the Nyquist
-        # frequency where the knots must be [-k//2, ..., -1, 0, 1, ..., k//2]
-        knots_base = tf.Variable(tf.ones(k), trainable=learn_knots, name='knots')
-
-        # We compute the scaled differences first in order to clip to ensure
-        # that you can not have (at any scale) as difference of less than 1,
-        # corresponding to a Nyquist node. We then cumsum along the time axis
-        # to get the scaled positions which are not yet starting at the
-        # correct index they start for now at 0. This step is crucial to
-        # ensure that during learning, there is no degenracy and aliasing
-        # if trying to put knots closer together than 1. This is also crucial
-        # for the high frequency filters as the nyquist one will always violate
-        # the sampling if the knots are contracted.
-        knots_sum = tf.cumsum(
-            tf.clip_by_value(
-                tf.expand_dims(knots_base, 0) * tf.expand_dims(self.scales, 1),
-                1, self.filter_samples - k), exclusive=True, axis=1)
-        self.knots = knots_sum - (k // 2) * tf.expand_dims(self.scales, 1)
-
-        # Interpolation init, add the boundary condition mask and remove the
-        # mean filters of even indices are the real parts and odd indices are
-        # imaginary part
-        if hilbert is True:
-
-            # Create the (real) parameters
-            m = (np.cos(np.arange(k) * np.pi) * np.hamming(k)).astype(FORMAT)
-            p = (np.zeros(k)).astype(FORMAT)
-            self.m = tf.Variable(m, name='m', trainable=learn_filters)
-            self.p = tf.Variable(p, name='p', trainable=learn_filters)
-
-            # Boundary Conditions and centering
-            mask = np.ones(k, dtype=np.float32)
-            mask[0], mask[-1] = 0, 0
-            m_null = self.m - tf.reduce_mean(input_tensor=self.m[1:-1])
-            filters = real_hermite_interp(
-                time_grid, self.knots, m_null * mask, self.p * mask)
-
-            # Renorm and set filter-bank
-            filters_renorm = filters / tf.reduce_max(input_tensor=filters, axis=1, keepdims=True)
-            filters_fft = tf.signal.rfft(filters_renorm)
-            filters = tf.signal.ifft(
-                tf.concat([filters_fft, tf.zeros_like(filters_fft)], 1))
-
-        else:
-            # Create the (complex) parameters
-            m = np.stack([np.cos(np.arange(k) * np.pi) * np.hamming(k),
-                          np.zeros(k) * np.hamming(k)]).astype(FORMAT)
-            p = np.stack([np.zeros(k),
-                          np.cos(np.arange(k) * np.pi) * np.hamming(k)]
-                         ).astype(FORMAT)
-            self.m = tf.Variable(m, name='m', trainable=learn_filters)
-            self.p = tf.Variable(p, name='p', trainable=learn_filters)
-
-            # Boundary Conditions and centering
-            mask = np.ones((1, k), dtype=np.float32)
-            mask[0, 0], mask[0, -1] = 0, 0
-            m_null = self.m - \
-                tf.reduce_mean(input_tensor=self.m[:, 1:-1], axis=1, keepdims=True)
-            filters = complex_hermite_interp(
-                time_grid, self.knots, m_null * mask, self.p * mask)
-
-            # Renorm and set filter-bank
-            filters_renorm = filters / tf.reduce_max(input_tensor=filters, axis=2, keepdims=True)
-            filters = tf.complex(filters_renorm[0], filters_renorm[1])
-
-        # Define the parameters for saving
-        #self.variables = self.m, self.p, self.scales, self.knots
-        return filters
-
-
