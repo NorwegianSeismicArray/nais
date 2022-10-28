@@ -736,7 +736,7 @@ class Scattering(tf.keras.layers.Layer):
             #m = (np.cos(np.arange(self.k) * np.pi) * np.hamming(self.k)).astype(FORMAT)
             #p = (np.zeros(self.k)).astype(FORMAT)
 
-            m = tf.math.cos(tf.range(self.k) * pi) * tf.singal.hamming_window(self.k)
+            m = tf.math.cos(tf.range(self.k, dtype='float32') * pi) * tf.singal.hamming_window(self.k)
             p = tf.zeros(self.k)
 
         else:
@@ -747,12 +747,12 @@ class Scattering(tf.keras.layers.Layer):
             #              np.cos(np.arange(self.k) * np.pi) * np.hamming(self.k)]
             #             ).astype(FORMAT)
             m = tf.stack([
-                tf.math.cos(tf.range(self.k) * pi) * tf.signal.hamming_window(self.k),
+                tf.math.cos(tf.range(self.k, dtype='float32') * pi) * tf.signal.hamming_window(self.k),
                 tf.zeros(self.k) * tf.signal.hamming_window(self.k)
             ])
             p = tf.stack([
                 tf.zeros(self.k),
-                tf.math.cos(tf.range(self.k) * pi) * tf.signal.hamming_window(self.k)
+                tf.math.cos(tf.range(self.k, dtype='float32') * pi) * tf.signal.hamming_window(self.k)
             ])
 
         self.m = tf.Variable(m, name='m', trainable=self.learn_filters)
