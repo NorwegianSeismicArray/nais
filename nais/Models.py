@@ -816,7 +816,7 @@ class ScatNet(tf.keras.Model):
         sx = tf.concat(r, axis=1)
         sx = tf.math.log(sx + tf.keras.backend.epsilon())
         sx = tf.reshape(sx, (self.batch_size, -1))
-        sx -= tf.math.reduce_mean(sx,axis=1,keepdims=True)
+        sx -= tf.math.reduce_mean(sx, axis=0, keepdims=True)
         trans_input = sx.shape[1]
 
         #PCA
