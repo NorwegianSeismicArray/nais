@@ -104,7 +104,7 @@ def complex_hermite_interp(xi, x, m, p):
             The interpolated complex-valued function.
     """
     # Hermite polynomial coefficients
-    h = tf.Variable(np.array(HERMITE).astype(FORMAT), trainable=False)
+    h = tf.constant(np.array(HERMITE).astype(FORMAT))
 
     # Concatenate coefficients onto shifted knots (1, n_knots - 1)
     # The knots are defined at each scales, so xx is (n_scales, n_knots - 1, 2)
@@ -158,7 +158,7 @@ def real_hermite_interp(xi, x, m, p):
             The interpolated real-valued function.
     """
     # Hermite polynomial coefficients
-    h = tf.Variable(np.array(HERMITE).astype(FORMAT), trainable=False)
+    h = tf.constant(np.array(HERMITE).astype(FORMAT))
 
     # Concatenate coefficients onto shifted knots (1, n_knots - 1)
     # The knots are defined at each scales, so xx is (n_scales, n_knots - 1, 2)
