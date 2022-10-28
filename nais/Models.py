@@ -817,8 +817,7 @@ class ScatNet(tf.keras.Model):
         sx = tf.math.log(sx + tf.keras.backend.epsilon())
         sx = tf.reshape(sx, (self.batch_size, -1))
         sx -= tf.math.reduce_mean(sx, axis=0, keepdims=True)
-        trans_input = sx.shape[1]
-        print(sx.shape)
+        trans_input = min(sx.shape)
 
         #PCA
         singular_values, u, _ = tf.linalg.svd(sx, full_matrices=False)
@@ -829,7 +828,6 @@ class ScatNet(tf.keras.Model):
         else:
             self.moving_sigma.assign(self.moving_pca * self.moving_sigma + (1-self.moving_pca) * sigma)
 
-        print(u.shape, self.moving_sigma.shape, sigma.shape)
         pca = tf.linalg.matmul(u, self.moving_sigma)
 
         return pca
