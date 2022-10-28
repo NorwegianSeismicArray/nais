@@ -9,8 +9,6 @@ import numpy as np
 import tensorflow.keras.layers as tfl
 import tensorflow.keras.backend as K
 from nais.utils import complex_hermite_interp, real_hermite_interp
-import logging
-FORMAT = 'float32'
 
 class StackedSpectrogram(tfl.Layer):
     """
@@ -732,15 +730,15 @@ class Scattering(tf.keras.layers.Layer):
 
         if self.hilbert:
             # Create the (real) parameters
-            m = (np.cos(np.arange(self.k) * np.pi) * np.hamming(self.k)).astype(FORMAT)
-            p = (np.zeros(self.k)).astype(FORMAT)
+            m = (np.cos(np.arange(self.k) * np.pi) * np.hamming(self.k))
+            p = (np.zeros(self.k))
         else:
             # Create the (complex) parameters
             m = np.stack([np.cos(np.arange(self.k) * np.pi) * np.hamming(self.k),
-                          np.zeros(self.k) * np.hamming(self.k)]).astype(FORMAT)
+                          np.zeros(self.k) * np.hamming(self.k)])
             p = np.stack([np.zeros(self.k),
                           np.cos(np.arange(self.k) * np.pi) * np.hamming(self.k)]
-                         ).astype(FORMAT)
+                         )
 
         self.m = tf.Variable(m, name='m', trainable=self.learn_filters)
         self.p = tf.Variable(p, name='p', trainable=self.learn_filters)
