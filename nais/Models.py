@@ -817,17 +817,18 @@ class ScatNet(tf.keras.Model):
         sx = tf.math.log(sx + tf.keras.backend.epsilon())
         sx = tf.reshape(sx, (self.batch_size, -1))
         sx -= tf.math.reduce_mean(sx,axis=1,keepdims=True)
+        trans_input = sx.shape[1]
 
         #PCA
         singular_values, u, v = tf.linalg.svd(sx, full_matrices=False)
-        sigma = tf.linalg.diag(singular_values)
+        sigma = tf.slice(tf.linalg.diag(singular_values), [0, 0], [trans_input, self.n_pca])
 
         if not hasattr(self, 'moving_sigma') and training:
-           self.moving_sigma = tf.Variable(tf.zeros_like(sigma), name='sigma')
+           self.moving_sigma = tf.Variable(tf.zeros_like(sigma), name='sigma', trainable=False)
         else:
             self.moving_sigma.assign(self.moving_pca*self.moving_sigma + (1-self.moving_pca)*sigma)
 
-        pca = tf.linalg.matmul(u, self.moving_sigma)[..., :self.n_pca]
+        pca = tf.linalg.matmul(u, self.moving_sigma)
 
         return pca
 
