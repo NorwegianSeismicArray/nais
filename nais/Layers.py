@@ -694,7 +694,7 @@ class Scattering(tf.keras.layers.Layer):
         knots = knots_sum - (self.k // 2) * tf.expand_dims(scales, 1)
 
         # Boundary Conditions
-        mask = tf.stack([0.0, tf.ones(self.k-2, dtype=tf.float32), 0.0])
+        mask = tf.concat([tf.zeros((1,)), tf.ones((self.k-2,)), tf.zeros((1,))], axis=0)
 
         if self.hilbert:
             #Centering
