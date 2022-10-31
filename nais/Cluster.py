@@ -3,17 +3,15 @@
 import tensorflow as tf
 
 class KMeans(tf.keras.Model):
-    def __init__(self, o_shape, num_clusters=10, lr=0.1, name="KMeans"):
+    def __init__(self, data, num_clusters=10, lr=0.1, name="KMeans"):
 
         super(KMeans, self).__init__(name=name)
         # Initialalize all the variables
         self.num_clusters = num_clusters
         self.lr = lr
-        w_init = tf.keras.initializers.RandomNormal(mean=0., stddev=1.)
-        self.centroids = tf.Variable(
-            initial_value=w_init(shape=(num_clusters, o_shape), dtype="float32"),
-            name='mean_f',
-            trainable=True)
+        self.centroids = tf.Variable(tf.slice(tf.random_shuffle(data), [0, 0], [self.num_clusters, -1]),
+                                     name='centroids',
+                                     trainable=True)
 
     def initialize_centroids(self, mean):
         self.centroids.assign(mean)
