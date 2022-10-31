@@ -824,7 +824,7 @@ class ScatNet(tf.keras.Model):
         sigma = tf.slice(tf.linalg.diag(singular_values), [0, 0], [trans_input, self.n_pca])
 
         if not hasattr(self, 'moving_sigma') and training:
-           self.moving_sigma = tf.Variable(tf.zeros_like(sigma), name='sigma', trainable=False)
+            self.moving_sigma = tf.Variable(tf.zeros_like(sigma), name='sigma', trainable=False)
         else:
             self.moving_sigma.assign(self.moving_pca * self.moving_sigma + (1-self.moving_pca) * sigma)
 
