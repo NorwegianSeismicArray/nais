@@ -695,7 +695,7 @@ class Scattering(tf.keras.layers.Layer):
 
         if self.hilbert:
             # Boundary Conditions and centering
-            mask = tf.ones(self.k)
+            mask = tf.ones(self.k, dtype=tf.float32)
             mask[0], mask[-1] = 0, 0
             m_null = self.m - tf.reduce_mean(self.m[1:-1])
             filters = real_hermite_interp(self.time_grid, knots, m_null * mask, self.p * mask)
@@ -707,7 +707,7 @@ class Scattering(tf.keras.layers.Layer):
 
         else:
             # Boundary Conditions and centering
-            mask = np.ones((1, self.k), dtype=np.float32)
+            mask = tf.ones((1, self.k), dtype=tf.float32)
             mask[0, 0], mask[0, -1] = 0, 0
             m_null = self.m - tf.reduce_mean(self.m[:, 1:-1], axis=1, keepdims=True)
             filters = complex_hermite_interp(self.time_grid, knots, m_null * mask, self.p * mask)
@@ -736,7 +736,7 @@ class Scattering(tf.keras.layers.Layer):
             #m = (np.cos(np.arange(self.k) * np.pi) * np.hamming(self.k)).astype(FORMAT)
             #p = (np.zeros(self.k)).astype(FORMAT)
 
-            m = tf.math.cos(tf.range(self.k, dtype='float32') * pi) * tf.singal.hamming_window(self.k)
+            m = tf.math.cos(tf.range(self.k, dtype='float32') * pi) * tf.signal.hamming_window(self.k)
             p = tf.zeros(self.k)
 
         else:
