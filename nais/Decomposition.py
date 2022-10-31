@@ -4,12 +4,14 @@
 import tensorflow as tf
 
 class PCA(tf.keras.Model):
-    def __init__(self, input_shape, n_pca=10, lr=0.1, name="PCA"):
+    def __init__(self, n_pca=10, lr=0.1, name="PCA"):
 
         super(PCA, self).__init__(name=name)
         self.lr = lr
-        self.input_shape = input_shape
-        self.moving_sigma = tf.Variable(tf.zeros_like((input_shape, n_pca)), name='sigma', trainable=False)
+        self.n_pca = n_pca
+
+    def build(self, input_shape):
+        self.moving_sigma = tf.Variable(tf.zeros_like((input_shape, self.n_pca)), name='sigma', trainable=False)
 
     def call(self, inputs):
         if isinstance(inputs, tuple):
