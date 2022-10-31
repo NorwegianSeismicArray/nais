@@ -693,25 +693,26 @@ class Scattering(tf.keras.layers.Layer):
                 1, self.num_filters - self.k), exclusive=True, axis=1)
         knots = knots_sum - (self.k // 2) * tf.expand_dims(scales, 1)
 
+        # Boundary Conditions
         mask = tf.ones((1, self.k), dtype=tf.float32)
-        mask[0, 0], mask[0, -1] = 0, 0
+        mask -= tf.stack([1, tf.zeros(self.k-2), 1])
 
         if self.hilbert:
-            # Boundary Conditions and centering
-            m_null = self.m - tf.reduce_mean(self.m[1:-1])
+            #Centering
+            mask = tf.squeeze(mask)
+            m_null = self.m - mask * tf.math.reduce_mean(self.m, keepdims=True)
             filters = real_hermite_interp(self.time_grid, knots, m_null * tf.squeeze(mask), self.p * mask)
 
             # Renorm and set filter-bank
-            filters_renorm = filters / tf.reduce_max(filters, 1, keepdims=True)
+            filters_renorm = filters / tf.math.reduce_max(filters, 1, keepdims=True)
             filters_fft = tf.spectral.rfft(filters_renorm)
             filters = tf.ifft(tf.concat([filters_fft, tf.zeros_like(filters_fft)], 1))
 
         else:
-
-            m_null = self.m - tf.reduce_mean(self.m[:, 1:-1], axis=1, keepdims=True)
+            m_null = self.m - mask * tf.math.reduce_mean(self.m, axis=1, keepdims=True)
             filters = complex_hermite_interp(self.time_grid, knots, m_null * mask, self.p * mask)
             # Renorm and set filter-bank
-            filters_renorm = filters / tf.reduce_max(filters, 2, keepdims=True)
+            filters_renorm = filters / tf.math.reduce_max(filters, 2, keepdims=True)
             filters = tf.complex(filters_renorm[0], filters_renorm[1])
 
         filters_concat = tf.concat([tf.math.real(filters), tf.math.imag(filters)], 0)
