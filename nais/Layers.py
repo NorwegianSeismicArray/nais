@@ -703,8 +703,8 @@ class Scattering(tf.keras.layers.Layer):
 
             # Renorm and set filter-bank
             filters_renorm = filters / tf.math.reduce_max(filters, 1, keepdims=True)
-            filters_fft = tf.spectral.rfft(filters_renorm)
-            filters = tf.ifft(tf.concat([filters_fft, tf.zeros_like(filters_fft)], 1))
+            filters_fft = tf.signal.rfft(filters_renorm)
+            filters = tf.signal.ifft(tf.concat([filters_fft, tf.zeros_like(filters_fft)], 1))
 
         else:
             mask = tf.expand_dims(mask, axis=0)
