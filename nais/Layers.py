@@ -694,12 +694,10 @@ class Scattering(tf.keras.layers.Layer):
         knots = knots_sum - (self.k // 2) * tf.expand_dims(scales, 1)
 
         # Boundary Conditions
-        mask = tf.ones((1, self.k), dtype=tf.float32)
-        mask -= tf.stack([1, tf.zeros(self.k-2), 1])
+        mask = tf.stack([0.0, tf.ones(self.k-2, dtype=tf.float32), 0.0])
 
         if self.hilbert:
             #Centering
-            mask = tf.squeeze(mask)
             m_null = self.m - mask * tf.math.reduce_mean(self.m, keepdims=True)
             filters = real_hermite_interp(self.time_grid, knots, m_null * tf.squeeze(mask), self.p * mask)
 
@@ -709,6 +707,7 @@ class Scattering(tf.keras.layers.Layer):
             filters = tf.ifft(tf.concat([filters_fft, tf.zeros_like(filters_fft)], 1))
 
         else:
+            mask = tf.expand_dims(mask, axis=0)
             m_null = self.m - mask * tf.math.reduce_mean(self.m, axis=1, keepdims=True)
             filters = complex_hermite_interp(self.time_grid, knots, m_null * mask, self.p * mask)
             # Renorm and set filter-bank
