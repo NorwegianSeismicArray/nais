@@ -35,7 +35,7 @@ class GMM(tf.keras.Model):
         """
         super(GMM, self).__init__(name=name)
         # Initialalize all the variables
-        w_init = tf.keras.initializers.HeUniform()
+        w_init = tf.keras.initializers.RandomNormal(mean=0., stddev=1.)
         self.mean_f = tf.Variable(
             initial_value=w_init(shape=(K, o_shape), dtype="float32"),
             name='mean_f',
