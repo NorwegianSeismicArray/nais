@@ -11,7 +11,10 @@ class PCA(tf.keras.Model):
         self.n_pca = n_pca
 
     def build(self, input_shape):
-        self.moving_sigma = tf.Variable(tf.zeros_like((input_shape[1], self.n_pca)), name='sigma', trainable=False)
+        self.moving_sigma = tf.Variable(tf.zeros((input_shape[1], self.n_pca)),
+                                        dtype='float',
+                                        name='sigma',
+                                        trainable=False)
         self.c = input_shape[1]
 
     def call(self, inputs):
