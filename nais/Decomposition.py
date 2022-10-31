@@ -15,7 +15,7 @@ class PCA(tf.keras.Model):
                                         dtype='float',
                                         name='sigma',
                                         trainable=False)
-        self.c = input_shape[1]
+        self.c = min(input_shape)
 
     def call(self, inputs):
         if isinstance(inputs, tuple):
