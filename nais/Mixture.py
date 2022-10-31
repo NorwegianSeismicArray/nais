@@ -20,7 +20,7 @@ EPS = 1e-12
 
 
 class GMM(tf.keras.Model):
-    def __init__(self, o_shape, K=10, gumbel_tau=0.1, name="GMM"):
+    def __init__(self, o_shape, K=10, gumbel_tau=0.001, name="GMM"):
         """
         Parameters
         ----------
@@ -63,7 +63,6 @@ class GMM(tf.keras.Model):
         self.K = K
         self.o_shape = o_shape
         self.tau = gumbel_tau
-        self(tf.constant(np.zeros(shape=(8, 1), dtype=np.float32)))
 
     def initialize_gmm(self, mean_f, logvar_f, logprob_f, mean_p, logvar_p, logprob_p):
         """
