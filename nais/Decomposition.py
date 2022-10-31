@@ -11,14 +11,14 @@ class PCA(tf.keras.Model):
         self.n_pca = n_pca
 
     def build(self, input_shape):
-        self.moving_sigma = tf.Variable(tf.zeros_like((input_shape, self.n_pca)), name='sigma', trainable=False)
+        self.moving_sigma = tf.Variable(tf.zeros_like((input_shape[1], self.n_pca)), name='sigma', trainable=False)
 
     def call(self, inputs):
         if isinstance(inputs, tuple):
             inputs, _ = inputs
 
         singular_values, u, _ = tf.linalg.svd(inputs, full_matrices=False)
-        sigma = tf.slice(tf.linalg.diag(singular_values), [0, 0], [self.input_shape, self.n_pca])
+        sigma = tf.slice(tf.linalg.diag(singular_values), [0, 0], [self.input_shape[1], self.n_pca])
 
         self.moving_sigma.assign(self.moving_pca * self.lr + (1 - self.lr) * sigma)
 
