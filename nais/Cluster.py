@@ -9,7 +9,7 @@ class KMeans(tf.keras.Model):
         # Initialalize all the variables
         self.num_clusters = num_clusters
         self.lr = lr
-        self.centroids = tf.Variable(tf.slice(tf.random.shuffle(data), [0, 0], [self.num_clusters, -1]),
+        self.centroids = tf.Variable(tf.keras.initializers.HeNormal()(shape=(num_clusters, data.shape[1])),
                                      name='centroids',
                                      trainable=True)
 
