@@ -32,7 +32,5 @@ class KMeans(tf.keras.Model):
 
         self.calculate_loss(assignments, distances)
 
-        print(distances.shape, assignments.shape)
-
         return tf.transpose(distances), assignments
 
