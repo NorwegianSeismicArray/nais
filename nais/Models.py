@@ -743,7 +743,7 @@ class ScatNet(tf.keras.Model):
                  moving_pca=0.9,
                  clustering_method='GMM',
                  name='scatnet',
-                 loss_weights=(1e-5, 1),
+                 loss_weights=(1.0, 1.0),
                  **filters_kw
                  ):
         super(ScatNet, self).__init__(name=name)
