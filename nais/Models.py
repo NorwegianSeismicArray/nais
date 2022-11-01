@@ -814,6 +814,9 @@ class ScatNet(tf.keras.Model):
             r.append(renorm(ss[i], ss[i-1], self.eps))
 
         sx = tf.concat(r, axis=1)
+
+        print(sx.shape)
+
         sx = tf.math.log(sx + self.eps_log)
         sx = tf.reshape(sx, (self.batch_size, -1))
         sx -= tf.math.reduce_mean(sx, axis=0, keepdims=True)
@@ -856,7 +859,7 @@ class ScatNet(tf.keras.Model):
                 self.gmm = GMM(proj.shape[1], self.n_clusters)
 
             sample, prob, mean, logvar = self.gmm(tf.ones((proj.shape[0],1)))
-            log_likelihood = self.gmm.log_likelihood(sample, prob, mean, logvar)
+            log_likelihood = self.gmm.log_likelihood(proj, prob, mean, logvar) #Should it be proj or sample?
 
             gmm_loss = self.loss_weights[1] * log_likelihood
 
