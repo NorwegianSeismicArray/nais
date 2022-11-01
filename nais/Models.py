@@ -778,6 +778,8 @@ class ScatNet(tf.keras.Model):
 
             self.ls.append(layer)
 
+        self.global_pool = tf.keras.layers.GlobalMaxPooling1D()
+
         self.total_loss_tracker = tf.keras.metrics.Mean(name="total_loss")
         self.reconstruction_loss_tracker = tf.keras.metrics.Mean(name="reconstruction_loss")
         self.gmm_loss_tracker = tf.keras.metrics.Mean(name="gmm_loss")
@@ -816,7 +818,7 @@ class ScatNet(tf.keras.Model):
         sx = tf.concat(r, axis=1)
 
         sx = tf.math.log(sx + self.eps_log)
-        sx = tf.keras.layers.GlobalMaxPooling1D()(sx)
+        sx = self.global_pool(sx)
 
         #sx = tf.reshape(sx, (self.batch_size, -1))
         #sx -= tf.math.reduce_mean(sx, axis=0, keepdims=True)
