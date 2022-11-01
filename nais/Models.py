@@ -874,7 +874,7 @@ class ScatNet(tf.keras.Model):
         w = []
         for layer in self.ls:
             w += layer.variables
-        w += self.gmm.variables
+        w += self.clustering.variables
 
         grads = tape.gradient(total_loss, w)
         self.optimizer.apply_gradients(zip(grads, w))
