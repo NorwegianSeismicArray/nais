@@ -14,6 +14,7 @@ except ImportError as e:
 import tensorflow.keras.layers as tfl
 from nais.Layers import ResidualConv1D, ResnetBlock1D, SeqSelfAttention, FeedForward, Scattering
 from nais.Mixture import GMM
+from nais.Cluster import KMeans
 
 class ImageEncoder(tf.keras.Model):
     def __init__(self, depth=1):
@@ -740,6 +741,7 @@ class ScatNet(tf.keras.Model):
                  eps_log=0.001,
                  n_clusters=10,
                  moving_pca=0.9,
+                 clustering_method='GMM',
                  name='scatnet',
                  loss_weights=(1e-5, 1),
                  **filters_kw
@@ -753,6 +755,7 @@ class ScatNet(tf.keras.Model):
         self.n_clusters = n_clusters
         self.eps = eps
         self.loss_weights = loss_weights
+        self.clustering_method = clustering_method
 
         depth = len(j)
         self.ls = [Scattering(batch_size=self.batch_size,
@@ -785,7 +788,7 @@ class ScatNet(tf.keras.Model):
 
         self.total_loss_tracker = tf.keras.metrics.Mean(name="total_loss")
         self.reconstruction_loss_tracker = tf.keras.metrics.Mean(name="reconstruction_loss")
-        self.gmm_loss_tracker = tf.keras.metrics.Mean(name="gmm_loss")
+        self.cluster_loss_tracker = tf.keras.metrics.Mean(name="cluster_loss")
 
     @property
     def metrics(self):
@@ -833,7 +836,11 @@ class ScatNet(tf.keras.Model):
             data, _ = data
         x = data
         proj = self.forward(x, training=False)
-        sample, prob, mean, logvar = self.gmm(tf.ones((proj.shape[0],1)))
+        if self.clustering_method == 'GMM':
+            sample, prob, mean, logvar = self.clustering(tf.ones((proj.shape[0],1)))
+        else:
+            dist, assignment = self.clustering(proj)
+            prob = tf.nn.softmax(-dist)
 
         return proj, prob
 
@@ -848,15 +855,21 @@ class ScatNet(tf.keras.Model):
             proj = self.forward(x, training=True)
             scat_layers_loss = self.loss_weights[0] * tf.reduce_sum([sum(layer.losses) for layer in self.ls])
 
-            if not hasattr(self,'gmm'):
-                self.gmm = GMM(proj.shape[1], self.n_clusters)
+            if not hasattr(self,'clustering'):
+                if self.clustering_method == 'GMM':
+                    self.clustering = GMM(proj.shape[1], self.n_clusters)
+                else:
+                    self.clustering = KMeans(proj, self.n_clusters)
 
-            sample, prob, mean, logvar = self.gmm(tf.ones((proj.shape[0],1)))
-            log_likelihood = self.gmm.log_likelihood(proj, prob, mean, logvar) #Should it be proj or sample?
+            if self.clustering_method == 'GMM':
+                sample, prob, mean, logvar = self.clustering(tf.ones((proj.shape[0],1)))
+                log_likelihood = self.clustering.log_likelihood(proj, prob, mean, logvar) #Should it be proj or sample?
+            else:
+                dist, _ = self.clustering(proj)
+                log_likelihood = tf.reduce_mean(dist)
 
-            gmm_loss = self.loss_weights[1] * log_likelihood
-
-            total_loss = scat_layers_loss + gmm_loss
+            cluster_loss = self.loss_weights[1] * log_likelihood
+            total_loss = scat_layers_loss + cluster_loss
 
         w = []
         for layer in self.ls:
@@ -866,11 +879,11 @@ class ScatNet(tf.keras.Model):
         grads = tape.gradient(total_loss, w)
         self.optimizer.apply_gradients(zip(grads, w))
         self.total_loss_tracker.update_state(total_loss)
-        self.gmm_loss_tracker.update_state(gmm_loss)
+        self.cluster_loss_tracker.update_state(cluster_loss)
         self.reconstruction_loss_tracker.update_state(scat_layers_loss)
 
         return {
             "loss": self.total_loss_tracker.result(),
             "reconstruction_loss": self.reconstruction_loss_tracker.result(),
-            "gmm_loss": self.gmm_loss_tracker.result(),
+            "cluster_loss": self.cluster_loss_tracker.result(),
         }
