@@ -34,5 +34,5 @@ class KMeans(tf.keras.Model):
 
         print(distances.shape, assignments.shape)
 
-        return distances, assignments
+        return tf.transpose(distances), assignments
 
