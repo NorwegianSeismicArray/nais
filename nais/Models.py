@@ -815,25 +815,13 @@ class ScatNet(tf.keras.Model):
 
         sx = tf.concat(r, axis=1)
 
-        print(sx.shape)
-
         sx = tf.math.log(sx + self.eps_log)
-        sx = tf.reshape(sx, (self.batch_size, -1))
-        sx -= tf.math.reduce_mean(sx, axis=0, keepdims=True)
-        trans_input = min(sx.shape)
+        sx = tf.keras.layers.GlobalMaxPooling1D()(sx)
 
-        #PCA
-        singular_values, u, _ = tf.linalg.svd(sx, full_matrices=False)
-        sigma = tf.slice(tf.linalg.diag(singular_values), [0, 0], [trans_input, self.n_pca])
+        #sx = tf.reshape(sx, (self.batch_size, -1))
+        #sx -= tf.math.reduce_mean(sx, axis=0, keepdims=True)
 
-        if not hasattr(self, 'moving_sigma') and training:
-            self.moving_sigma = tf.Variable(tf.zeros_like(sigma), name='sigma', trainable=False)
-        else:
-            self.moving_sigma.assign(self.moving_pca * self.moving_sigma + (1-self.moving_pca) * sigma)
-
-        pca = tf.linalg.matmul(u, self.moving_sigma)
-
-        return pca
+        return sx
 
     def predict_step(self, data):
         if type(data) == tuple:
