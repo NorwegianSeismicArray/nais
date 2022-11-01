@@ -795,7 +795,7 @@ class ScatNet(tf.keras.Model):
         return [
             self.total_loss_tracker,
             self.reconstruction_loss_tracker,
-            self.gmm_loss_tracker,
+            self.cluster_loss_tracker,
         ]
 
     def forward(self, x, training=False):
