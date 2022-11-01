@@ -855,11 +855,11 @@ class ScatNet(tf.keras.Model):
             proj = self.forward(x, training=True)
             scat_layers_loss = self.loss_weights[0] * tf.reduce_sum([sum(layer.losses) for layer in self.ls])
 
-            if not hasattr(self,'clustering'):
+            if not hasattr(self, 'clustering'):
                 if self.clustering_method == 'GMM':
                     self.clustering = GMM(proj.shape[1], self.n_clusters)
                 else:
-                    self.clustering = KMeans(proj, self.n_clusters)
+                    self.clustering = KMeans(proj.shape[1], self.n_clusters)
 
             if self.clustering_method == 'GMM':
                 sample, prob, mean, logvar = self.clustering(tf.ones((proj.shape[0],1)))
