@@ -3,13 +3,13 @@
 import tensorflow as tf
 
 class KMeans(tf.keras.Model):
-    def __init__(self, data, num_clusters=10, lr=0.1, name="KMeans"):
+    def __init__(self, data_shape, num_clusters=10, lr=0.1, name="KMeans"):
 
         super(KMeans, self).__init__(name=name)
         # Initialalize all the variables
         self.num_clusters = num_clusters
         self.lr = lr
-        self.centroids = tf.Variable(tf.keras.initializers.HeNormal()(shape=(num_clusters, data.shape[1])),
+        self.centroids = tf.Variable(tf.keras.initializers.HeNormal()(shape=(num_clusters, data_shape)),
                                      name='centroids',
                                      trainable=True)
 
