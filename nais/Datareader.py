@@ -130,7 +130,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         indexes = self.indexes[item * self.batch_size:(item + 1) * self.batch_size]
         X, y = zip(*list(map(self.data_generation, indexes)))
         y = np.stack(y, axis=0)
-        if self.output_type == 'list'
+        if self.output_type == 'list':
             y = np.split(y, len(self.y_type), axis=-1)
         return np.stack(X, axis=0), y
 
