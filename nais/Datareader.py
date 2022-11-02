@@ -72,6 +72,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  min_snr=10.0,
                  add_event_space=40,
                  buffer=0,
+                 output_type='array',
                  shuffle=False,
                  random_crop=True,
                  create_label=False
@@ -81,6 +82,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.num_channels = self.x.shape[-1]
         self.y_type = y_type
         self.event_type = event_type
+        self.output_type = output_type
         if snr is None:
             snr = np.zeros(x_set.shape[0])
         self.snr = snr
@@ -127,7 +129,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
     def __getitem__(self, item):
         indexes = self.indexes[item * self.batch_size:(item + 1) * self.batch_size]
         X, y = zip(*list(map(self.data_generation, indexes)))
-        y = np.split(np.stack(y, axis=0), len(self.y_type), axis=-1)
+        y = np.stack(y, axis=0)
+        if self.output_type == 'list'
+            y = np.split(y, len(self.y_type), axis=-1)
         return np.stack(X, axis=0), y
 
     def on_epoch_end(self):
