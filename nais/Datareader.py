@@ -131,7 +131,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         X, y = zip(*list(map(self.data_generation, indexes)))
         if self.model_type == 'phasenet':
             n = 1 - np.sum(np.stack(y, axis=0), axis=-1, keepdims=True)
-            y = np.concatenate([x,y],axis=-1)
+            y = np.concatenate([n,y],axis=-1)
             y = np.split(y, y.shape[-1], axis=-1)
         return np.stack(X, axis=0), y
 
