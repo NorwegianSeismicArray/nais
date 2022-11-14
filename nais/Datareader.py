@@ -4,6 +4,8 @@ import math
 from scipy.signal import convolve, tukey, triang, fftconvolve, oaconvolve
 from scipy.signal.windows import gaussian
 
+from scipy.ndimage import gaussian_filter1d
+
 class AugmentWaveformSequence(tf.keras.utils.Sequence):
     """
     x_set :
@@ -267,13 +269,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             if yt[j] == 'single':
                 i = y[j]
                 if not math.isnan(i):
-                    if self.ramp > 0:
-                        t = triang(self.ramp)
-                        s = int(i) - len(t)//2
-                        e = int(i) + len(t)//2 + len(t) % 2
-                        label[s:e,j] = t
-                    else:
-                        label[int(i),j] = 1
+                    label[int(i),j] = 1
             elif yt[j] == 'region':
                 start, end = y[j]
                 if not (math.isnan(start) or math.isnan(end)):
@@ -282,13 +278,11 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                     end = min(len(label), end)
                     detection = (start, end)
                     label[start:end,j] = 1
-                    if self.ramp > 0:
-                        t = triang(self.ramp)
-                        t1, t2 = t[:len(t)//2], t[len(t)//2:]
-                        label[start - len(t1):start,j] = t1
-                        label[end:end + len(t2),j] = t2
             else:
                 raise NotImplementedError(yt[j] + ' is not supported.')
+
+        if self.ramp > 0:
+            label = gaussian_filter1d(label, sigma=self.ramp, axis=0)
 
         m = np.amax(label, axis=0, keepdims=True)
         m[m == 0] = 1
