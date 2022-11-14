@@ -129,10 +129,6 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
     def __getitem__(self, item):
         indexes = self.indexes[item * self.batch_size:(item + 1) * self.batch_size]
         X, y = zip(*list(map(self.data_generation, indexes)))
-        if self.model_type == 'phasenet':
-            n = 1 - np.sum(np.stack(y, axis=0), axis=-1, keepdims=True)
-            y = np.concatenate([n,y],axis=-1)
-            y = np.split(y, y.shape[-1], axis=-1)
         return np.stack(X, axis=0), y
 
     def on_epoch_end(self):
