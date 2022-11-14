@@ -120,7 +120,6 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         self.scale_amplitude = scale_amplitude
         self.pre_emphasis = pre_emphasis
         self.ramp = ramp
-        print(self.ramp)
         self.create_label = create_label
         self.non_noise_events = np.where(self.event_type != 'noise')[0]
 
