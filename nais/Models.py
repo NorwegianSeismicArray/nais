@@ -727,6 +727,21 @@ class EarthQuakeTransformer(tf.keras.Model):
         return d, p, s
 
 
+class EarthQuakeTransformerMetadata(EarthQuakeTransformer):
+    def __init__(self, num_outputs, eqt_kw):
+        super(EarthQuakeTransformerMetadata, self).__init__(**eqt_kw)
+        self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
+                                                   tfl.Dense(128, activation='relu'),
+                                                   tfl.Dense(num_outputs)])
+
+    def call(self, inputs):
+        encoded = self.feature_extractor(inputs)
+        d = self.detector(encoded)
+        p = self.p_picker(encoded)
+        s = self.s_picker(encoded)
+        m = self.metadata_model(encoded)
+        return d, p, s, m
+
 class ScatNet(tf.keras.Model):
     def __init__(self,
                  input_shape,
