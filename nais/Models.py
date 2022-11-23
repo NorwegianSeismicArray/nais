@@ -667,7 +667,7 @@ class EarthQuakeTransformer(tf.keras.Model):
                                       attention_width=width)(x)
             att = tfl.Add()([x, att])
             norm = tfl.LayerNormalization()(att)
-            ff = tf.keras.Sequential([tfl.Dense(128, activation='relu', kernel_regularizer=kernel_regularizer),
+            ff = tf.keras.Sequential([tfl.Dense(f, activation='relu', kernel_regularizer=kernel_regularizer),
                                       tfl.Dropout(dropout),
                                       tfl.Dense(norm.shape[2]),
                                       ])(norm)
