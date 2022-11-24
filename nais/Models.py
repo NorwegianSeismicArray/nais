@@ -626,6 +626,7 @@ class EarthQuakeTransformer(tf.keras.Model):
                  dropout=0.0,
                  kernel_regularizer=None,
                  classify=True,
+                 att_type='additive',
                  name='EarthQuakeTransformer'):
         super(EarthQuakeTransformer, self).__init__(name=name)
 
@@ -664,7 +665,8 @@ class EarthQuakeTransformer(tf.keras.Model):
 
         def block_transformer(f, width, x):
             att, w = SeqSelfAttention(return_attention=True,
-                                      attention_width=width)(x)
+                                      attention_width=width,
+                                      attention_type=att_type)(x)
             att = tfl.Add()([x, att])
             norm = tfl.LayerNormalization()(att)
             ff = tf.keras.Sequential([tfl.Dense(f, activation='relu', kernel_regularizer=kernel_regularizer),
@@ -702,7 +704,9 @@ class EarthQuakeTransformer(tf.keras.Model):
             x = inp
             if attention:
                 x = tfl.LSTM(filters[1], return_sequences=True, kernel_regularizer=kernel_regularizer)(x)
-                x, w = SeqSelfAttention(return_attention=True, attention_width=attention_width)(x)
+                x, w = SeqSelfAttention(return_attention=True,
+                                        attention_width=attention_width,
+                                        attention_type=att_type)(x)
 
             x = tf.keras.Sequential([inv_conv_block(f, kz) for f, kz in zip(invfilters, invkernelsizes)])(x)
             to_crop = x.shape[1] - input_dim[0]
