@@ -753,7 +753,7 @@ class TransPhaseNet(tf.keras.Model):
                  transformer_size=64,
                  initializer='glorot_normal',
                  name='PhaseNet'):
-        super(PhaseNet, self).__init__(name=name)
+        super(TransPhaseNet, self).__init__(name=name)
         self.num_classes = num_classes
         self.initializer = initializer
         self.kernel_regularizer = kernel_regularizer
@@ -776,8 +776,8 @@ class TransPhaseNet(tf.keras.Model):
                                       attention_width=width)(x)
             att = tfl.Add()([x, att])
             norm = tfl.LayerNormalization()(att)
-            ff = tf.keras.Sequential([tfl.Dense(f, activation='relu', kernel_regularizer=kernel_regularizer),
-                                      tfl.Dropout(dropout),
+            ff = tf.keras.Sequential([tfl.Dense(f, activation='relu', kernel_regularizer='l2'),
+                                      tfl.Dropout(self.dropout_rate),
                                       tfl.Dense(norm.shape[2]),
                                       ])(norm)
             ff_add = tfl.Add()([norm, ff])
