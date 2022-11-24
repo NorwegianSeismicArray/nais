@@ -823,7 +823,7 @@ class TransPhaseNet(tf.keras.Model):
             x = tfl.concatenate([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
-        for ts in range(self.transformer_sizes):
+        for ts in self.transformer_sizes:
             x, _ = block_transformer(ts, None, x)
 
         ### [Second half of the network: upsampling inputs] ###
