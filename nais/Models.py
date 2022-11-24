@@ -750,7 +750,7 @@ class TransPhaseNet(tf.keras.Model):
                  output_activation='linear',
                  kernel_regularizer=None,
                  dropout_rate=0.2,
-                 transformer_size=64,
+                 transformer_sizes=[64,64,64],
                  initializer='glorot_normal',
                  name='PhaseNet'):
         super(TransPhaseNet, self).__init__(name=name)
@@ -759,7 +759,7 @@ class TransPhaseNet(tf.keras.Model):
         self.kernel_regularizer = kernel_regularizer
         self.dropout_rate = dropout_rate
         self.output_activation = output_activation
-        self.transformer_size = transformer_size
+        self.transformer_sizes = transformer_sizes
 
         if filters is None:
             self.filters = [4, 8, 16, 32]
@@ -813,8 +813,6 @@ class TransPhaseNet(tf.keras.Model):
                            kernel_initializer=self.initializer,
                            )(x)
             x = tfl.BatchNormalization()(x)
-            x, _ = block_transformer(self.transformer_size, None, x)
-
             x = tfl.MaxPooling1D(4, strides=2, padding="same")(x)
 
             # Project residual
@@ -825,7 +823,9 @@ class TransPhaseNet(tf.keras.Model):
             x = tfl.concatenate([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
-        self.encoder = tf.keras.Model(inputs, x)
+        for ts in range(self.transformer_sizes):
+            x, _ = block_transformer(ts, None, x)
+
         ### [Second half of the network: upsampling inputs] ###
 
         for filters in self.filters[::-1]:
