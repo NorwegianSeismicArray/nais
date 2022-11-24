@@ -750,7 +750,7 @@ class TransPhaseNet(tf.keras.Model):
                  output_activation='linear',
                  kernel_regularizer=None,
                  dropout_rate=0.2,
-                 transformer_sizes=[64,64,64],
+                 transformer_sizes=[64],
                  initializer='glorot_normal',
                  name='PhaseNet'):
         super(TransPhaseNet, self).__init__(name=name)
@@ -824,6 +824,7 @@ class TransPhaseNet(tf.keras.Model):
             previous_block_activation = x  # Set aside next residual
 
         for ts in self.transformer_sizes:
+            x = tfl.LSTM(ts, return_sequences=True)(x)
             x, _ = block_transformer(ts, None, x)
 
         ### [Second half of the network: upsampling inputs] ###
