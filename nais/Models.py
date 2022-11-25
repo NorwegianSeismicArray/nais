@@ -312,7 +312,7 @@ class PhaseNet(tf.keras.Model):
     def __init__(self,
                  num_classes=2,
                  filters=None,
-                 kernel_sizes=None,
+                 kernelsizes=None,
                  output_activation='linear',
                  kernel_regularizer=None,
                  dropout_rate=0.2,
@@ -330,10 +330,10 @@ class PhaseNet(tf.keras.Model):
         else:
             self.filters = filters
 
-        if kernel_sizes is None:
-            self.kernel_sizes = [7, 7, 7, 7]
+        if kernelsizes is None:
+            self.kernelsizes = [7, 7, 7, 7]
         else:
-            self.kernel_sizes = kernel_sizes
+            self.kernelsizes = kernelsizes
 
     def build(self, input_shape):
         inputs = tf.keras.Input(shape=input_shape[1:])
@@ -341,7 +341,7 @@ class PhaseNet(tf.keras.Model):
         ### [First half of the network: downsampling inputs] ###
 
         # Entry block
-        x = tfl.Conv1D(self.filters[0], self.kernel_sizes[0],
+        x = tfl.Conv1D(self.filters[0], self.kernelsizes[0],
                        strides=2,
                        kernel_regularizer=self.kernel_regularizer,
                        padding="same",
@@ -356,7 +356,7 @@ class PhaseNet(tf.keras.Model):
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for i, filters in enumerate(self.filters[1:]):
             x = tfl.Activation("relu")(x)
-            x = tfl.Conv1D(filters, self.kernel_sizes[i+1], padding="same",
+            x = tfl.Conv1D(filters, self.kernelsizes[i+1], padding="same",
                            kernel_regularizer=self.kernel_regularizer,
                            kernel_initializer=self.initializer,
                            )(x)
@@ -364,7 +364,7 @@ class PhaseNet(tf.keras.Model):
             x = tfl.Activation("relu")(x)
             x = tfl.Dropout(self.dropout_rate)(x)
 
-            x = tfl.Conv1D(filters, self.kernel_sizes[i+1], padding="same",
+            x = tfl.Conv1D(filters, self.kernelsizes[i+1], padding="same",
                            kernel_regularizer=self.kernel_regularizer,
                            kernel_initializer=self.initializer,
                            )(x)
@@ -385,7 +385,7 @@ class PhaseNet(tf.keras.Model):
 
         for i, filters in enumerate(self.filters[::-1]):
             x = tfl.Activation("relu")(x)
-            x = tfl.Conv1DTranspose(filters, self.kernel_sizes[::-1][i], padding="same",
+            x = tfl.Conv1DTranspose(filters, self.kernelsizes[::-1][i], padding="same",
                                     kernel_regularizer=self.kernel_regularizer,
                                     kernel_initializer=self.initializer,
                                     )(x)
@@ -393,7 +393,7 @@ class PhaseNet(tf.keras.Model):
             x = tfl.Activation("relu")(x)
             x = tfl.Dropout(self.dropout_rate)(x)
 
-            x = tfl.Conv1DTranspose(filters, self.kernel_sizes[::-1][i], padding="same",
+            x = tfl.Conv1DTranspose(filters, self.kernelsizes[::-1][i], padding="same",
                                     kernel_regularizer=self.kernel_regularizer,
                                     kernel_initializer=self.initializer,
                                     )(x)
@@ -756,7 +756,7 @@ class TransPhaseNet(tf.keras.Model):
     def __init__(self,
                  num_classes=2,
                  filters=None,
-                 kernel_sizes=None,
+                 kernelsizes=None,
                  output_activation='linear',
                  kernel_regularizer=None,
                  dropout_rate=0.2,
@@ -778,10 +778,10 @@ class TransPhaseNet(tf.keras.Model):
         else:
             self.filters = filters
 
-        if kernel_sizes is None:
-            self.kernel_sizes = [7, 7, 7, 7]
+        if kernelsizes is None:
+            self.kernelsizes = [7, 7, 7, 7]
         else:
-            self.kernel_sizes = kernel_sizes
+            self.kernelsizes = kernelsizes
 
     def build(self, input_shape):
         inputs = tf.keras.Input(shape=input_shape[1:])
@@ -803,7 +803,7 @@ class TransPhaseNet(tf.keras.Model):
             return norm_out, w
 
         # Entry block
-        x = tfl.Conv1D(self.filters[0], self.kernel_sizes[0],
+        x = tfl.Conv1D(self.filters[0], self.kernelsizes[0],
                        strides=2,
                        kernel_regularizer=self.kernel_regularizer,
                        padding="same",
@@ -818,7 +818,7 @@ class TransPhaseNet(tf.keras.Model):
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for i, filters in enumerate(self.filters[1:]):
             x = tfl.Activation("relu")(x)
-            x = tfl.Conv1D(filters, self.kernel_sizes[i+1], padding="same",
+            x = tfl.Conv1D(filters, self.kernelsizes[i+1], padding="same",
                            kernel_regularizer=self.kernel_regularizer,
                            kernel_initializer=self.initializer,
                            )(x)
@@ -826,7 +826,7 @@ class TransPhaseNet(tf.keras.Model):
             x = tfl.Activation("relu")(x)
             x = tfl.Dropout(self.dropout_rate)(x)
 
-            x = tfl.Conv1D(filters, self.kernel_sizes[i+1], padding="same",
+            x = tfl.Conv1D(filters, self.kernelsizes[i+1], padding="same",
                            kernel_regularizer=self.kernel_regularizer,
                            kernel_initializer=self.initializer,
                            )(x)
@@ -849,7 +849,7 @@ class TransPhaseNet(tf.keras.Model):
 
         for filters in self.filters[::-1]:
             x = tfl.Activation("relu")(x)
-            x = tfl.Conv1DTranspose(filters, self.kernel_sizes[::-1][i], padding="same",
+            x = tfl.Conv1DTranspose(filters, self.kernelsizes[::-1][i], padding="same",
                                     kernel_regularizer=self.kernel_regularizer,
                                     kernel_initializer=self.initializer,
                                     )(x)
@@ -857,7 +857,7 @@ class TransPhaseNet(tf.keras.Model):
             x = tfl.Activation("relu")(x)
             x = tfl.Dropout(self.dropout_rate)(x)
 
-            x = tfl.Conv1DTranspose(filters, self.kernel_sizes[::-1][i], padding="same",
+            x = tfl.Conv1DTranspose(filters, self.kernelsizes[::-1][i], padding="same",
                                     kernel_regularizer=self.kernel_regularizer,
                                     kernel_initializer=self.initializer,
                                     )(x)
