@@ -755,6 +755,7 @@ class TransPhaseNet(tf.keras.Model):
                  kernel_regularizer=None,
                  dropout_rate=0.2,
                  transformer_sizes=[64],
+                 att_type='additive',
                  initializer='glorot_normal',
                  name='PhaseNet'):
         super(TransPhaseNet, self).__init__(name=name)
@@ -764,6 +765,7 @@ class TransPhaseNet(tf.keras.Model):
         self.dropout_rate = dropout_rate
         self.output_activation = output_activation
         self.transformer_sizes = transformer_sizes
+        self.att_type = att_type
 
         if filters is None:
             self.filters = [4, 8, 16, 32]
@@ -777,7 +779,8 @@ class TransPhaseNet(tf.keras.Model):
 
         def block_transformer(f, width, x):
             att, w = SeqSelfAttention(return_attention=True,
-                                      attention_width=width)(x)
+                                      attention_width=width,
+                                      attention_type=self.att_type)(x)
             att = tfl.Add()([x, att])
             norm = tfl.LayerNormalization()(att)
             ff = tf.keras.Sequential([tfl.Dense(f, activation='relu', kernel_regularizer='l2'),
