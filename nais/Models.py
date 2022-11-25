@@ -15,6 +15,7 @@ import tensorflow.keras.layers as tfl
 from nais.Layers import ResidualConv1D, ResnetBlock1D, SeqSelfAttention, FeedForward, Scattering
 from nais.Mixture import GMM
 from nais.Cluster import KMeans
+import tf.keras.backend as K
 
 class ImageEncoder(tf.keras.Model):
     def __init__(self, depth=1):
@@ -409,6 +410,11 @@ class PhaseNet(tf.keras.Model):
             x = tfl.concatenate([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
+        to_crop = x.shape[1] - input_shape[1]
+        of_start, of_end = to_crop // 2, to_crop // 2
+        of_end += to_crop % 2
+        x = tfl.Cropping1D((of_start, of_end))(x)
+
         # Add a per-pixel classification layer
         if self.num_classes is not None:
             outputs = tfl.Conv1D(self.num_classes,
@@ -420,6 +426,10 @@ class PhaseNet(tf.keras.Model):
 
         # Define the model
         self.model = tf.keras.Model(inputs, outputs)
+
+    @property
+    def num_parameters(self):
+        return sum([np.prod(K.get_value(w).shape) for w in self.model.trainable_weights])
 
     def summary(self):
         return self.model.summary()
@@ -728,6 +738,13 @@ class EarthQuakeTransformer(tf.keras.Model):
         self.p_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, output_name='p_phase')
         self.s_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, output_name='s_phase')
 
+    @property
+    def num_parameters(self):
+        s = 0
+        for m in [self.feature_extractor, self.detector, self.s_picker, self.p_picker]:
+            s += sum([np.prod(K.get_value(w).shape) for w in m.trainable_weights])
+        return s
+
     def call(self, inputs):
         encoded = self.feature_extractor(inputs)
         d = self.detector(encoded)
@@ -889,6 +906,10 @@ class TransPhaseNet(tf.keras.Model):
 
         # Define the model
         self.model = tf.keras.Model(inputs, outputs)
+
+    @property
+    def num_parameters(self):
+        return sum([np.prod(K.get_value(w).shape) for w in self.model.trainable_weights])
 
     def summary(self):
         return self.model.summary()
