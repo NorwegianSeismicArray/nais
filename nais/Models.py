@@ -624,6 +624,7 @@ class EarthQuakeTransformer(tf.keras.Model):
                  lstmfilters=None,
                  attention_width=3,
                  dropout=0.0,
+                 transformer_sizes=[64, 64],
                  kernel_regularizer=None,
                  classify=True,
                  att_type='additive',
@@ -687,9 +688,9 @@ class EarthQuakeTransformer(tf.keras.Model):
                 for f in lstmfilters:
                     x = block_BiLSTM(f, x)
                 x = tfl.LSTM(64, return_sequences=True, kernel_regularizer=kernel_regularizer)(x)
-                x, w0 = block_transformer(64, None, x)
-                encoded, w1 = block_transformer(64, None, x)
-                return encoded
+                for ts in transformer_sizes:
+                    x, w0 = block_transformer(ts, None, x)
+                return x
             return tf.keras.Model(inp, encode(inp))
 
         def inv_conv_block(f,kz):
