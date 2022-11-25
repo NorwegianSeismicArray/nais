@@ -15,7 +15,7 @@ import tensorflow.keras.layers as tfl
 from nais.Layers import ResidualConv1D, ResnetBlock1D, SeqSelfAttention, FeedForward, Scattering
 from nais.Mixture import GMM
 from nais.Cluster import KMeans
-import tf.keras.backend as K
+import tensorflow.keras.backend as K
 
 class ImageEncoder(tf.keras.Model):
     def __init__(self, depth=1):
