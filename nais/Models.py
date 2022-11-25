@@ -862,6 +862,11 @@ class TransPhaseNet(tf.keras.Model):
             x = tfl.concatenate([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
+        to_crop = x.shape[1] - input_shape[1]
+        of_start, of_end = to_crop // 2, to_crop // 2
+        of_end += to_crop % 2
+        x = tfl.Cropping1D((of_start, of_end))(x)
+
         # Add a per-pixel classification layer
         if self.num_classes is not None:
             outputs = tfl.Conv1D(self.num_classes,
