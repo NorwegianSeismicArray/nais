@@ -790,16 +790,9 @@ class Scattering(tf.keras.layers.Layer):
 
         return out_u, out_s
 
-
-def conv2d(kernel_size, stride, filters, kernel_regularizer=tf.keras.regularizers.l2(WEIGHT_DECAY), padding="same", use_bias=False,
-           kernel_initializer="he_normal", **kwargs):
-    return layers.Conv2D(kernel_size=kernel_size, strides=stride, filters=filters, kernel_regularizer=kernel_regularizer, padding=padding,
-                         use_bias=use_bias, kernel_initializer=kernel_initializer, **kwargs)
-
-
-class Routing1D(layers.Layer):
+class Routing1D(tfl.Layer):
     def __init__(self, out_channels, dropout_rate, temperature=30, **kwargs):
-        super(Routing, self).__init__(**kwargs)
+        super(Routing1D, self).__init__(**kwargs)
         self.avgpool = tfl.GlobalAveragePooling1D()
         self.dropout = tfl.Dropout(rate=dropout_rate)
         self.fc = tfl.Dense(units=out_channels)
@@ -819,7 +812,7 @@ class Routing1D(layers.Layer):
         return out
 
 
-class CondConv1D(layers.Layer):
+class CondConv1D(tfl.Layer):
     def __init__(self,
                  filters,
                  kernel_size,
