@@ -789,3 +789,72 @@ class Scattering(tf.keras.layers.Layer):
         self.add_loss(tf.math.reduce_mean(loss))
 
         return out_u, out_s
+
+
+def conv2d(kernel_size, stride, filters, kernel_regularizer=tf.keras.regularizers.l2(WEIGHT_DECAY), padding="same", use_bias=False,
+           kernel_initializer="he_normal", **kwargs):
+    return layers.Conv2D(kernel_size=kernel_size, strides=stride, filters=filters, kernel_regularizer=kernel_regularizer, padding=padding,
+                         use_bias=use_bias, kernel_initializer=kernel_initializer, **kwargs)
+
+
+class Routing1D(layers.Layer):
+    def __init__(self, out_channels, dropout_rate, temperature=30, **kwargs):
+        super(Routing, self).__init__(**kwargs)
+        self.avgpool = tfl.GlobalAveragePooling1D()
+        self.dropout = tfl.Dropout(rate=dropout_rate)
+        self.fc = tfl.Dense(units=out_channels)
+        self.softmax = tfl.Softmax()
+        self.temperature = temperature
+
+    def call(self, inputs, **kwargs):
+        """
+        :param inputs: (b, c, h, w)
+        :return: (b, out_features)
+        """
+        out = self.avgpool(inputs)
+        out = self.dropout(out)
+
+        # refer to paper: https://arxiv.org/pdf/1912.03458.pdf
+        out = self.softmax(self.fc(out) * 1.0 / self.temperature)
+        return out
+
+
+class CondConv1D(layers.Layer):
+    def __init__(self,
+                 filters,
+                 kernel_size,
+                 activation='linear',
+                 dropout_rate=0.2,
+                 stride=1,
+                 weight_decay=1e-4,
+                 use_bias=True,
+                 num_experts=3,
+                 padding="same",
+                 **kwargs):
+        super(CondConv1D, self).__init__(**kwargs)
+
+        self.routing = Routing(out_channels=num_experts, dropout_rate=dropout_rate, name="routing_layer")
+        self.convs = []
+        for _ in range(num_experts):
+            layer = tfl.Conv1D(kernel_size=kernel_size,
+                               strides=stride,
+                               filters=filters,
+                               kernel_regularizer=tf.keras.regularizers.l2(weight_decay),
+                               padding=padding,
+                               use_bias=False,
+                               kernel_initializer='he_normal',
+                               **kwargs)
+            self.convs.append(layer)
+        self.activation = tf.keras.activations.get(activation)
+
+    def call(self, inputs, **kwargs):
+        """
+        :param inputs: (b, h, w, c)
+        :return: (b, h_out, w_out, filters)
+        """
+        routing_weights = self.routing(inputs)
+        feature = routing_weights[:, 0] * tf.transpose(self.convs[0](inputs), perm=[1, 2, 0])
+        for i in range(1, len(self.convs)):
+            feature += routing_weights[:, i] * tf.transpose(self.convs[i](inputs), perm=[1, 2, 0])
+        feature = tf.transpose(feature, perm=[2, 0, 1])
+        return self.activation(feature)
