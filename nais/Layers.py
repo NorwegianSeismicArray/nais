@@ -838,6 +838,7 @@ class CondConv1D(tfl.Layer):
                                **kwargs)
             self.convs.append(layer)
         self.activation = tf.keras.activations.get(activation)
+        self.bn = tfl.BatchNormalization()
 
     def call(self, inputs, **kwargs):
         """
@@ -849,4 +850,5 @@ class CondConv1D(tfl.Layer):
         for i in range(1, len(self.convs)):
             feature += routing_weights[:, i] * tf.transpose(self.convs[i](inputs), perm=[1, 2, 0])
         feature = tf.transpose(feature, perm=[2, 0, 1])
+        feature = self.bn(feature)
         return self.activation(feature)
