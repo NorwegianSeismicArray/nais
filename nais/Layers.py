@@ -633,7 +633,6 @@ class FeedForward(tfl.Layer):
             y = K.bias_add(y, self.b2)
         return y
 
-
 class Scattering(tf.keras.layers.Layer):
     """Learnable scattering network layer."""
 
@@ -826,7 +825,7 @@ class CondConv1D(tfl.Layer):
                  **kwargs):
         super(CondConv1D, self).__init__(**kwargs)
 
-        self.routing = Routing(out_channels=num_experts, dropout_rate=dropout_rate, name="routing_layer")
+        self.routing = Routing1D(out_channels=num_experts, dropout_rate=dropout_rate, name="routing_layer")
         self.convs = []
         for _ in range(num_experts):
             layer = tfl.Conv1D(kernel_size=kernel_size,
