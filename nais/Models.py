@@ -709,7 +709,7 @@ class EarthQuakeTransformer(tf.keras.Model):
 
         def inv_conv_block(f,kz):
             return tf.keras.Sequential([tfl.UpSampling1D(2),
-                                        tfl.Conv1D(f, kz,padding='same', kernel_regularizer=kernel_regularizer),
+                                        tfl.Conv1D(f, kz, padding='same', kernel_regularizer=kernel_regularizer),
                                         tfl.BatchNormalization(),
                                         tfl.Activation('relu'),
                                         tfl.Dropout(dropout)])
@@ -767,6 +767,17 @@ class EarthQuakeTransformerMetadata(EarthQuakeTransformer):
         s = self.s_picker(encoded)
         m = self.metadata_model(encoded)
         return d, p, s, m
+
+class PhaseNetMetadata(PhaseNet):
+    def __init__(self, num_outputs, ph_kw):
+        super(PhaseNetMetadata, self).__init__(**ph_kw)
+        self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
+                                                   tfl.Dense(128, activation='relu'),
+                                                   tfl.Dense(num_outputs)])
+    def call(self, inputs):
+        p = self.model(inputs)
+        m = self.encoder(inputs)
+        return p, self.metadata_model(m)
 
 class TransPhaseNet(tf.keras.Model):
 
@@ -862,6 +873,7 @@ class TransPhaseNet(tf.keras.Model):
             x = tfl.LSTM(ts, return_sequences=True)(x)
             x, _ = block_transformer(ts, None, x)
 
+        self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
 
         for filters in self.filters[::-1]:
@@ -917,6 +929,16 @@ class TransPhaseNet(tf.keras.Model):
     def call(self, inputs):
         return self.model(inputs)
 
+class TransPhaseNetMetadata(TransPhaseNet):
+    def __init__(self, num_outputs, ph_kw):
+        super(TransPhaseNetMetadata, self).__init__(**ph_kw)
+        self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
+                                                   tfl.Dense(128, activation='relu'),
+                                                   tfl.Dense(num_outputs)])
+    def call(self, inputs):
+        p = self.model(inputs)
+        m = self.encoder(inputs)
+        return p, self.metadata_model(m)
 
 class ScatNet(tf.keras.Model):
     def __init__(self,
