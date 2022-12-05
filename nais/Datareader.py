@@ -55,6 +55,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  event_type,
                  detection=None,
                  snr=None,
+                 ids=None,
+                 metadata_df=None,
+                 metadata_cols=None,
                  batch_size=32,
                  y_type='single',
                  norm_mode='max',
@@ -89,6 +92,10 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             snr = np.zeros(x_set.shape[0])
         self.snr = snr
         self.taper_alpha = taper_alpha
+
+        self.ids = ids
+        self.metadata_df = metadata_df
+        self.metadata_cols = metadata_cols
 
         if new_length is None:
             self.new_length = int(0.8 * self.x.shape[1])
@@ -133,7 +140,13 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         X, y = zip(*list(map(self.data_generation, indexes)))
         y = np.stack(y, axis=0)
         y = np.split(y, y.shape[-1], axis=-1)
-        return np.stack(X, axis=0), y
+        if not self.metadata_df is None:
+            i = self.ids[indexes]
+            d = self.metadata_df.loc[i]
+            m = d[self.metadata_cols].values
+            return np.stack(X, axis=0), y, m
+        else:
+            return np.stack(X, axis=0), y
 
     def on_epoch_end(self):
         """Updates indexes after each epoch"""
