@@ -64,6 +64,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  norm_channel_mode='local',
                  augmentation=False,
                  ramp=0,
+                 fill_value=0.0,
                  taper_alpha=0.0,
                  add_event=0.0,
                  add_gap=0.0,
@@ -92,6 +93,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
             snr = np.zeros(x_set.shape[0])
         self.snr = snr
         self.taper_alpha = taper_alpha
+        self.fill_value = fill_value
 
         self.ids = ids
         self.metadata_df = metadata_df
@@ -141,9 +143,7 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         y = np.stack(y, axis=0)
         y = np.split(y, y.shape[-1], axis=-1)
         if not self.metadata_df is None:
-            i = self.ids[indexes]
-            d = self.metadata_df.loc[i]
-            m = d[self.metadata_cols].values
+            m = np.stack([self.metadata_df.loc[i, self.metadata_cols] if i in self.metadata_df.index else np.ones(len(self.metadata_cols))*self.fill_value for i in self.ids[indexes]], axis=0)
             return np.stack(X, axis=0), y, m
         else:
             return np.stack(X, axis=0), y
