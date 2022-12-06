@@ -143,9 +143,9 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
         y = np.stack(y, axis=0)
         y = np.split(y, y.shape[-1], axis=-1)
         if not self.metadata_df is None:
-            m = [self.metadata_df.loc[i, self.metadata_cols].values if i in self.metadata_df.index else np.ones(len(self.metadata_cols))*self.fill_value for i in self.ids[indexes]]
+            m = [self.metadata_df.loc[i, self.metadata_cols].values.ravel() if i in self.metadata_df.index else np.ones(len(self.metadata_cols))*self.fill_value for i in self.ids[indexes]]
             print(m)
-            return np.stack(X, axis=0), y, np.stack(m, axis=0)
+            return np.stack(X, axis=0), y, np.stack(m, axis=0).reshape((-1, len(self.metadata_cols)))
         else:
             return np.stack(X, axis=0), y
 
