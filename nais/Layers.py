@@ -795,12 +795,12 @@ import math as m
 class ScatteringV2(tfl.Layer):
     def __init__(self,
                  bins,
-                 octaves,
+                 octaves=6,
                  resolution=1,
                  quality=4,
                  taper_alpha=1e-3,
                  sampling_rate=1.0,
-                 trainable=True,
+                 trainable=False,
                  name='Scattering'
                  ):
 
@@ -819,7 +819,7 @@ class ScatteringV2(tfl.Layer):
         self.w = tf.Variable(self.widths[:, None], trainable=self.trainable)
         self.c = tf.Variable(self.centers[:, None], trainable=self.trainable)
 
-    def call(self, inputs):
+    def call(self, inputs, training=False):
         if isinstance(inputs, tuple):
             inputs, _ = inputs
 
@@ -828,7 +828,9 @@ class ScatteringV2(tfl.Layer):
         sample = tf.signal.fft(tf.cast(inputs * self.taper, tf.complex64))
         convolved = tf.expand_dims(sample, axis=-2) * filters
         scalogram = tf.signal.fftshift(tf.signal.ifft(convolved), axes=-1)
-        return tf.math.abs(scalogram)
+        out = tf.math.abs(scalogram)
+
+        return out
 
     def gaussian_window(self, x, width):
         return tf.math.exp(-((x / width) ** 2))
