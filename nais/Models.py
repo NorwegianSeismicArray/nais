@@ -1143,7 +1143,7 @@ class ScatNetV2(tf.keras.Model):
             output.append(self.pool(scalogram))
 
         if self.combine:
-            output = [tf.reshape(out, (x.shape[0], -1, x.shape[-1])) for out in output]
+            output = [tf.keras.layers.Reshape((-1, x.shape[-1]))(out) for out in output]
             output = tf.concat(output, axis=1)
             if self.data_format == 'channels_last':
                 output = tf.transpose(output, [0, 2, 1])
