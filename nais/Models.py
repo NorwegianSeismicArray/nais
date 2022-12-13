@@ -1127,7 +1127,7 @@ class ScatNetV2(tf.keras.Model):
         else:
             self.pool = lambda x: x
 
-    def __call__(self, inputs, training=False):
+    def call(self, inputs):
         if isinstance(inputs, tuple):
             inputs, _ = inputs
         x = inputs

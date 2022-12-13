@@ -819,7 +819,7 @@ class ScatteringV2(tfl.Layer):
         self.w = tf.Variable(self.widths[:, None], trainable=self.trainable)
         self.c = tf.Variable(self.centers[:, None], trainable=self.trainable)
 
-    def call(self, inputs, training=False):
+    def call(self, inputs):
         if isinstance(inputs, tuple):
             inputs, _ = inputs
 
