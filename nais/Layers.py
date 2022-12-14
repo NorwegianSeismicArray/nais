@@ -815,9 +815,9 @@ class ScatteringV2(tfl.Layer):
         self.trainable = trainable
 
     def build(self, input_shape):
-        self.t = tf.Variable(self.times, trainable=self.trainable)
-        self.w = tf.Variable(self.widths[:, None], trainable=self.trainable)
-        self.c = tf.Variable(self.centers[:, None], trainable=self.trainable)
+        self.t = tf.Variable(self.times, trainable=self.trainable, name='times')
+        self.w = tf.Variable(self.widths[:, None], trainable=self.trainable, name='widths')
+        self.c = tf.Variable(self.centers[:, None], trainable=self.trainable, name='centers')
 
     def call(self, inputs):
         if isinstance(inputs, tuple):
@@ -846,7 +846,7 @@ class ScatteringV2(tfl.Layer):
         c = tf.constant(2.0j, dtype=tf.complex64) * tf.constant(m.pi, dtype=tf.complex64)
         s = tf.math.exp(c * tf.cast(s, dtype=tf.complex64))
         w = self.gaussian_window(self.t, self.w)
-        w = tf.cast(w, dtype = s.dtype)
+        w = tf.cast(w, dtype=s.dtype)
         return w * s
 
     @property
