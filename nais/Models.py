@@ -19,6 +19,11 @@ import tensorflow.keras.backend as K
 
 class ImageEncoder(tf.keras.Model):
     def __init__(self, depth=1):
+        """2D encoder
+
+        Args:
+            depth (int, optional): numhber of layers. Defaults to 1.
+        """
         super(ImageEncoder, self).__init__()
         self.model = tf.keras.Sequential()
         for d in range(depth):
@@ -32,6 +37,12 @@ class ImageEncoder(tf.keras.Model):
 
 class ImageDecoder(tf.keras.Model):
     def __init__(self, depth=1, num_channels=3):
+        """2D decoder
+
+        Args:
+            depth (int, optional): number of layers. Defaults to 1.
+            num_channels (int, optional): number of output channels. Defaults to 3.
+        """
         super(ImageDecoder, self).__init__()
         self.model = tf.keras.Sequential()
         for d in list(range(depth))[::-1]:
@@ -47,6 +58,11 @@ class ImageDecoder(tf.keras.Model):
 
 class WaveEncoder(tf.keras.Model):
     def __init__(self, depth=1):
+        """1D encoder
+
+        Args:
+            depth (int, optional): number of layers. Defaults to 1.
+        """
         super(WaveEncoder, self).__init__()
         self.model = tf.keras.Sequential()
         for d in range(depth):
@@ -64,7 +80,14 @@ class WaveEncoder(tf.keras.Model):
 
 
 class WaveDecoder(tf.keras.Model):
-    def __init__(self, depth=1, num_channels=3):
+    def __init__(self, depth=1, 
+                 num_channels=3):
+        """1D decoder
+
+        Args:
+            depth (int, optional): number of layers. Defaults to 1.
+            num_channels (int, optional): number of output channels. Defaults to 3.
+        """
         super(WaveDecoder, self).__init__()
         self.model = tf.keras.Sequential()
         for d in list(range(depth))[::-1]:
@@ -79,16 +102,20 @@ class WaveDecoder(tf.keras.Model):
 
 
 class ImageAutoEncoder(tf.keras.Model):
-    """
-    Autoencoder which encodes images.
+    def __init__(self, 
+                 num_outputs, 
+                 depth=1, 
+                 name='ImageAutoEncoder'):
+        """2D autoencoder
 
-    depth : int
-        number of convolutional layers
-    """
-    def __init__(self, depth=1, name='ImageAutoEncoder'):
+        Args:
+            num_outputs: (int): number of output channels. 
+            depth (int, optional): number of encoder/decoder layers. Defaults to 1.
+            name (str, optional): model name. Defaults to 'WaveAutoEncoder'.
+        """
         super(ImageAutoEncoder, self).__init__(name=name)
         self.encoder = ImageEncoder(depth)
-        self.decoder = ImageDecoder(depth)
+        self.decoder = ImageDecoder(depth, num_outputs)
         self.depth = depth
 
     def call(self, inputs):
@@ -99,17 +126,17 @@ class ImageAutoEncoder(tf.keras.Model):
 
 
 class WaveAutoEncoder(tf.keras.Model):
-    """
-    Autoencoder which encodes waveforms.
+    def __init__(self, num_outputs, depth=1, name='WaveAutoEncoder'):
+        """1D autoencoder
 
-    depth : int
-        number of convolutional layers
-    """
-
-    def __init__(self, depth=1, name='WaveAutoEncoder'):
+        Args:
+            num_outputs: (int): number of output channels. 
+            depth (int, optional): number of encoder/decoder layers. Defaults to 1.
+            name (str, optional): model name. Defaults to 'WaveAutoEncoder'.
+        """
         super(WaveAutoEncoder, self).__init__(name=name)
         self.encoder = WaveEncoder(depth)
-        self.decoder = WaveDecoder(depth)
+        self.decoder = WaveDecoder(depth, num_outputs)
         self.depth = depth
 
     def call(self, inputs):
@@ -120,12 +147,22 @@ class WaveAutoEncoder(tf.keras.Model):
 
 
 class CreateSpectrogramModel(tf.keras.Model):
-    """
-    Keras implementation of spectrograms.
-    Stack infront of Conv2D model to create spectrograms on the fly.
-    Note that, this is slower as it creates spectrograms per batch and not once.
-    """
-    def __init__(self, n_fft=512, win_length=128, hop_length=32, name='SpectrogramModel'):
+    def __init__(self, 
+                 n_fft=512, 
+                 win_length=128,
+                 hop_length=32, 
+                 name='SpectrogramModel'):
+        """
+        Keras implementation of spectrograms.
+        Stack infront of Conv2D model to create spectrograms on the fly.
+        Note that, this is slower as it creates spectrograms per batch and not once.
+
+        Args:
+            n_fft (int, optional): number of FFTs. Defaults to 512.
+            win_length (int, optional): window size in STFT. Defaults to 128.
+            hop_length (int, optional): window stride in STFT. Defaults to 32.
+            name (str, optional): model name. Defaults to 'SpectrogramModel'.
+        """
         super(CreateSpectrogramModel, self).__init__(name=name)
         self.n_fft = n_fft
         self.win_length = win_length
@@ -148,20 +185,23 @@ class CreateSpectrogramModel(tf.keras.Model):
 
 
 class AlexNet2D(tf.keras.Model):
-    """
-    https://towardsdatascience.com/implementing-alexnet-cnn-architecture-using-tensorflow-2-0-and-keras-2113e090ad98
+    def __init__(self, 
+                 kernel_sizes=None, 
+                 num_outputs=None, 
+                 output_type='binary', 
+                 pooling='max', 
+                 name='AlexNet2D'):
+        """https://towardsdatascience.com/implementing-alexnet-cnn-architecture-using-tensorflow-2-0-and-keras-2113e090ad98
 
-    kernel_size : list of length 5
-        kernel sizes to use in model
-    num_outputs : int or None
-        number of outputs of final dense layer. Leave as None to exclude top.
-    output_type : str
-        type of output, binary, multiclass, multilabel, regression
-    pooling : str
-         pooling type, max or avg, other will use no pooling
-    """
-
-    def __init__(self, kernel_sizes=None, num_outputs=None, output_type='binary', pooling='max', name='AlexNet2D'):
+        Args:
+            kernel_sizes (list, optional): list of kernel sizes. Defaults to None.
+            filters (list, optional): list of number of filters. Defaults to None.
+            num_outputs (int, optional): number of outputs. Defaults to None.
+            output_type (str, optional): problem type, 'multiclass', 'multilabel'. Defaults to 'binary'.
+            pooling (str, optional): pooling type. Defaults to 'max'.
+            name (str, optional): model name. Defaults to 'AlexNet2D'.
+        """
+        
         super(AlexNet2D, self).__init__(name=name)
         if kernel_sizes is None:
             kernel_sizes = [11, 5, 3, 3, 3]
@@ -223,25 +263,29 @@ class AlexNet2D(tf.keras.Model):
 
 
 class AlexNet1D(tf.keras.Model):
-    """
-    Same as AlexNet but with 1D convolutions.
+    def __init__(self, 
+                 kernel_sizes=None, 
+                 filters=None, 
+                 num_outputs=None, 
+                 output_type='binary', 
+                 pooling='max',
+                 name='AlexNet1D'):
+        """1D AlexNet
 
-    kernel_size : list of length 5
-        kernel sizes to use in model
-    num_outputs : int or None
-        number of outputs of final dense layer. Leave as None to exclude top.
-    output_type : str
-        type of output, binary, multiclass, multilabel, regression
-    pooling : str
-         pooling type, max or avg, other will use no pooling
-    """
-
-    def __init__(self, kernel_sizes=None, filters=None, num_outputs=None, output_type='binary', pooling='max', name='AlexNet1D'):
+        Args:
+            kernel_sizes (list, optional): list of kernel sizes. Defaults to None.
+            filters (list, optional): list of number of filters. Defaults to None.
+            num_outputs (int, optional): number of outputs. Defaults to None.
+            output_type (str, optional): problem type, 'multiclass', 'multilabel'. Defaults to 'binary'.
+            pooling (str, optional): pooling type. Defaults to 'max'.
+            name (str, optional): model name. Defaults to 'AlexNet1D'.
+        """
         super(AlexNet1D, self).__init__(name=name)
         if kernel_sizes is None:
             kernel_sizes = [11, 5, 3, 3, 3]
         if filters is None:
           	filters = [96, 256, 384, 384, 256]
+        
         assert len(kernel_sizes) == 5
         assert pooling in [None, 'none', 'max', 'avg']
 
@@ -300,16 +344,6 @@ class AlexNet1D(tf.keras.Model):
         return x
 
 class PhaseNet(tf.keras.Model):
-    """
-    Adapted from https://keras.io/examples/vision/oxford_pets_image_segmentation/
-
-    args
-
-    num_classes : int
-        Number of output classes, eg. P and S wave picking num_classes=2.
-
-    """
-
     def __init__(self,
                  num_classes=2,
                  filters=None,
@@ -319,6 +353,18 @@ class PhaseNet(tf.keras.Model):
                  dropout_rate=0.2,
                  initializer='glorot_normal',
                  name='PhaseNet'):
+        """Adapted to 1D from https://keras.io/examples/vision/oxford_pets_image_segmentation/
+
+        Args:
+            num_classes (int, optional): number of outputs. Defaults to 2.
+            filters (list, optional): list of number of filters. Defaults to None.
+            kernelsizes (list, optional): list of kernel sizes. Defaults to None.
+            output_activation (str, optional): output activation, eg., 'softmax' for multiclass problems. Defaults to 'linear'.
+            kernel_regularizer (tf.keras.regualizers.Regualizer, optional): kernel regualizer. Defaults to None.
+            dropout_rate (float, optional): dropout. Defaults to 0.2.
+            initializer (tf.keras.initializers.Initializer, optional): weight initializer. Defaults to 'glorot_normal'.
+            name (str, optional): model name. Defaults to 'PhaseNet'.
+        """
         super(PhaseNet, self).__init__(name=name)
         self.num_classes = num_classes
         self.initializer = initializer
@@ -448,6 +494,22 @@ class UTime(tf.keras.Model):
                  dropout_rate=0.2,
                  pool_type='avg',
                  name='UTime'):
+        """https://arxiv.org/abs/1910.11162
+
+        Args:
+            phasenet_filters (list, optional): list of number of filters used in PhaseNet. Defaults to None.
+            output_filters (list, optional): list of number of filters after PhaseNet. Defaults to None.
+            output_activation (str, optional): Activation function of last layer. Defaults to 'softmax'.
+            num_classes (int, optional): number of output classes. Defaults to 2.
+            pool_sizes (list, optional): list of pooling sizes. Defaults to [4].
+            pool_strides (list, optional): list of pooling strides. Defaults to [2].
+            dropout_rate (float, optional): dropout. Defaults to 0.2.
+            pool_type (str, optional): type of pooling, 'max' or 'avg'. Defaults to 'avg'.
+            name (str, optional): model name. Defaults to 'UTime'.
+            
+        Raises:
+            NotImplementedError: pool_type not in 'max', 'avg. 
+        """
         super(UTime, self).__init__(name=name)
         self.phasenet = PhaseNet(filters=phasenet_filters, num_classes=None)
         if output_filters is None:
@@ -488,79 +550,30 @@ class UTime(tf.keras.Model):
     def call(self, inputs):
         return self.model(inputs)
 
-class PhaseNetDist(tf.keras.Model):
-    def __init__(self,
-                 dist_filters=None,
-                 output_activation=None,
-                 num_outputs=1,
-                 dropout_rate=0.2,
-                 pool_type='max',
-                 kernel_regularizer=None,
-                 kernel_initializer='glorot_normal',
-                 phasenet_num_classes=2,
-                 phasenet_filters=None,
-                 phasenet_output_activation='linear',
-                 phasenet_kernel_regularizer=None,
-                 phasenet_dropout_rate=0.2,
-                 phasenet_initializer='glorot_normal',
-                 name='PhaseNetDist'):
-        super(PhaseNetDist, self).__init__(name=name)
-        self.phasenet = PhaseNet(filters=phasenet_filters,
-                                 num_classes=phasenet_num_classes,
-                                 output_activation=phasenet_output_activation,
-                                 dropout_rate=phasenet_dropout_rate,
-                                 kernel_regularizer=phasenet_kernel_regularizer,
-                                 initializer=phasenet_initializer)
-        if dist_filters is None:
-            self.filters = [8]
-        else:
-            self.filters = dist_filters
-        self.pool_type = pool_type
-        self.output_activation = output_activation
-        self.num_outputs = num_outputs
-        self.kernel_regularizer = kernel_regularizer
-        self.kernel_initializer = kernel_initializer
-        self.dropout_rate = dropout_rate
-
-    def build(self, input_shape):
-        self.phasenet.build(input_shape)
-        inputs = tf.keras.Input(shape=input_shape[1:])
-        phasenet_output = self.phasenet(inputs)
-        x = self.phasenet.encoder(inputs)
-
-        for f in self.filters:
-            x = tfl.Conv1D(f,
-                           activation=None,
-                           padding='same',
-                           kernel_regularizer=self.kernel_regularizer,
-                           kernel_initializer=self.initializer)(x)
-            x = tfl.BatchNormalization()(x)
-            x = tfl.Activation('relu')(x)
-            x = tfl.Dropout(self.dropout_rate)(x)
-
-        if self.pool_type == 'avg':
-            x = tfl.GlobalAveragePooling1D()(x)
-        elif self.pool_type == 'max':
-            x = tfl.GlobalMaxPooling1D()(x)
-        else:
-            raise NotImplementedError(f'pool_type={self.pool_type} is not supported.')
-
-        distance_output = tfl.Dense(self.num_outputs, activation=self.output_activation)(x)
-
-        self.model = tf.keras.Model(inputs=inputs, outputs=[phasenet_output, distance_output])
-
-    def summary(self):
-        return self.model.summary()
-
-    def call(self, inputs):
-        return self.model(inputs)
-
 class WaveNet(tf.keras.Model):
-    """
-    https://deepmind.com/blog/article/wavenet-generative-model-raw-audio
-    """
 
-    def __init__(self, num_outputs=None, kernel_size=3, output_type='binary', pooling=None, filters=None, stacked_layers=None, name='WaveNet'):
+    def __init__(self, 
+                 num_outputs=None, 
+                 kernel_size=3, 
+                 output_type='binary', 
+                 pooling=None, 
+                 filters=None, 
+                 stacked_layers=None, 
+                 name='WaveNet'):
+        """https://deepmind.com/blog/article/wavenet-generative-model-raw-audio
+
+        Args:
+            num_outputs (int, optional): Number of outputs of model. Defaults to None.
+            kernel_size (int, optional): list of kernel sizes. Defaults to 3.
+            output_type (str, optional): problem type, 'binary', 'multiclass', 'multilabel' supported. Defaults to 'binary'.
+            pooling (str, optional): type of pooling to apply. Defaults to None.
+            filters (list, optional): list of number of filters. Defaults to None.
+            stacked_layers (list, optional): number of stacked layers. Defaults to None.
+            name (str, optional): model name. Defaults to 'WaveNet'.
+
+        Raises:
+            NotImplementedError: If pooling is not in 'avg', 'max', or None. 
+        """
         super(WaveNet, self).__init__(name=name)
 
         if filters is None:
@@ -610,25 +623,6 @@ class WaveNet(tf.keras.Model):
 
 
 class EarthQuakeTransformer(tf.keras.Model):
-    """
-    https://www.nature.com/articles/s41467-020-17591-w
-
-    Example
-    import numpy as np
-    test = np.random.random(size=(16,1024,3))
-    d = np.random.randint(2, size=(16,1024,1))
-    p = np.random.randint(2, size=(16,1024,1))
-    s = np.random.randint(2, size=(16,1024,1))
-
-    model = EarthQuakeTransformer(input_dim=test.shape[1:])
-    model.compile(optimizer='adam', loss=['binary_crossentropy',
-                                          'binary_crossentropy',
-                                          'binary_crossentropy'])
-
-    model.fit(test, (d,p,s))
-
-    """
-
     def __init__(self,
                  input_dim,
                  filters=None,
@@ -643,6 +637,39 @@ class EarthQuakeTransformer(tf.keras.Model):
                  classify=True,
                  att_type='additive',
                  name='EarthQuakeTransformer'):
+        """
+        https://www.nature.com/articles/s41467-020-17591-w
+
+        Example usage:
+        import numpy as np
+        test = np.random.random(size=(16,1024,3))
+        detection = np.random.randint(2, size=(16,1024,1))
+        p_arrivals = np.random.randint(2, size=(16,1024,1))
+        s_arrivals = np.random.randint(2, size=(16,1024,1))
+
+        model = EarthQuakeTransformer(input_dim=test.shape[1:])
+        model.compile(optimizer='adam', loss=['binary_crossentropy',
+                                            'binary_crossentropy',
+                                            'binary_crossentropy'])
+
+        model.fit(test, (detection,p_arrivals,s_arrivals))
+
+        Args:
+            input_dim (tuple): input size of the model.
+            filters (list, optional): list of number of filters. Defaults to None.
+            kernelsizes (list, optional): list of kernel sizes. Defaults to None.
+            resfilters (list, optional): list of number of residual filters. Defaults to None.
+            reskernelsizes (list, optional): list of residual filter sizes. Defaults to None.
+            lstmfilters (list, optional): list of number of lstm filters. Defaults to None.
+            attention_width (int, optional): width of attention mechanism. Defaults to 3. Use None for full. 
+            dropout (float, optional): dropout. Defaults to 0.0.
+            transformer_sizes (list, optional): list of sizes of attention layers. Defaults to [64, 64].
+            kernel_regularizer (tf.keras.regualizers.Regualizer, optional): kernel regualizer. Defaults to None.
+            classify (bool, optional): whether to classify phases or provide raw output. Defaults to True.
+            att_type (str, optional): attention type. Defaults to 'additive'. 'multiplicative' is also supported. 
+            name (str, optional): model name. Defaults to 'EarthQuakeTransformer'.
+
+        """
         super(EarthQuakeTransformer, self).__init__(name=name)
 
         if filters is None:
@@ -754,7 +781,14 @@ class EarthQuakeTransformer(tf.keras.Model):
 
 
 class EarthQuakeTransformerMetadata(EarthQuakeTransformer):
+    
     def __init__(self, num_outputs, eqt_kw):
+        """Provides a wrapper for EarthQuakeTransformer with a metadata output, eg., when learning back azimuth.
+
+        Args:
+            num_outputs (int): Number of numerical metadata to learn. 
+            eqt_kw (dict): Args. for EarthQuakeTransformer. 
+        """
         super(EarthQuakeTransformerMetadata, self).__init__(**eqt_kw)
         self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
                                                    tfl.Dense(128, activation='relu'),
@@ -770,6 +804,12 @@ class EarthQuakeTransformerMetadata(EarthQuakeTransformer):
 
 class PhaseNetMetadata(PhaseNet):
     def __init__(self, num_outputs, ph_kw):
+        """Provides a wrapper for PhaseNet with a metadata output, eg., when learning back azimuth.
+
+        Args:
+            num_outputs (int): Number of numerical metadata to learn. 
+            ph_kw (dict): Args. for PhaseNet. 
+        """
         super(PhaseNetMetadata, self).__init__(**ph_kw)
         self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
                                                    tfl.Dense(128, activation='relu'),
@@ -791,7 +831,21 @@ class TransPhaseNet(tf.keras.Model):
                  transformer_sizes=[64],
                  att_type='additive',
                  initializer='glorot_normal',
-                 name='PhaseNet'):
+                 name='TransPhaseNet'):
+        """Adds self-attention in bottleneck of PhaseNet. 
+
+        Args:
+            num_classes (int, optional): number of outputs. Defaults to 2.
+            filters (list, optional): list of number of filters. Defaults to None.
+            kernelsizes (list, optional): List of kernel sizes. Defaults to None.
+            output_activation (str, optional): Activation for output, eg., 'softmax' for multiclass. Defaults to 'linear'.
+            kernel_regularizer (tf.keras.regulizers.Regulizer, optional): regularizer. Defaults to None.
+            dropout_rate (float, optional): dropout. Defaults to 0.2.
+            transformer_sizes (list, optional): List of width of self-attention. Defaults to [64].
+            att_type (str, optional): Self-attention type. Defaults to 'additive'. 'multiplicative' as alternative. 
+            initializer (tf.keras.initializers.Initializer, optional): layer initializers. Defaults to 'glorot_normal'.
+            name (str, optional): Name of Model. Defaults to 'TransPhaseNet'.
+        """
         super(TransPhaseNet, self).__init__(name=name)
         self.num_classes = num_classes
         self.initializer = initializer
@@ -931,6 +985,12 @@ class TransPhaseNet(tf.keras.Model):
 
 class TransPhaseNetMetadata(TransPhaseNet):
     def __init__(self, num_outputs, ph_kw):
+        """Provides a wrapper for TransPhaseNet with a metadata output, eg., when learning back azimuth.
+
+        Args:
+            num_outputs (int): Number of numerical metadata to learn. 
+            ph_kw (dict): Args. for TransPhaseNet. 
+        """
         super(TransPhaseNetMetadata, self).__init__(**ph_kw)
         self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
                                                    tfl.Dense(128, activation='relu'),
