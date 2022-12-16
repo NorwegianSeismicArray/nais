@@ -12,7 +12,7 @@ except ImportError as e:
     print('kapre not installed')
 
 import tensorflow.keras.layers as tfl
-from nais.Layers import ResidualConv1D, ResnetBlock1D, SeqSelfAttention, FeedForward, Scattering, ScatteringV2
+from nais.Layers import ResidualConv1D, ResnetBlock1D, SeqSelfAttention, FeedForward, Scattering
 from nais.Mixture import GMM
 from nais.Cluster import KMeans
 import tensorflow.keras.backend as K
