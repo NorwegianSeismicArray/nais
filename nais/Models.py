@@ -284,7 +284,7 @@ class AlexNet1D(tf.keras.Model):
         if kernel_sizes is None:
             kernel_sizes = [11, 5, 3, 3, 3]
         if filters is None:
-          	filters = [96, 256, 384, 384, 256]
+            filters = [96, 256, 384, 384, 256]
         
         assert len(kernel_sizes) == 5
         assert pooling in [None, 'none', 'max', 'avg']
@@ -792,7 +792,7 @@ class EarthQuakeTransformerMetadata(EarthQuakeTransformer):
         super(EarthQuakeTransformerMetadata, self).__init__(**eqt_kw)
         self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
                                                    tfl.Dense(128, activation='relu'),
-                                                   tfl.Dense(num_outputs, bias_initializer='zeros')])
+                                                   tfl.Dense(num_outputs)])
 
     def call(self, inputs):
         encoded = self.feature_extractor(inputs)
@@ -813,7 +813,7 @@ class PhaseNetMetadata(PhaseNet):
         super(PhaseNetMetadata, self).__init__(**ph_kw)
         self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
                                                    tfl.Dense(128, activation='relu'),
-                                                   tfl.Dense(num_outputs, bias_initializer='zeros')])
+                                                   tfl.Dense(num_outputs)])
     def call(self, inputs):
         p = self.model(inputs)
         m = self.encoder(inputs)
@@ -994,7 +994,7 @@ class TransPhaseNetMetadata(TransPhaseNet):
         super(TransPhaseNetMetadata, self).__init__(**ph_kw)
         self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
                                                    tfl.Dense(128, activation='relu'),
-                                                   tfl.Dense(num_outputs, bias_initializer='zeros')])
+                                                   tfl.Dense(num_outputs)])
     def call(self, inputs):
         p = self.model(inputs)
         m = self.encoder(inputs)
