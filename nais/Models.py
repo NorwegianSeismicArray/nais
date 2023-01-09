@@ -792,7 +792,7 @@ class EarthQuakeTransformerMetadata(EarthQuakeTransformer):
         super(EarthQuakeTransformerMetadata, self).__init__(**eqt_kw)
         self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
                                                    tfl.Dense(128, activation='relu'),
-                                                   tfl.Dense(num_outputs)])
+                                                   tfl.Dense(num_outputs, bias_initializer='zeros')])
 
     def call(self, inputs):
         encoded = self.feature_extractor(inputs)
@@ -813,7 +813,7 @@ class PhaseNetMetadata(PhaseNet):
         super(PhaseNetMetadata, self).__init__(**ph_kw)
         self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
                                                    tfl.Dense(128, activation='relu'),
-                                                   tfl.Dense(num_outputs)])
+                                                   tfl.Dense(num_outputs, bias_initializer='zeros')])
     def call(self, inputs):
         p = self.model(inputs)
         m = self.encoder(inputs)
@@ -994,7 +994,7 @@ class TransPhaseNetMetadata(TransPhaseNet):
         super(TransPhaseNetMetadata, self).__init__(**ph_kw)
         self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
                                                    tfl.Dense(128, activation='relu'),
-                                                   tfl.Dense(num_outputs)])
+                                                   tfl.Dense(num_outputs, bias_initializer='zeros')])
     def call(self, inputs):
         p = self.model(inputs)
         m = self.encoder(inputs)
