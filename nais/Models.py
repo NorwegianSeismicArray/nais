@@ -782,7 +782,7 @@ class EarthQuakeTransformer(tf.keras.Model):
 
 class EarthQuakeTransformerMetadata(EarthQuakeTransformer):
     
-    def __init__(self, num_outputs, eqt_kw):
+    def __init__(self, num_outputs=None, metadata_model=None, eqt_kw=None):
         """Provides a wrapper for EarthQuakeTransformer with a metadata output, eg., when learning back azimuth.
 
         Args:
@@ -790,9 +790,12 @@ class EarthQuakeTransformerMetadata(EarthQuakeTransformer):
             eqt_kw (dict): Args. for EarthQuakeTransformer. 
         """
         super(EarthQuakeTransformerMetadata, self).__init__(**eqt_kw)
-        self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
+        if metadata_model is None:
+            self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
                                                    tfl.Dense(128, activation='relu'),
                                                    tfl.Dense(num_outputs)])
+        else:
+            self.metadata_model = metadata_model
 
     def call(self, inputs):
         encoded = self.feature_extractor(inputs)
@@ -803,7 +806,7 @@ class EarthQuakeTransformerMetadata(EarthQuakeTransformer):
         return d, p, s, m
 
 class PhaseNetMetadata(PhaseNet):
-    def __init__(self, num_outputs, ph_kw):
+    def __init__(self, num_outputs=None, metadata_model=None, ph_kw=None):
         """Provides a wrapper for PhaseNet with a metadata output, eg., when learning back azimuth.
 
         Args:
@@ -811,9 +814,13 @@ class PhaseNetMetadata(PhaseNet):
             ph_kw (dict): Args. for PhaseNet. 
         """
         super(PhaseNetMetadata, self).__init__(**ph_kw)
-        self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
+        if metadata_model is None:
+            self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
                                                    tfl.Dense(128, activation='relu'),
                                                    tfl.Dense(num_outputs)])
+        else:
+            self.metadata_model = metadata_model
+            
     def call(self, inputs):
         p = self.model(inputs)
         m = self.encoder(inputs)
@@ -984,7 +991,7 @@ class TransPhaseNet(tf.keras.Model):
         return self.model(inputs)
 
 class TransPhaseNetMetadata(TransPhaseNet):
-    def __init__(self, num_outputs, ph_kw):
+    def __init__(self, num_outputs=None, metadata_model=None, ph_kw=None):
         """Provides a wrapper for TransPhaseNet with a metadata output, eg., when learning back azimuth.
 
         Args:
@@ -992,9 +999,12 @@ class TransPhaseNetMetadata(TransPhaseNet):
             ph_kw (dict): Args. for TransPhaseNet. 
         """
         super(TransPhaseNetMetadata, self).__init__(**ph_kw)
-        self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
+        if metadata_model is None:
+            self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
                                                    tfl.Dense(128, activation='relu'),
                                                    tfl.Dense(num_outputs)])
+        else:
+            self.metadata_model = metadata_model
     def call(self, inputs):
         p = self.model(inputs)
         m = self.encoder(inputs)
