@@ -1,5 +1,6 @@
 
 import setuptools
+from setuptools import find_packages
 
 with open("./README.md") as file:
     read_me_description = file.read()
@@ -18,7 +19,7 @@ setuptools.setup(
     long_description=read_me_description,
     long_description_content_type="text/markdown",
     url="https://github.com/NorwegianSeismicArray/nais",
-    packages=['nais'],
+    packages=find_packages()
     install_requires=req,
     classifiers=[
         "Programming Language :: Python :: 3",
