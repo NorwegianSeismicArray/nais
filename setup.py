@@ -19,7 +19,7 @@ setuptools.setup(
     long_description=read_me_description,
     long_description_content_type="text/markdown",
     url="https://github.com/NorwegianSeismicArray/nais",
-    packages=find_packages()
+    packages=find_packages(),
     install_requires=req,
     classifiers=[
         "Programming Language :: Python :: 3",
