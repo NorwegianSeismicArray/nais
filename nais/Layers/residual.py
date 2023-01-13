@@ -1,4 +1,5 @@
 import tensorflow.keras.layers as tfl 
+import tensorflow as tf 
 
 class ResidualConv1D(tfl.Layer):
     def __init__(self, filters=32, kernel_size=3, stacked_layer=1):
