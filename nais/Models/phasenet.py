@@ -450,7 +450,13 @@ class TransPhaseNetV2(tf.keras.Model):
         inverse_filters = list(range(len(self.filters)))[::-1]
         for i in inverse_filters[:-1]:
             x = inv_conv_block(self.filters[i], self.kernelsizes[i], x)
-            res = inv_conv_block(self.filters[i], self.kernelsizes[i], residials[i])
+            res = tfl.UpSampling1D(2)(residials[i])
+            res = tfl.Conv1D(self.filters[i], 
+                             1, 
+                             padding="same",
+                             kernel_regularizer=self.kernel_regularizer,
+                             kernel_initializer=self.initializer)(res)
+            print(x.shape, res.shape)
             x = tfl.Concatenate()([x, res])
 
         to_crop = x.shape[1] - input_shape[1]
