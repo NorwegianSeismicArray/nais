@@ -228,9 +228,11 @@ class TransPhaseNet(tf.keras.Model):
 
         def block_transformer(f, width, x):
             x = tfl.Bidirectional(tfl.LSTM(ts, return_sequences=True))(x)
-            att, w = SeqSelfAttention(return_attention=True,
-                                      attention_width=width,
-                                      attention_type=self.att_type)(x)
+            #att, w = SeqSelfAttention(return_attention=True,
+            #                          attention_width=width,
+            #                          attention_type=self.att_type)(x)
+            att, w = tfl.MultiHeadAttention(num_heads=width, key_dim=2)(x, x, return_attention_scores=True)
+            
             att = tfl.Add()([x, att])
             norm = tfl.LayerNormalization()(att)
             ff = tf.keras.Sequential([tfl.Dense(f, activation='relu', kernel_regularizer='l2'),
