@@ -310,7 +310,7 @@ class TransPhaseNet(tf.keras.Model):
                                   kernel_initializer=self.initializer,
                                   )(residual)
             if self.residual_attention:
-                residual = block_transformer(residual.shape[-1], None, residual)
+                residual, _ = block_transformer(residual.shape[-1], None, residual)
             x = tfl.concatenate([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
