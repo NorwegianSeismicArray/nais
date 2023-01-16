@@ -182,7 +182,6 @@ class TransPhaseNet(tf.keras.Model):
                  output_activation='linear',
                  kernel_regularizer=None,
                  dropout_rate=0.2,
-                 transformer_sizes=[64],
                  att_type='additive',
                  initializer='glorot_normal',
                  residual_attention=None,
@@ -207,7 +206,6 @@ class TransPhaseNet(tf.keras.Model):
         self.kernel_regularizer = kernel_regularizer
         self.dropout_rate = dropout_rate
         self.output_activation = output_activation
-        self.transformer_sizes = transformer_sizes
         self.residual_attention = residual_attention
         self.att_type = att_type
 
