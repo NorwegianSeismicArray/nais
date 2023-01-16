@@ -185,7 +185,7 @@ class TransPhaseNet(tf.keras.Model):
                  transformer_sizes=[64],
                  att_type='additive',
                  initializer='glorot_normal',
-                 residial_attention=False,
+                 residual_attention=False,
                  name='TransPhaseNet'):
         """Adds self-attention in bottleneck of PhaseNet. 
 
@@ -208,7 +208,7 @@ class TransPhaseNet(tf.keras.Model):
         self.dropout_rate = dropout_rate
         self.output_activation = output_activation
         self.transformer_sizes = transformer_sizes
-        self.residial_attention = residial_attention
+        self.residual_attention = residual_attention
         self.att_type = att_type
 
         if filters is None:
@@ -309,7 +309,7 @@ class TransPhaseNet(tf.keras.Model):
                                   kernel_regularizer=self.kernel_regularizer,
                                   kernel_initializer=self.initializer,
                                   )(residual)
-            if self.residial_attention:
+            if self.residual_attention:
                 residual = block_transformer(residual.shape[-1], None, residual)
             x = tfl.concatenate([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
