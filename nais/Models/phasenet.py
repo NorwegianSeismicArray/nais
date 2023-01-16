@@ -185,7 +185,7 @@ class TransPhaseNet(tf.keras.Model):
                  transformer_sizes=[64],
                  att_type='additive',
                  initializer='glorot_normal',
-                 residual_attention=False,
+                 residual_attention=None,
                  name='TransPhaseNet'):
         """Adds self-attention in bottleneck of PhaseNet. 
 
@@ -215,6 +215,11 @@ class TransPhaseNet(tf.keras.Model):
             self.filters = [4, 8, 16, 32]
         else:
             self.filters = filters
+            
+        if residual_attention is None:
+            self.residual_attention = [0, 0, 0, 0]
+        else:
+            self.residual_attention = residual_attention
 
         if kernelsizes is None:
             self.kernelsizes = [7, 7, 7, 7]
@@ -231,7 +236,8 @@ class TransPhaseNet(tf.keras.Model):
             #att, w = SeqSelfAttention(return_attention=True,
             #                          attention_width=width,
             #                          attention_type=self.att_type)(x)
-            att, w = tfl.Attention(use_scale=True)([x, x], return_attention_scores=True)
+            att, w = tfl.Attention(use_scale=True, 
+                                   score_mode=self.att_type)([x, x], return_attention_scores=True)
             
             att = tfl.Add()([x, att])
             norm = tfl.LayerNormalization()(att)
@@ -282,13 +288,15 @@ class TransPhaseNet(tf.keras.Model):
             x = tfl.concatenate([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
-        for ts in self.transformer_sizes:
-            x, _ = block_transformer(ts, None, x)
+        if self.residual_attention[-1] > 0:
+            x, _ = block_transformer(self.residual_attention[-1], None, x)
 
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
 
-        for filters in self.filters[::-1]:
+        c, f = range(len(self.filters)-1, -1, -1), self.filters[::-1]
+        
+        for i, filters in zip(c, f):
             x = tfl.Activation("relu")(x)
             x = tfl.Conv1DTranspose(filters, self.kernelsizes[::-1][i], padding="same",
                                     kernel_regularizer=self.kernel_regularizer,
@@ -311,8 +319,8 @@ class TransPhaseNet(tf.keras.Model):
                                   kernel_regularizer=self.kernel_regularizer,
                                   kernel_initializer=self.initializer,
                                   )(residual)
-            if self.residual_attention:
-                residual, _ = block_transformer(residual.shape[-1], None, residual)
+            if self.residual_attention[i] > 0:
+                residual, _ = block_transformer(self.residual_attention[i], None, residual)
             x = tfl.concatenate([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
