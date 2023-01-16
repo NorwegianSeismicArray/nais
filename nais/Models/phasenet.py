@@ -215,7 +215,7 @@ class TransPhaseNet(tf.keras.Model):
             self.filters = filters
             
         if residual_attention is None:
-            self.residual_attention = [0, 0, 0, 0]
+            self.residual_attention = [0, 0, 0, 0, 0]
         else:
             self.residual_attention = residual_attention
 
@@ -294,7 +294,7 @@ class TransPhaseNet(tf.keras.Model):
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
 
-        c, f = range(len(self.filters)-1, -1, -1), self.filters[::-1]
+        c, f = range(len(self.residual_attention)-2, -1, -1), self.filters[::-1]
         
         for i, filters in zip(c, f):
             x = tfl.Activation("relu")(x)
