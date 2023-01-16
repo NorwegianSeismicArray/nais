@@ -229,15 +229,17 @@ class TransPhaseNet(tf.keras.Model):
 
         ### [First half of the network: downsampling inputs] ###
 
-        def block_transformer(f, width, x):
-            x = tfl.Bidirectional(tfl.LSTM(f, return_sequences=True))(x)
+        def block_transformer(f, width, query, value):
+            lstm_layer = tfl.Bidirectional(tfl.LSTM(f, return_sequences=True))
+            query = lstm_layer(query)
+            value = lstm_layer(value)
             #att, w = SeqSelfAttention(return_attention=True,
             #                          attention_width=width,
             #                          attention_type=self.att_type)(x)
             att, w = tfl.Attention(use_scale=True, 
-                                   score_mode=self.att_type)([x, x], return_attention_scores=True)
+                                   score_mode=self.att_type)([query, value], return_attention_scores=True)
             
-            att = tfl.Add()([x, att])
+            att = tfl.Add()([query, att])
             norm = tfl.LayerNormalization()(att)
             ff = tf.keras.Sequential([tfl.Dense(f, activation='relu', kernel_regularizer='l2'),
                                       tfl.Dropout(self.dropout_rate),
@@ -318,7 +320,7 @@ class TransPhaseNet(tf.keras.Model):
                                   kernel_initializer=self.initializer,
                                   )(residual)
             if self.residual_attention[i] > 0:
-                residual, _ = block_transformer(self.residual_attention[i], None, residual)
+                residual, _ = block_transformer(self.residual_attention[i], None, x, residual)
             x = tfl.concatenate([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
 
