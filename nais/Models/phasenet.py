@@ -344,7 +344,7 @@ class TransPhaseNet(tf.keras.Model):
         
         c, f = range(len(self.residual_attention)-2, -1, -1), self.filters[::-1]
         
-        for i, filters in enumerate(self.filters[::-1]):
+        for i, filters in zip(c, f):
             x = tfl.Activation("relu")(x)
             x = tfl.Conv1DTranspose(filters, self.kernelsizes[::-1][i], padding="same",
                                     kernel_regularizer=self.kernel_regularizer,
