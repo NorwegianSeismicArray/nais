@@ -510,7 +510,7 @@ class TransPhaseNetV2Metadata(TransPhaseNetV2):
             num_outputs (int): Number of numerical metadata to learn. 
             ph_kw (dict): Args. for TransPhaseNet. 
         """
-        super(TransPhaseNetMetadata, self).__init__(**ph_kw)
+        super(TransPhaseNetV2Metadata, self).__init__(**ph_kw)
         if metadata_model is None:
             self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
                                                    tfl.Dense(128, activation='relu'),
