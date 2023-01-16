@@ -230,7 +230,7 @@ class TransPhaseNet(tf.keras.Model):
         ### [First half of the network: downsampling inputs] ###
 
         def block_transformer(f, width, x):
-            x = tfl.Bidirectional(tfl.LSTM(ts, return_sequences=True))(x)
+            x = tfl.Bidirectional(tfl.LSTM(f, return_sequences=True))(x)
             #att, w = SeqSelfAttention(return_attention=True,
             #                          attention_width=width,
             #                          attention_type=self.att_type)(x)
