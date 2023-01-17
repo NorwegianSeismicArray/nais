@@ -98,7 +98,7 @@ class EarthQuakeTransformer(tf.keras.Model):
         def block_transformer(f, width, x):
             att, w = SeqSelfAttention(return_attention=True,
                                       attention_width=width,
-                                      attention_type=att_type)(x)
+                                      attention_type='additive')(x)
             att = tfl.Add()([x, att])
             norm = tfl.LayerNormalization()(att)
             ff = tf.keras.Sequential([tfl.Dense(f, activation='relu', kernel_regularizer=kernel_regularizer),
