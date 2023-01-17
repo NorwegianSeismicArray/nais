@@ -273,7 +273,7 @@ class TransPhaseNet(tf.keras.Model):
             lstm_layer = tfl.Bidirectional(tfl.LSTM(f, return_sequences=True), 
                                            merge_mode='sum')
             query = lstm_layer(query)
-            value = lstm_layer(value)
+            #value = lstm_layer(value)
             
             att, w = tfl.MultiHeadAttention(num_heads=3, 
                                             key_dim=f, 
@@ -340,7 +340,6 @@ class TransPhaseNet(tf.keras.Model):
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
         skips = skips[:-1]
-        skips = skips[::-1]
         
         c, f = range(len(self.residual_attention)-2, -1, -1), self.filters[::-1]
         
@@ -367,9 +366,11 @@ class TransPhaseNet(tf.keras.Model):
                                   kernel_regularizer=self.kernel_regularizer,
                                   kernel_initializer=self.initializer,
                                   )(residual)
+            
             if self.residual_attention[i] > 0:
-                residual, _ = block_transformer(self.residual_attention[i], None, x, skips[i])
-            x = crop_and_concat(x, residual)  # Add back residual
+                att, _ = block_transformer(self.residual_attention[i], None, x, skips[i])
+                x = crop_and_concat(x, att)
+            x = tfl.concatenate([x, residual]) # Add back residual
             previous_block_activation = x  # Set aside next residual
 
         to_crop = x.shape[1] - input_shape[1]
