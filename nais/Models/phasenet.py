@@ -275,7 +275,7 @@ class TransPhaseNet(tf.keras.Model):
             query = lstm_layer(query)
             #value = lstm_layer(value)
             
-            att, w = tfl.MultiHeadAttention(num_heads=3, 
+            att, w = tfl.MultiHeadAttention(num_heads=8, 
                                             key_dim=f, 
                                             dropout=self.dropout_rate)(query, value, return_attention_scores=True)
             
