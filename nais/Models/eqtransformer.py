@@ -20,7 +20,7 @@ class EarthQuakeTransformer(tf.keras.Model):
                  lstmfilters=None,
                  attention_width=3,
                  dropout=0.0,
-                 transformer_sizes=[64, 64],
+                 transformer_sizes=None,
                  kernel_regularizer=None,
                  classify=True,
                  att_type='additive',
@@ -72,6 +72,8 @@ class EarthQuakeTransformer(tf.keras.Model):
             reskernelsizes = [3, 3, 3, 2, 2]
         if lstmfilters is None:
             lstmfilters = [16, 16]
+        if transformer_sizes is None:
+            transformer_sizes = [64,64]
 
         try:
             assert resfilters[0] == filters[-1]
