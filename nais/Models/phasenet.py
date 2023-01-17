@@ -276,8 +276,10 @@ class TransPhaseNet(tf.keras.Model):
             #att, w = SeqSelfAttention(return_attention=True,
             #                          attention_width=width,
             #                          attention_type=self.att_type)(x)
-            att, w = tfl.Attention(use_scale=True, 
-                                   score_mode=self.att_type)([query, value], return_attention_scores=True)
+            #att, w = tfl.Attention(use_scale=True, 
+            #                       score_mode=self.att_type)([query, value], return_attention_scores=True)
+            
+            att, w = tfl.MultiHeadAttention(num_heads=3, key_dim=f)(query, value, return_attention_scores=True)
             
             att = tfl.Add()([query, att])
             norm = tfl.LayerNormalization()(att)
