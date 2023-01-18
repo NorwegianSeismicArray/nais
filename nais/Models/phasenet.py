@@ -270,10 +270,13 @@ class TransPhaseNet(tf.keras.Model):
 
         
         def block_transformer(f, width, query, value):
-            lstm_layer = tfl.Bidirectional(tfl.LSTM(f, return_sequences=True), 
-                                           merge_mode='sum')
-            query = lstm_layer(query)
-            #value = lstm_layer(value)
+            lstm_block = tf.keras.Sequential([tfl.Bidirectional(tfl.LSTM(f, return_sequences=True)),
+                                              tfl.Conv1D(f, 1, 
+                                                         padding='same', 
+                                                         kernel_regularizer=self.kernel_regularizer)])
+            
+            query = lstm_block(query)
+            #value = lstm_block(value)
             
             att, w = tfl.MultiHeadAttention(num_heads=8, 
                                             key_dim=f, 
