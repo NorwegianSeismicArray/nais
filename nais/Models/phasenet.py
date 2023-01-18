@@ -254,16 +254,6 @@ class TransPhaseNet(tf.keras.Model):
         else:
             self.kernelsizes = kernelsizes
 
-        if filters is None:
-            self.filters = [4, 8, 16, 32]
-        else:
-            self.filters = filters
-
-        if kernelsizes is None:
-            self.kernelsizes = [7, 7, 7, 7]
-        else:
-            self.kernelsizes = kernelsizes
-
     def build(self, input_shape):
         inputs = tf.keras.Input(shape=input_shape[1:])
 
