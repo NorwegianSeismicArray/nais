@@ -13,13 +13,14 @@ class StackedSpectrogram(tfl.Layer):
     """
     Creates spectrograms for each channel and stacks them to grayscale.
 
-    output_dim :: tuple
-    n_fft :: int
-    win_len :: int
-    output_dim : tuple, resizing
-    num_components : int, number of channels
-    stack_method : str, add, mean, concat, None. 
-            concat acts on frequency dimension. None concatenates last dim. 
+    Args:
+        output_dim : tuple
+        n_fft : int
+        win_len : int
+        output_dim : tuple, resizing
+        num_components : int, number of channels
+        stack_method : str, add, mean, concat, None. 
+                concat acts on frequency dimension. None concatenates last dim. 
     """
     def __init__(self, n_fft=2048, win_length=128, hop_length=32, output_dim=(64,64), num_components=3, stack_method=None, name='SpectrogramModel'):
         super(StackedSpectrogram, self).__init__(name=name)

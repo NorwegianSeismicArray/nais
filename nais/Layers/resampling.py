@@ -2,6 +2,13 @@ import tensorflow.keras.layers as tfl
 import tensorflow as tf 
 
 class Resampling1D(tfl.Layer):
+    """Wrapper around 2D resampling layer to apply to 1D input.
+
+    Args:
+        length (int): length of output
+        interpolation (str): interpolation type
+    """
+    
     def __init__(self, length, interpolation="bilinear", **kwargs):
         super(Resampling1D, self).__init__(**kwargs)
         self.length = length

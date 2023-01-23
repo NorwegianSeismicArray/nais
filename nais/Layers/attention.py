@@ -7,24 +7,25 @@ import tensorflow.keras.backend as K
 class SeqSelfAttention(tfl.Layer):
     """Layer initialization. modified from https://github.com/CyberZHG
     For additive attention, see: https://arxiv.org/pdf/1806.01264.pdf
-    :param units: The dimension of the vectors that used to calculate the attention weights.
-    :param attention_width: The width of local attention.
-    :param attention_type: 'additive' or 'multiplicative'.
-    :param return_attention: Whether to return the attention weights for visualization.
-    :param history_only: Only use historical pieces of data.
-    :param kernel_initializer: The initializer for weight matrices.
-    :param bias_initializer: The initializer for biases.
-    :param kernel_regularizer: The regularization for weight matrices.
-    :param bias_regularizer: The regularization for biases.
-    :param kernel_constraint: The constraint for weight matrices.
-    :param bias_constraint: The constraint for biases.
-    :param use_additive_bias: Whether to use bias while calculating the relevance of inputs features
-                              in additive mode.
-    :param use_attention_bias: Whether to use bias while calculating the weights of attention.
-    :param attention_activation: The activation used for calculating the weights of attention.
-    :param attention_regularizer_weight: The weights of attention regularizer.
-    :param kwargs: Parameters for parent class.
-    """
+    Args
+        units: The dimension of the vectors that used to calculate the attention weights.
+        attention_width: The width of local attention.
+        attention_type: 'additive' or 'multiplicative'.
+        return_attention: Whether to return the attention weights for visualization.
+        history_only: Only use historical pieces of data.
+        kernel_initializer: The initializer for weight matrices.
+        bias_initializer: The initializer for biases.
+        kernel_regularizer: The regularization for weight matrices.
+        bias_regularizer: The regularization for biases.
+        kernel_constraint: The constraint for weight matrices.
+        bias_constraint: The constraint for biases.
+        use_additive_bias: Whether to use bias while calculating the relevance of inputs features
+                                in additive mode.
+        use_attention_bias: Whether to use bias while calculating the weights of attention.
+        attention_activation: The activation used for calculating the weights of attention.
+        attention_regularizer_weight: The weights of attention regularizer.
+        kwargs: Parameters for parent class.
+    """ 
 
     ATTENTION_TYPE_ADD = 'additive'
     ATTENTION_TYPE_MUL = 'multiplicative'

@@ -2,6 +2,12 @@ import tensorflow.keras.layers as tfl
 import tensorflow as tf 
 
 class CosSimConv1D(tfl.Layer):
+    """
+    Cosine similarity convolution 
+    Args:
+        units (int): number of filters
+        kernel_size (int): size of filters
+    """
     def __init__(self, units=32, kernel_size=3):
         super(CosSimConv1D, self).__init__()
         self.units = units

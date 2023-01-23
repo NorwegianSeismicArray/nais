@@ -2,6 +2,14 @@ import tensorflow.keras.layers as tfl
 import tensorflow as tf 
 
 class ResidualConv1D(tfl.Layer):
+    """
+    1D residual convolution 
+
+    Args:
+        filters (int): number of filters
+        kernel_size (int): size of filters 
+        stacked_layers (int): number of stacked layers 
+    """
     def __init__(self, filters=32, kernel_size=3, stacked_layer=1):
         super(ResidualConv1D, self).__init__()
 
@@ -44,6 +52,14 @@ class ResidualConv1D(tfl.Layer):
 
 
 class ResidualConv1DTranspose(tfl.Layer):
+    """Inverse 1D residual convolution
+
+    Args:
+        filters (int): number of filters 
+        kernel_size (int): size of filters 
+        stacked_layer (int): number of stacked layers 
+    """
+    
     def __init__(self, filters=32, kernel_size=3, stacked_layer=1):
         super(ResidualConv1DTranspose, self).__init__()
 
@@ -82,6 +98,14 @@ class ResidualConv1DTranspose(tfl.Layer):
     
     
 class ResnetBlock1D(tfl.Layer):
+    """1D resnet block
+
+    Args:
+        filters (int): number of filters 
+        kernel_size (int): size of filters 
+        activation (str): layer activation
+        dropout (float): dropout fraction 
+    """
     def __init__(self, filters, kernelsize, activation='relu', dropout=0.1, **kwargs):
         super(ResnetBlock1D, self).__init__()
         self.conv1 = tfl.Conv1D(filters, kernelsize, activation=None, padding='same', **kwargs)
