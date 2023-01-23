@@ -96,9 +96,11 @@ class EarthQuakeTransformer(tf.keras.Model):
             return x
 
         def block_transformer(f, width, x):
-            att, w = tfl.MultiHeadAttention(num_heads=8, 
-                                            key_dim=f, 
-                                            dropout=dropout)(x, x, return_attention_scores=True)
+            att, w = SeqSelfAttention(units=f,
+                        attention_width=width,
+                        attention_type=att_type,
+                        return_attention=True)(x)
+            
             att = tfl.Add()([x, att])
             norm = tfl.LayerNormalization()(att)
             ff = tf.keras.Sequential([tfl.Dense(f, activation='relu', kernel_regularizer=kernel_regularizer),
@@ -135,10 +137,13 @@ class EarthQuakeTransformer(tf.keras.Model):
             inp = tfl.Input(input_shape)
             x = inp
             if attention:
-                x = tfl.LSTM(filters[1], return_sequences=True, kernel_regularizer=kernel_regularizer)(x)
-                x, w = tfl.MultiHeadAttention(num_heads=8, 
-                                             key_dim=filters[1], 
-                                             dropout=dropout)(x, x, return_attention_scores=True)
+                x = tfl.LSTM(filters[1], 
+                             return_sequences=True, 
+                             kernel_regularizer=kernel_regularizer)(x)
+                x, w = SeqSelfAttention(units=filters[1],
+                                        attention_width=attention_width,
+                                        attention_type=att_type,
+                                        return_attention=True)(x)
 
             x = tf.keras.Sequential([inv_conv_block(f, kz) for f, kz in zip(invfilters, invkernelsizes)])(x)
             to_crop = x.shape[1] - input_dim[0]
