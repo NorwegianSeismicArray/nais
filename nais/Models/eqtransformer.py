@@ -14,6 +14,7 @@ class EarthQuakeTransformer(tf.keras.Model):
     def __init__(self,
                  input_dim,
                  filters=None,
+                 output_layers=None,
                  kernelsizes=None,
                  resfilters=None,
                  reskernelsizes=None,
@@ -150,16 +151,20 @@ class EarthQuakeTransformer(tf.keras.Model):
             of_start, of_end = to_crop//2, to_crop//2
             of_end += to_crop % 2
             x = tfl.Cropping1D((of_start, of_end))(x)
-            if not (activation is None):
-                x = tfl.Conv1D(1, 3, padding='same', name=output_name)(x)
-                x = tfl.Activation(activation, dtype='float32')(x)
+            if activation is not None:
+                if isinstance(activation, str):
+                    x = tfl.Conv1D(1, 3, padding='same', name=output_name)(x)
+                    x = tfl.Activation(activation, dtype='float32')(x)
+                else:
+                    x = activation(x)
             return tf.keras.Model(inp, x)
 
         self.feature_extractor = _encoder()
         encoded_dim = self.feature_extractor.layers[-1].output.shape[1:]
-        self.detector = _decoder(encoded_dim, attention=False, activation='sigmoid' if classify else None, output_name='detection')
-        self.p_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, output_name='p_phase')
-        self.s_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, output_name='s_phase')
+        
+        self.detector = _decoder(encoded_dim, attention=False, activation='sigmoid' if output_layers[0] is None else output_layers[0], output_name='detection')
+        self.p_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if output_layers[1] is None else output_layers[1], output_name='p_phase')
+        self.s_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if output_layers[2] is None else output_layers[2], output_name='s_phase')
 
     @property
     def num_parameters(self):

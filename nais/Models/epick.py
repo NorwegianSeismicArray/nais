@@ -13,6 +13,7 @@ from nais.utils import crop_and_concat
 class EPick(tf.keras.Model):
     def __init__(self,
                  num_classes=2,
+                 output_layer=None,
                  filters=None,
                  kernelsizes=None,
                  output_activation='linear',
@@ -45,6 +46,7 @@ class EPick(tf.keras.Model):
         self.output_activation = output_activation
         self.residual_attention = residual_attention
         self.att_type = att_type
+        self.output_layer = output_layer
 
         if filters is None:
             self.filters = [16, 16, 16, 16]
@@ -144,6 +146,8 @@ class EPick(tf.keras.Model):
                            1,
                            padding="same")(x)
             outputs = tfl.Activation(self.output_activation, dtype='float32')(x)
+        elif self.output_layer is not None:
+            outputs = self.output_layer(x)
         else:
             outputs = x
 
