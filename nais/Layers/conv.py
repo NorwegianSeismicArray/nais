@@ -10,8 +10,8 @@ class DynamicConv1D(tfl.Layer):
                  activation='relu',
                  dropout=0.0,
                  **kwargs):
-        """_summary_
-
+        """1D dynamic convolution 
+            Based on https://arxiv.org/abs/1912.03458
         Args:
             filters (int): number of filters
             kernelsize (int): kernel size of filters
