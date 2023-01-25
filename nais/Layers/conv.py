@@ -28,4 +28,4 @@ class DynamicConv1D(tfl.Layer):
         conv = tf.stack([l(inputs) for l in self.convs], axis=-1)
         out = self.dot([att, conv])
         
-        return out 
+        return self.out_layer(out)
