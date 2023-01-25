@@ -10,6 +10,16 @@ class DynamicConv1D(tfl.Layer):
                  activation='relu',
                  dropout=0.0,
                  **kwargs):
+        """_summary_
+
+        Args:
+            filters (int): number of filters
+            kernelsize (int): kernel size of filters
+            num_layers (int, optional): number of dynamic layers. Defaults to 3.
+            activation (str, optional): activation function. Defaults to 'relu'.
+            dropout (float, optional): dropout. Defaults to 0.0.
+        """
+
         super(DynamicConv1D, self).__init__(**kwargs)
         
         self.attention = tf.keras.Sequential([tfl.GlobalAveragePooling1D(), 
