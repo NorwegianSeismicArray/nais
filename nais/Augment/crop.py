@@ -2,14 +2,15 @@
 import tensorflow as tf 
 
 class RandomCrop1D(tf.keras.layers.Layer):
-    """
-    Crop waveform data randomly.
-
-    crop :: float, proportion to crop. default 0.1.
-    name :: str
-    """
 
     def __init__(self, crop=0.1, name='RandomCrop1D'):
+        """
+        Crop waveform data randomly.
+
+        Args:
+            crop (float) : proportion to crop. default 0.1.
+            name (str) : Defaults to RandomCrop1D
+        """
         super(RandomCrop1D, self).__init__(name=name)
         self.crop = crop
 

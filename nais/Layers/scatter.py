@@ -19,17 +19,27 @@ class Scattering(tf.keras.layers.Layer):
                  learn_knots=False,
                  learn_scales=False,
                  hilbert=False):
-
         """Scattering network layer.
 
         Computes the convolution modulus and scattering coefficients of the
         input signal.
 
-        Arguments
-        ---------
-            x: :class:`~tensorflow.Tensor()`
-                Input data of shape ``(batch_size, channels, patch_shape).
+        Args:
+            batch_size (_type_, optional): _description_. Defaults to None.
+            j (_type_, optional): _description_. Defaults to None.
+            q (_type_, optional): _description_. Defaults to None.
+            k (_type_, optional): _description_. Defaults to None.
+            pooling_type (str, optional): _description_. Defaults to 'avg'.
+            decimation (int, optional): _description_. Defaults to 2.
+            pooling (int, optional): _description_. Defaults to 2.
+            index (int, optional): _description_. Defaults to 0.
+            name (str, optional): _description_. Defaults to 'scattering'.
+            learn_filters (bool, optional): _description_. Defaults to True.
+            learn_knots (bool, optional): _description_. Defaults to False.
+            learn_scales (bool, optional): _description_. Defaults to False.
+            hilbert (bool, optional): _description_. Defaults to False.
         """
+
         super(Scattering, self).__init__(name=name)
         self.decimation = decimation
         self.batch_size = batch_size

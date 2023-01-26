@@ -4,6 +4,12 @@ import numpy as np
 
 class SpectrogramTimeAugment(tf.keras.layers.Layer):
     def __init__(self, prop=0.1, name='SpectrogramTimeAugment'):
+        """Augment images in the time domain. 
+
+        Args:
+            prop (float, optional): _description_. Defaults to 0.1.
+            name (str, optional): _description_. Defaults to 'SpectrogramTimeAugment'.
+        """
         super(SpectrogramTimeAugment, self).__init__(name=name)
         self.prop = prop
 
@@ -19,6 +25,12 @@ class SpectrogramTimeAugment(tf.keras.layers.Layer):
 
 class SpectrogramFreqAugment(tf.keras.layers.Layer):
     def __init__(self, prop=0.1, name='SpectrogramFreqAugment'):
+        """Augment images in the freq domain. 
+
+        Args:
+            prop (float, optional): _description_. Defaults to 0.1.
+            name (str, optional): _description_. Defaults to 'SpectrogramFreqAugment'.
+        """
         super(SpectrogramFreqAugment, self).__init__(name=name)
         self.prop = prop
 

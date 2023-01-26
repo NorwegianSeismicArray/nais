@@ -29,6 +29,25 @@ class ScatNet(tf.keras.Model):
                  loss_weights=(1.0, 1.0),
                  **filters_kw
                  ):
+        """_summary_
+
+        Args:
+            input_shape (_type_): _description_
+            j (list, optional): _description_. Defaults to [4,6,8].
+            q (list, optional): _description_. Defaults to [8,2,1].
+            k (int, optional): _description_. Defaults to 7.
+            pooling_type (str, optional): _description_. Defaults to 'avg'.
+            decimation (int, optional): _description_. Defaults to 2.
+            pooling_size (int, optional): _description_. Defaults to 1024.
+            eps (_type_, optional): _description_. Defaults to 1e-3.
+            n_pca (int, optional): _description_. Defaults to 5.
+            eps_log (float, optional): _description_. Defaults to 0.001.
+            n_clusters (int, optional): _description_. Defaults to 10.
+            moving_pca (float, optional): _description_. Defaults to 0.9.
+            clustering_method (str, optional): _description_. Defaults to 'GMM'.
+            name (str, optional): _description_. Defaults to 'scatnet'.
+            loss_weights (tuple, optional): _description_. Defaults to (1.0, 1.0).
+        """
         super(ScatNet, self).__init__(name=name)
 
         self.batch_size = input_shape[0]

@@ -3,14 +3,14 @@ import tensorflow.keras.layers as tfl
 import tensorflow as tf 
 
 class MaxAbsPool1D(tfl.Layer):
-    """Max absolute pooling 
-
-    Args:
-        pool_size (int): size of pooling
-        pad_to_fit (boolean): padding such that pool_size is multiple of input dimensions. 
-    """
     
     def __init__(self, pool_size, pad_to_fit=False):
+        """Max absolute pooling 
+
+        Args:
+            pool_size (int): size of pooling
+            pad_to_fit (boolean): padding such that pool_size is multiple of input dimensions. 
+        """
         super(MaxAbsPool1D, self).__init__()
         self.pad = pad_to_fit
         self.pool_size = pool_size

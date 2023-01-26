@@ -5,28 +5,6 @@ import tensorflow.keras.backend as K
 
 
 class SeqSelfAttention(tfl.Layer):
-    """Layer initialization. modified from https://github.com/CyberZHG
-    For additive attention, see: https://arxiv.org/pdf/1806.01264.pdf
-    Args
-        units: The dimension of the vectors that used to calculate the attention weights.
-        attention_width: The width of local attention.
-        attention_type: 'additive' or 'multiplicative'.
-        return_attention: Whether to return the attention weights for visualization.
-        history_only: Only use historical pieces of data.
-        kernel_initializer: The initializer for weight matrices.
-        bias_initializer: The initializer for biases.
-        kernel_regularizer: The regularization for weight matrices.
-        bias_regularizer: The regularization for biases.
-        kernel_constraint: The constraint for weight matrices.
-        bias_constraint: The constraint for biases.
-        use_additive_bias: Whether to use bias while calculating the relevance of inputs features
-                                in additive mode.
-        use_attention_bias: Whether to use bias while calculating the weights of attention.
-        attention_activation: The activation used for calculating the weights of attention.
-        attention_regularizer_weight: The weights of attention regularizer.
-        kwargs: Parameters for parent class.
-    """ 
-
     ATTENTION_TYPE_ADD = 'additive'
     ATTENTION_TYPE_MUL = 'multiplicative'
 
@@ -47,6 +25,28 @@ class SeqSelfAttention(tfl.Layer):
                  attention_activation=None,
                  attention_regularizer_weight=0.0,
                  **kwargs):
+        
+        """Layer initialization. modified from https://github.com/CyberZHG
+        For additive attention, see: https://arxiv.org/pdf/1806.01264.pdf
+        Args
+            units: The dimension of the vectors that used to calculate the attention weights.
+            attention_width: The width of local attention.
+            attention_type: 'additive' or 'multiplicative'.
+            return_attention: Whether to return the attention weights for visualization.
+            history_only: Only use historical pieces of data.
+            kernel_initializer: The initializer for weight matrices.
+            bias_initializer: The initializer for biases.
+            kernel_regularizer: The regularization for weight matrices.
+            bias_regularizer: The regularization for biases.
+            kernel_constraint: The constraint for weight matrices.
+            bias_constraint: The constraint for biases.
+            use_additive_bias: Whether to use bias while calculating the relevance of inputs features
+                                    in additive mode.
+            use_attention_bias: Whether to use bias while calculating the weights of attention.
+            attention_activation: The activation used for calculating the weights of attention.
+            attention_regularizer_weight: The weights of attention regularizer.
+            kwargs: Parameters for parent class.
+        """ 
 
         super().__init__(**kwargs)
         self.supports_masking = True

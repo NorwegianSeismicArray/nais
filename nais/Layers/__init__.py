@@ -8,4 +8,3 @@ from .residual import ResidualConv1D, ResidualConv1DTranspose, ResnetBlock1D
 from .scatter import Scattering
 from .spectrogram import StackedSpectrogram
 from .conv import DynamicConv1D
-

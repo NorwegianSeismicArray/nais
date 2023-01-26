@@ -4,23 +4,6 @@ import tensorflow as tf
 import tensorflow.keras.backend as K 
 
 class FeedForward(tfl.Layer):
-    """Position-wise feed-forward layer. modified from https://github.com/CyberZHG
-    Args:
-        units: int >= 0. Dimension of hidden units.
-        activation: Activation function to use
-        use_bias: Boolean, whether the layer uses a bias vector.
-        kernel_initializer: Initializer for the `kernel` weights matrix.
-        bias_initializer: Initializer for the bias vector.
-        dropout_rate: 0.0 <= float <= 1.0. Dropout rate for hidden units.
-    
-    # Input shape
-        3D tensor with shape: `(batch_size, ..., input_dim)`.
-    # Output shape
-        3D tensor with shape: `(batch_size, ..., input_dim)`.
-    # References
-        - [Attention is All You Need](https://arxiv.org/pdf/1706.03762.pdf)
-    """
-
     def __init__(self,
                  units,
                  activation='relu',
@@ -29,6 +12,22 @@ class FeedForward(tfl.Layer):
                  bias_initializer='zeros',
                  dropout_rate=0.0,
                  **kwargs):
+        """Position-wise feed-forward layer. modified from https://github.com/CyberZHG
+        Args:
+            units: int >= 0. Dimension of hidden units.
+            activation: Activation function to use
+            use_bias: Boolean, whether the layer uses a bias vector.
+            kernel_initializer: Initializer for the `kernel` weights matrix.
+            bias_initializer: Initializer for the bias vector.
+            dropout_rate: 0.0 <= float <= 1.0. Dropout rate for hidden units.
+        
+        # Input shape
+            3D tensor with shape: `(batch_size, ..., input_dim)`.
+        # Output shape
+            3D tensor with shape: `(batch_size, ..., input_dim)`.
+        # References
+            - [Attention is All You Need](https://arxiv.org/pdf/1706.03762.pdf)
+        """
         self.supports_masking = True
         self.units = units
         self.activation = tf.keras.activations.get(activation)

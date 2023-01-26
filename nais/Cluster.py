@@ -4,6 +4,14 @@ import tensorflow as tf
 
 class KMeans(tf.keras.Model):
     def __init__(self, data_shape, num_clusters=10, lr=0.1, name="KMeans"):
+        """Tensorflow kmeans 
+
+        Args:
+            data_shape (tuple): input shape
+            num_clusters (int, optional): Defaults to 10.
+            lr (float, optional): Learninig rate. Defaults to 0.1.
+            name (str, optional): Defaults to "KMeans".
+        """
 
         super(KMeans, self).__init__(name=name)
         # Initialalize all the variables

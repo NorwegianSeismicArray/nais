@@ -7,47 +7,6 @@ from scipy.signal.windows import gaussian
 from scipy.ndimage import gaussian_filter1d
 
 class AugmentWaveformSequence(tf.keras.utils.Sequence):
-    """
-    x_set :
-        numpy array, 3D, (samples, length, channels)
-    y_set :
-        numpy array or list of numpy arrays.
-    event_type :
-        list, type of event, eg. earthquake.
-    snr :
-        nparray, signal-to-noise for each event.
-    batch_size : int, default=32
-    y_type: str, default='single'
-        single value or waveform (eg. autoencoders, p/s picking etc).
-        'single': single pick, y is single value
-        'region': region of data, y is tuple of start and end
-    norm_mode:
-        str, max or std
-    augmentation :
-        bool
-    add_event :
-        float, stack events at prob.
-    add_gap :
-        float, mask data to zeros in period at prob.
-    max_gap_size :
-        float, max zeros gap in data. Proportion.
-    coda_ration :
-        float
-    shift_event :
-        float, move arrivals at prob.
-    drop_channel :
-        float, drop channel at prob.
-    scale_amplitude :
-        float, scale amplitude at prob.
-    pre_emphasis :
-        float
-    min_snr :
-        float, minimum snr required to perform augmentation.
-    buffer :
-        minimum steps from start of windown to p-arrival.
-    shuffle :
-        bool, shuffle the dataset on epoch end.
-    """
 
     def __init__(self,
                  x_set,
@@ -83,6 +42,47 @@ class AugmentWaveformSequence(tf.keras.utils.Sequence):
                  random_crop=True,
                  create_label=False
                  ):
+        """
+        x_set :
+            numpy array, 3D, (samples, length, channels)
+        y_set :
+            numpy array or list of numpy arrays.
+        event_type :
+            list, type of event, eg. earthquake.
+        snr :
+            nparray, signal-to-noise for each event.
+        batch_size : int, default=32
+        y_type: str, default='single'
+            single value or waveform (eg. autoencoders, p/s picking etc).
+            'single': single pick, y is single value
+            'region': region of data, y is tuple of start and end
+        norm_mode:
+            str, max or std
+        augmentation :
+            bool
+        add_event :
+            float, stack events at prob.
+        add_gap :
+            float, mask data to zeros in period at prob.
+        max_gap_size :
+            float, max zeros gap in data. Proportion.
+        coda_ration :
+            float
+        shift_event :
+            float, move arrivals at prob.
+        drop_channel :
+            float, drop channel at prob.
+        scale_amplitude :
+            float, scale amplitude at prob.
+        pre_emphasis :
+            float
+        min_snr :
+            float, minimum snr required to perform augmentation.
+        buffer :
+            minimum steps from start of windown to p-arrival.
+        shuffle :
+            bool, shuffle the dataset on epoch end.
+        """
         self.x, self.y = x_set, y_set
         self.detection = detection
         self.num_channels = self.x.shape[-1]
