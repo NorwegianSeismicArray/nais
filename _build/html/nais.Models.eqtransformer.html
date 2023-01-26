@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>nais.Models.eqtransformer module &#8212; nais  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-nais.Models.eqtransformer">
+<span id="nais-models-eqtransformer-module"></span><h1>nais.Models.eqtransformer module<a class="headerlink" href="#module-nais.Models.eqtransformer" title="Permalink to this heading">¶</a></h1>
+<p>Various variations of EQTransformer
+Author: Erik
+Email: <a class="reference external" href="mailto:erik&#37;&#52;&#48;norsar&#46;no">erik<span>&#64;</span>norsar<span>&#46;</span>no</a></p>
+<dl class="py class">
+<dt class="sig sig-object py" id="nais.Models.eqtransformer.EarthQuakeTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nais.Models.eqtransformer.</span></span><span class="sig-name descname"><span class="pre">EarthQuakeTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nais.Models.eqtransformer.EarthQuakeTransformer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nais.Models.eqtransformer.EarthQuakeTransformer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernelsizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resfilters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reskernelsizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lstmfilters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformer_sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[64,</span> <span class="pre">64]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_regularizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classify</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">att_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'additive'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'EarthQuakeTransformer'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nais.Models.eqtransformer.EarthQuakeTransformer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="https://www.nature.com/articles/s41467-020-17591-w">https://www.nature.com/articles/s41467-020-17591-w</a></p>
+<p>Example usage:
+import numpy as np
+test = np.random.random(size=(16,1024,3))
+detection = np.random.randint(2, size=(16,1024,1))
+p_arrivals = np.random.randint(2, size=(16,1024,1))
+s_arrivals = np.random.randint(2, size=(16,1024,1))</p>
+<p>model = EarthQuakeTransformer(input_dim=test.shape[1:])
+model.compile(optimizer=’adam’, loss=[‘binary_crossentropy’,</p>
+<blockquote>
+<div><p>‘binary_crossentropy’,
+‘binary_crossentropy’])</p>
+</div></blockquote>
+<p>model.fit(test, (detection,p_arrivals,s_arrivals))</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_dim</strong> (<em>tuple</em>) – input size of the model.</p></li>
+<li><p><strong>filters</strong> (<em>list</em><em>, </em><em>optional</em>) – list of number of filters. Defaults to None.</p></li>
+<li><p><strong>kernelsizes</strong> (<em>list</em><em>, </em><em>optional</em>) – list of kernel sizes. Defaults to None.</p></li>
+<li><p><strong>resfilters</strong> (<em>list</em><em>, </em><em>optional</em>) – list of number of residual filters. Defaults to None.</p></li>
+<li><p><strong>reskernelsizes</strong> (<em>list</em><em>, </em><em>optional</em>) – list of residual filter sizes. Defaults to None.</p></li>
+<li><p><strong>lstmfilters</strong> (<em>list</em><em>, </em><em>optional</em>) – list of number of lstm filters. Defaults to None.</p></li>
+<li><p><strong>attention_width</strong> (<em>int</em><em>, </em><em>optional</em>) – width of attention mechanism. Defaults to 3. Use None for full.</p></li>
+<li><p><strong>dropout</strong> (<em>float</em><em>, </em><em>optional</em>) – dropout. Defaults to 0.0.</p></li>
+<li><p><strong>transformer_sizes</strong> (<em>list</em><em>, </em><em>optional</em>) – list of sizes of attention layers. Defaults to [64, 64].</p></li>
+<li><p><strong>kernel_regularizer</strong> (<em>tf.keras.regualizers.Regualizer</em><em>, </em><em>optional</em>) – kernel regualizer. Defaults to None.</p></li>
+<li><p><strong>classify</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether to classify phases or provide raw output. Defaults to True.</p></li>
+<li><p><strong>att_type</strong> (<em>str</em><em>, </em><em>optional</em>) – attention type. Defaults to ‘additive’. ‘multiplicative’ is also supported.</p></li>
+<li><p><strong>name</strong> (<em>str</em><em>, </em><em>optional</em>) – model name. Defaults to ‘EarthQuakeTransformer’.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="nais.Models.eqtransformer.EarthQuakeTransformer.num_parameters">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_parameters</span></span><a class="headerlink" href="#nais.Models.eqtransformer.EarthQuakeTransformer.num_parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nais.Models.eqtransformer.EarthQuakeTransformer.call">
+<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nais.Models.eqtransformer.EarthQuakeTransformer.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the model on new inputs.</p>
+<p>In this case <cite>call</cite> just reapplies
+all ops in the graph to the new inputs
+(e.g. build a new computational graph from the provided inputs).</p>
+<p>Note: This method should not be called directly. It is only meant to be
+overridden when subclassing <cite>tf.keras.Model</cite>.
+To call a model on an input, always use the <cite>__call__</cite> method,
+i.e. <cite>model(inputs)</cite>, which relies on the underlying <cite>call</cite> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> – Input tensor, or dict/list/tuple of input tensors.</p></li>
+<li><p><strong>training</strong> – Boolean or boolean scalar tensor, indicating whether to run
+the <cite>Network</cite> in training mode or inference mode.</p></li>
+<li><p><strong>mask</strong> – A mask or list of masks. A mask can be
+either a tensor or None (no mask).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tensor if there is a single output, or
+a list of tensors if there are more than one outputs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="nais.Models.eqtransformer.EarthQuakeTransformerMetadata">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nais.Models.eqtransformer.</span></span><span class="sig-name descname"><span class="pre">EarthQuakeTransformerMetadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nais.Models.eqtransformer.EarthQuakeTransformerMetadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#nais.Models.eqtransformer.EarthQuakeTransformer" title="nais.Models.eqtransformer.EarthQuakeTransformer"><code class="xref py py-class docutils literal notranslate"><span class="pre">EarthQuakeTransformer</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="nais.Models.eqtransformer.EarthQuakeTransformerMetadata.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_outputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eqt_kw</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nais.Models.eqtransformer.EarthQuakeTransformerMetadata.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides a wrapper for EarthQuakeTransformer with a metadata output, eg., when learning back azimuth.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_outputs</strong> (<em>int</em>) – Number of numerical metadata to learn.</p></li>
+<li><p><strong>eqt_kw</strong> (<em>dict</em>) – Args. for EarthQuakeTransformer.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nais.Models.eqtransformer.EarthQuakeTransformerMetadata.call">
+<span class="sig-name descname"><span class="pre">call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nais.Models.eqtransformer.EarthQuakeTransformerMetadata.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls the model on new inputs.</p>
+<p>In this case <cite>call</cite> just reapplies
+all ops in the graph to the new inputs
+(e.g. build a new computational graph from the provided inputs).</p>
+<p>Note: This method should not be called directly. It is only meant to be
+overridden when subclassing <cite>tf.keras.Model</cite>.
+To call a model on an input, always use the <cite>__call__</cite> method,
+i.e. <cite>model(inputs)</cite>, which relies on the underlying <cite>call</cite> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inputs</strong> – Input tensor, or dict/list/tuple of input tensors.</p></li>
+<li><p><strong>training</strong> – Boolean or boolean scalar tensor, indicating whether to run
+the <cite>Network</cite> in training mode or inference mode.</p></li>
+<li><p><strong>mask</strong> – A mask or list of masks. A mask can be
+either a tensor or None (no mask).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tensor if there is a single output, or
+a list of tensors if there are more than one outputs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">nais</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, Erik.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/nais.Models.eqtransformer.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
