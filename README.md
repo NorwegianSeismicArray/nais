@@ -1,4 +1,7 @@
+### [Documentation](https://norwegianseismicarray.github.io/nais/)
+
 ### NORSAR Artificial Inteligence System (NAIS, yes, the acronym was chosen first)
+
 This repository will eventually contain tools specific to aiding in AI research at NORSAR.
 
 This repository is based on Tensorflow and Keras. 
