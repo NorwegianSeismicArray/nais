@@ -63,7 +63,6 @@ def extract_weights(filename, dest='models'):
        # Extract all the contents of zip file in current directory
        zipObj.extractall(dest)
 
-
 def get_model_memory_usage(batch_size, model):
     import numpy as np
     from tensorflow.keras import backend as K

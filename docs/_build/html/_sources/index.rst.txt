@@ -1,5 +1,5 @@
 .. nais documentation master file, created by
-   sphinx-quickstart on Mon Aug  8 08:09:43 2022.
+   sphinx-quickstart on Thu Jan 26 13:12:10 2023.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
