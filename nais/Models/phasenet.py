@@ -14,7 +14,6 @@ from nais.utils import crop_and_concat
 class PhaseNet(tf.keras.Model):
     def __init__(self,
                  num_classes=2,
-                 output_layer=None,
                  filters=None,
                  kernelsizes=None,
                  output_activation='linear',
@@ -40,7 +39,6 @@ class PhaseNet(tf.keras.Model):
         self.kernel_regularizer = kernel_regularizer
         self.dropout_rate = dropout_rate
         self.output_activation = output_activation
-        self.output_layer = output_layer
 
         if filters is None:
             self.filters = [4, 8, 16, 32]
@@ -156,8 +154,6 @@ class PhaseNet(tf.keras.Model):
                            1,
                            padding="same")(x)
             outputs = tfl.Activation(self.output_activation, dtype='float32')(x)
-        elif self.output_layer is not None:
-            outputs = self.output_layer(x)
         else:
             outputs = x
 
@@ -198,7 +194,6 @@ class PhaseNetMetadata(PhaseNet):
 class TransPhaseNet(tf.keras.Model):
     def __init__(self,
                  num_classes=2,
-                 output_layer=None,
                  filters=None,
                  kernelsizes=None,
                  output_activation='linear',
@@ -230,7 +225,6 @@ class TransPhaseNet(tf.keras.Model):
         self.output_activation = output_activation
         self.residual_attention = residual_attention
         self.att_type = att_type
-        self.output_layer = output_layer
 
         if filters is None:
             self.filters = [4, 8, 16, 32]
@@ -381,8 +375,6 @@ class TransPhaseNet(tf.keras.Model):
                            1,
                            padding="same")(x)
             outputs = tfl.Activation(self.output_activation, dtype='float32')(x)
-        elif self.output_layer is not None:
-            outputs = self.output_layer(x)
         else:
             outputs = x
 
