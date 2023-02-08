@@ -115,13 +115,16 @@ class EPick(tf.keras.Model):
         attentions = []
         for i, skip in enumerate(skips):
             if i == 0:
-                #att = tfl.Attention(use_scale=True)([skip, skip])
-                att = skip
+                att = tfl.MultiHeadAttention(8, 
+                                             self.filters[i], 
+                                             return_attention_scores=False)([skip, skip])
             else:
                 tmp = []
                 z = skips[i]
                 for skip2 in skips[:i]:
-                    att = tfl.Attention(use_scale=True)([z, skip2])
+                    att = tfl.MultiHeadAttention(8, 
+                                                 self.filters[i], 
+                                                 return_attention_scores=False)([z, skip2])
                     tmp.append(att)
                 att = tfl.Concatenate()(tmp)
             attentions.append(att)
