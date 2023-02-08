@@ -185,5 +185,7 @@ class EPickMetadata(EPick):
     def call(self, inputs):
         p = self.model(inputs)
         m = self.encoder(inputs)
-        return p, self.metadata_model(m)
+        m = self.metadata_model(m)
+        print(p, m)
+        return p, m
     
