@@ -109,9 +109,6 @@ class EPick(tf.keras.Model):
             x = down_block(f, ks, x) 
             skips.append(x)
         
-        self.encoder = tf.keras.Model(inputs, x)
-        ### [Second half of the network: upsampling inputs] ###
-        
         attentions = []
         for i, skip in enumerate(skips):
             if self.residual_attention[i] <= 0:
@@ -133,6 +130,7 @@ class EPick(tf.keras.Model):
             attentions.append(att)
             
         x = crop_and_concat(x, attentions[-1])
+        self.encoder = tf.keras.Model(inputs, x)
             
         i = len(self.filters) - 1
         for f, ks in zip(self.filters[::-1][:-1], self.kernelsizes[::-1][:-1]):
