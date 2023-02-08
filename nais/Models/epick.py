@@ -106,7 +106,6 @@ class EPick(tf.keras.Model):
         
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for ks, f in zip(self.kernelsizes[1:], self.filters[1:]):
-            
             x = down_block(f, ks, x) 
             skips.append(x)
         
@@ -116,7 +115,8 @@ class EPick(tf.keras.Model):
         attentions = []
         for i, skip in enumerate(skips):
             if i == 0:
-                att = tfl.Attention(use_scale=True)([skip, skip])
+                #att = tfl.Attention(use_scale=True)([skip, skip])
+                att = skip
             else:
                 tmp = []
                 z = skips[i]
@@ -131,7 +131,6 @@ class EPick(tf.keras.Model):
         i = len(self.filters) - 1
         for f, ks in zip(self.filters[::-1][:-1], self.kernelsizes[::-1][:-1]):
             x = up_block(f, ks, x, upsample = i != 0)
-            
             x = crop_and_concat(x, attentions[i-1])
             i -= 1
         
