@@ -186,6 +186,5 @@ class EPickMetadata(EPick):
         p = self.model(inputs)
         m = self.encoder(inputs)
         m = self.metadata_model(m)
-        print(p, m)
         return p, m
     
