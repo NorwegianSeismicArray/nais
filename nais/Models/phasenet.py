@@ -191,83 +191,58 @@ class PhaseNetMetadata(PhaseNet):
         m = self.encoder(inputs)
         return p, self.metadata_model(m)
     
-class TransPhaseNet(tf.keras.Model):
+    
+    
+
+from nais.Layers import ResidualConv1D, ResidualConv1DTranspose
+
+class ResidualPhaseNet(tf.keras.Model):
     def __init__(self,
                  num_classes=2,
                  filters=None,
                  kernelsizes=None,
+                 stacked_layers=None,
                  output_activation='linear',
                  kernel_regularizer=None,
                  dropout_rate=0.2,
-                 att_type='additive',
                  initializer='glorot_normal',
-                 residual_attention=None,
-                 name='TransPhaseNet'):
+                 name='ResidualPhaseNet'):
         """Adapted to 1D from https://keras.io/examples/vision/oxford_pets_image_segmentation/
 
         Args:
             num_classes (int, optional): number of outputs. Defaults to 2.
             filters (list, optional): list of number of filters. Defaults to None.
             kernelsizes (list, optional): list of kernel sizes. Defaults to None.
-            residual_attention (list: optional): list of residual attention sizes, one longer that filters. 
-            att_type (str): dot or concat
             output_activation (str, optional): output activation, eg., 'softmax' for multiclass problems. Defaults to 'linear'.
             kernel_regularizer (tf.keras.regualizers.Regualizer, optional): kernel regualizer. Defaults to None.
             dropout_rate (float, optional): dropout. Defaults to 0.2.
             initializer (tf.keras.initializers.Initializer, optional): weight initializer. Defaults to 'glorot_normal'.
             name (str, optional): model name. Defaults to 'PhaseNet'.
         """
-        super(TransPhaseNet, self).__init__(name=name)
+        super(ResidualPhaseNet, self).__init__(name=name)
         self.num_classes = num_classes
         self.initializer = initializer
         self.kernel_regularizer = kernel_regularizer
         self.dropout_rate = dropout_rate
         self.output_activation = output_activation
-        self.residual_attention = residual_attention
-        self.att_type = att_type
 
         if filters is None:
             self.filters = [4, 8, 16, 32]
         else:
             self.filters = filters
-            
-        if residual_attention is None:
-            self.residual_attention = [0, 0, 0, 0, 0]
-        else:
-            self.residual_attention = residual_attention
 
         if kernelsizes is None:
             self.kernelsizes = [7, 7, 7, 7]
         else:
             self.kernelsizes = kernelsizes
+            
+        if stacked_layers is None:
+            self.stacked_layers = [12,8,4,1]
+        else:
+            self.stacked_layers = stacked_layers
 
     def build(self, input_shape):
         inputs = tf.keras.Input(shape=input_shape[1:])
-
-
-        
-        def block_transformer(f, width, query, value):
-            lstm_block = tf.keras.Sequential([tfl.Bidirectional(tfl.LSTM(f, return_sequences=True)),
-                                              tfl.Conv1D(f, 1, 
-                                                         padding='same', 
-                                                         kernel_regularizer=self.kernel_regularizer)])
-            
-            query = lstm_block(query)
-            #value = lstm_block(value)
-            
-            att, w = tfl.MultiHeadAttention(num_heads=8, 
-                                            key_dim=f, 
-                                            dropout=self.dropout_rate)(query, value, return_attention_scores=True)
-            
-            att = tfl.Add()([query, att])
-            norm = tfl.LayerNormalization()(att)
-            ff = tf.keras.Sequential([tfl.Dense(f, activation='relu', kernel_regularizer='l2'),
-                                      tfl.Dropout(self.dropout_rate),
-                                      tfl.Dense(norm.shape[2]),
-                                      ])(norm)
-            ff_add = tfl.Add()([norm, ff])
-            norm_out = tfl.LayerNormalization()(ff_add)
-            return norm_out, w
 
         ### [First half of the network: downsampling inputs] ###
 
@@ -286,22 +261,20 @@ class TransPhaseNet(tf.keras.Model):
 
         skips = [x]
         
+        
+        def down_block(x, i):
+            x = tfl.Conv1D(self.filters[i]*(i+1), 1, padding='same')(x)
+            x = ResidualConv1D(self.filters[i]*(i+1), self.kernelsizes[i], self.stacked_layers[i])(x)
+            return x
+        
+        def up_block(x, i):
+            x = tfl.Conv1D(self.filters[i]*(i+1), 1, padding='same')(x)
+            x = ResidualConv1DTranspose(self.filters[i]*(i+1), self.kernelsizes[i], self.stacked_layers[i])(x)
+            return x        
+        
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for i, filters in enumerate(self.filters):
-            x = tfl.Activation("relu")(x)
-            x = tfl.Conv1D(filters, self.kernelsizes[i], padding="same",
-                           kernel_regularizer=self.kernel_regularizer,
-                           kernel_initializer=self.initializer,
-                           )(x)
-            x = tfl.BatchNormalization()(x)
-            x = tfl.Activation("relu")(x)
-            x = tfl.Dropout(self.dropout_rate)(x)
-
-            x = tfl.Conv1D(filters, self.kernelsizes[i], padding="same",
-                           kernel_regularizer=self.kernel_regularizer,
-                           kernel_initializer=self.initializer,
-                           )(x)
-            x = tfl.BatchNormalization()(x)
+            x = down_block(x, i)
 
             x = tfl.MaxPooling1D(4, strides=2, padding="same")(x)
 
@@ -313,31 +286,15 @@ class TransPhaseNet(tf.keras.Model):
             x = tfl.concatenate([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
             skips.append(x)
-
-        if self.residual_attention[-1] > 0:
-            x, _ = block_transformer(self.residual_attention[-1], None, x, x)
+            
+        skips = skips[:-1]
 
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
-        skips = skips[:-1]
+        skips = skips[::-1]
         
-        c, f = range(len(self.residual_attention)-2, -1, -1), self.filters[::-1]
-        
-        for i, filters in zip(c, f):
-            x = tfl.Activation("relu")(x)
-            x = tfl.Conv1DTranspose(filters, self.kernelsizes[::-1][i], padding="same",
-                                    kernel_regularizer=self.kernel_regularizer,
-                                    kernel_initializer=self.initializer,
-                                    )(x)
-            x = tfl.BatchNormalization()(x)
-            x = tfl.Activation("relu")(x)
-            x = tfl.Dropout(self.dropout_rate)(x)
-
-            x = tfl.Conv1DTranspose(filters, self.kernelsizes[::-1][i], padding="same",
-                                    kernel_regularizer=self.kernel_regularizer,
-                                    kernel_initializer=self.initializer,
-                                    )(x)
-            x = tfl.BatchNormalization()(x)
+        for i, filters in enumerate(self.filters[::-1]):
+            x = up_block(x, i)
             x = tfl.UpSampling1D(2)(x)
 
             # Project residual
@@ -346,12 +303,10 @@ class TransPhaseNet(tf.keras.Model):
                                   kernel_regularizer=self.kernel_regularizer,
                                   kernel_initializer=self.initializer,
                                   )(residual)
-            
-            if self.residual_attention[i] > 0:
-                att, _ = block_transformer(self.residual_attention[i], None, x, skips[i])
-                x = crop_and_concat(x, att)
-            x = tfl.concatenate([x, residual]) # Add back residual
+            x = tfl.concatenate([x, residual])  # Add back residual
             previous_block_activation = x  # Set aside next residual
+
+            x = crop_and_concat(x, skips[i])
 
         to_crop = x.shape[1] - input_shape[1]
         of_start, of_end = to_crop // 2, to_crop // 2
@@ -390,24 +345,4 @@ class TransPhaseNet(tf.keras.Model):
 
     def call(self, inputs):
         return self.model(inputs)
-
-class TransPhaseNetMetadata(TransPhaseNet):
-    def __init__(self, num_outputs=None, metadata_model=None, ph_kw=None):
-        """Provides a wrapper for TransPhaseNet with a metadata output, eg., when learning back azimuth.
-
-        Args:
-            num_outputs (int): Number of numerical metadata to learn. 
-            ph_kw (dict): Args. for TransPhaseNet. 
-        """
-        super(TransPhaseNetMetadata, self).__init__(**ph_kw)
-        if metadata_model is None:
-            self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
-                                                   tfl.Dense(128, activation='relu'),
-                                                   tfl.Dense(num_outputs)])
-        else:
-            self.metadata_model = metadata_model
-    def call(self, inputs):
-        p = self.model(inputs)
-        m = self.encoder(inputs)
-        return p, self.metadata_model(m)
     
