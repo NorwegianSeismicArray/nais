@@ -8,3 +8,4 @@ from .spectrogram import *
 from .utime import *
 from .wavenet import *
 from .epick import *
+from .transphasenet import *
