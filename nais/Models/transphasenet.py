@@ -106,11 +106,6 @@ class TransPhaseNet(tf.keras.Model):
         x = tfl.BatchNormalization()(x)
         x = tfl.Activation("relu")(x)
         x = tfl.Dropout(self.dropout_rate)(x)
-        
-        x = DynamicConv1D(self.filters[0], 
-                          self.kernelsizes[0],
-                          num_layers=7,
-                          activation='relu')(x)
 
         previous_block_activation = x  # Set aside residual
 
