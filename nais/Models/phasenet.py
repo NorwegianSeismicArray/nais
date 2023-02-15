@@ -346,3 +346,25 @@ class ResidualPhaseNet(tf.keras.Model):
     def call(self, inputs):
         return self.model(inputs)
     
+    
+    
+class ResidualPhaseNetMetadata(ResidualPhaseNet):
+    def __init__(self, num_outputs=None, metadata_model=None, ph_kw=None):
+        """Provides a wrapper for PhaseNet with a metadata output, eg., when learning back azimuth.
+
+        Args:
+            num_outputs (int): Number of numerical metadata to learn. 
+            ph_kw (dict): Args. for PhaseNet. 
+        """
+        super(ResidualPhaseNetMetadata, self).__init__(**ph_kw)
+        if metadata_model is None:
+            self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
+                                                   tfl.Dense(128, activation='relu'),
+                                                   tfl.Dense(num_outputs)])
+        else:
+            self.metadata_model = metadata_model
+            
+    def call(self, inputs):
+        p = self.model(inputs)
+        m = self.encoder(inputs)
+        return p, self.metadata_model(m)
