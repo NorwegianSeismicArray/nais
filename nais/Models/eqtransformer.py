@@ -79,7 +79,7 @@ class EarthQuakeTransformer(tf.keras.Model):
             assert resfilters[0] == filters[-1]
         except AssertionError:
             print('Filters missmatch.')
-            filters = resfilters[0]
+            filters[-1] = resfilters[0]
 
         def conv_block(f,kz):
             return tf.keras.Sequential([tfl.Conv1D(f, kz, padding='same', kernel_regularizer=kernel_regularizer),

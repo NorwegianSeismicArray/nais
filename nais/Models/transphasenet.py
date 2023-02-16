@@ -192,7 +192,7 @@ class TransPhaseNet(tf.keras.Model):
 
         x = tfl.BatchNormalization()(x)
         x = tfl.Activation("relu")(x)
-        x = tfl.Dropout(self.dropout_rate)(x)
+        x = tfl.Dropout(self.dropout_rate)(x) 
 
         # Add a per-pixel classification layer
         if self.num_classes is not None:
