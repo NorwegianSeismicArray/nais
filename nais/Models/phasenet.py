@@ -66,8 +66,6 @@ class PhaseNet(tf.keras.Model):
         x = tfl.Activation("relu")(x)
         x = tfl.Dropout(self.dropout_rate)(x)
 
-        previous_block_activation = x  # Set aside residual
-
         skips = [x]
         
         # Blocks 1, 2, 3 are identical apart from the feature depth.
@@ -81,21 +79,8 @@ class PhaseNet(tf.keras.Model):
             x = tfl.Activation("relu")(x)
             x = tfl.Dropout(self.dropout_rate)(x)
 
-            x = tfl.Conv1D(filters, self.kernelsizes[i], padding="same",
-                           kernel_regularizer=self.kernel_regularizer,
-                           kernel_initializer=self.initializer,
-                           )(x)
-            x = tfl.BatchNormalization()(x)
-
             x = tfl.MaxPooling1D(4, strides=2, padding="same")(x)
 
-            # Project residual
-            residual = tfl.Conv1D(filters, 1, strides=2, padding="same", kernel_initializer=self.initializer,
-                                  )(
-                previous_block_activation
-            )
-            x = tfl.concatenate([x, residual])  # Add back residual
-            previous_block_activation = x  # Set aside next residual
             skips.append(x)
             
         skips = skips[:-1]
@@ -114,21 +99,7 @@ class PhaseNet(tf.keras.Model):
             x = tfl.Activation("relu")(x)
             x = tfl.Dropout(self.dropout_rate)(x)
 
-            x = tfl.Conv1DTranspose(filters, self.kernelsizes[::-1][i], padding="same",
-                                    kernel_regularizer=self.kernel_regularizer,
-                                    kernel_initializer=self.initializer,
-                                    )(x)
-            x = tfl.BatchNormalization()(x)
             x = tfl.UpSampling1D(2)(x)
-
-            # Project residual
-            residual = tfl.UpSampling1D(2)(previous_block_activation)
-            residual = tfl.Conv1D(filters, 1, padding="same",
-                                  kernel_regularizer=self.kernel_regularizer,
-                                  kernel_initializer=self.initializer,
-                                  )(residual)
-            x = tfl.concatenate([x, residual])  # Add back residual
-            previous_block_activation = x  # Set aside next residual
 
             x = crop_and_concat(x, skips[i])
 
@@ -194,7 +165,7 @@ class PhaseNetMetadata(PhaseNet):
     
     
 
-from nais.Layers import ResidualConv1D, ResidualConv1DTranspose
+from nais.Layers import ResidualConv1D, ResidualConv1DTranspose, ResnetBlock1D
 
 class ResidualPhaseNet(tf.keras.Model):
     def __init__(self,
@@ -261,30 +232,10 @@ class ResidualPhaseNet(tf.keras.Model):
 
         skips = [x]
         
-        
-        def down_block(x, i):
-            x = tfl.Conv1D(self.filters[i]*(i+1), 1, padding='same')(x)
-            x = ResidualConv1D(self.filters[i]*(i+1), self.kernelsizes[i], self.stacked_layers[i])(x)
-            return x
-        
-        def up_block(x, i):
-            x = tfl.Conv1D(self.filters[i]*(i+1), 1, padding='same')(x)
-            x = ResidualConv1DTranspose(self.filters[i]*(i+1), self.kernelsizes[i], self.stacked_layers[i])(x)
-            return x        
-        
         # Blocks 1, 2, 3 are identical apart from the feature depth.
-        for i, filters in enumerate(self.filters):
-            x = down_block(x, i)
-
+        for i, (f, ks) in enumerate(zip(self.filters, self.kernelsizes)):
+            x = ResnetBlock1D(f, ks, activation='relu', dropout=self.dropout_rate)
             x = tfl.MaxPooling1D(4, strides=2, padding="same")(x)
-
-            # Project residual
-            residual = tfl.Conv1D(filters, 1, strides=2, padding="same", kernel_initializer=self.initializer,
-                                  )(
-                previous_block_activation
-            )
-            x = tfl.concatenate([x, residual])  # Add back residual
-            previous_block_activation = x  # Set aside next residual
             skips.append(x)
             
         skips = skips[:-1]
@@ -293,18 +244,9 @@ class ResidualPhaseNet(tf.keras.Model):
         ### [Second half of the network: upsampling inputs] ###
         skips = skips[::-1]
         
-        for i, filters in enumerate(self.filters[::-1]):
-            x = up_block(x, i)
+        for i, (f, ks) in enumerate(zip(self.filters[::-1], self.kernelsizes[::-1])):
+            x = ResnetBlock1D(f, ks, activation='relu', dropout=self.dropout_rate)
             x = tfl.UpSampling1D(2)(x)
-
-            # Project residual
-            residual = tfl.UpSampling1D(2)(previous_block_activation)
-            residual = tfl.Conv1D(filters, 1, padding="same",
-                                  kernel_regularizer=self.kernel_regularizer,
-                                  kernel_initializer=self.initializer,
-                                  )(residual)
-            x = tfl.concatenate([x, residual])  # Add back residual
-            previous_block_activation = x  # Set aside next residual
 
             x = crop_and_concat(x, skips[i])
 
