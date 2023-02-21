@@ -19,6 +19,7 @@ class PhaseNet(tf.keras.Model):
                  output_activation='linear',
                  kernel_regularizer=None,
                  dropout_rate=0.2,
+                 pool_type='max',
                  initializer='glorot_normal',
                  name='PhaseNet'):
         """Adapted to 1D from https://keras.io/examples/vision/oxford_pets_image_segmentation/
@@ -49,6 +50,11 @@ class PhaseNet(tf.keras.Model):
             self.kernelsizes = [7, 7, 7, 7]
         else:
             self.kernelsizes = kernelsizes
+            
+        if pool_type == 'max':
+            self.pool_layer = tfl.MaxPooling1D
+        else:
+            self.pool_layer = tfl.AveragePooling1D
 
     def build(self, input_shape):
         inputs = tf.keras.Input(shape=input_shape[1:])
@@ -79,7 +85,7 @@ class PhaseNet(tf.keras.Model):
             x = tfl.Activation("relu")(x)
             x = tfl.Dropout(self.dropout_rate)(x)
 
-            x = tfl.MaxPooling1D(4, strides=2, padding="same")(x)
+            x = self.pool_layer(4, strides=2, padding="same")(x)
 
             skips.append(x)
             
@@ -175,6 +181,7 @@ class ResidualPhaseNet(tf.keras.Model):
                  output_activation='linear',
                  kernel_regularizer=None,
                  dropout_rate=0.2,
+                 pool_type = 'max',
                  initializer='glorot_normal',
                  name='ResidualPhaseNet'):
         """Adapted to 1D from https://keras.io/examples/vision/oxford_pets_image_segmentation/
@@ -205,6 +212,11 @@ class ResidualPhaseNet(tf.keras.Model):
             self.kernelsizes = [7, 7, 7, 7]
         else:
             self.kernelsizes = kernelsizes
+            
+        if pool_type == 'max':
+            self.pool_layer = tfl.MaxPooling1D
+        else:
+            self.pool_layer = tfl.AveragePooling1D
 
     def build(self, input_shape):
         inputs = tf.keras.Input(shape=input_shape[1:])
@@ -229,7 +241,7 @@ class ResidualPhaseNet(tf.keras.Model):
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for i, (f, ks) in enumerate(zip(self.filters, self.kernelsizes)):
             x = ResnetBlock1D(f, ks, activation='relu', dropout=self.dropout_rate)(x)
-            x = tfl.MaxPooling1D(4, strides=2, padding="same")(x)
+            x = self.pool_layer(4, strides=2, padding="same")(x)
             skips.append(x)
             
         skips = skips[:-1]
