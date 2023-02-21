@@ -172,7 +172,6 @@ class ResidualPhaseNet(tf.keras.Model):
                  num_classes=2,
                  filters=None,
                  kernelsizes=None,
-                 stacked_layers=None,
                  output_activation='linear',
                  kernel_regularizer=None,
                  dropout_rate=0.2,
@@ -206,11 +205,6 @@ class ResidualPhaseNet(tf.keras.Model):
             self.kernelsizes = [7, 7, 7, 7]
         else:
             self.kernelsizes = kernelsizes
-            
-        if stacked_layers is None:
-            self.stacked_layers = [12,8,4,1]
-        else:
-            self.stacked_layers = stacked_layers
 
     def build(self, input_shape):
         inputs = tf.keras.Input(shape=input_shape[1:])
