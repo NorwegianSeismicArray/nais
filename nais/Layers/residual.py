@@ -113,7 +113,7 @@ class ResnetBlock1D(tfl.Layer):
         self.dropout1 = tfl.SpatialDropout1D(dropout)
         self.bn1 = tfl.BatchNormalization()
         self.bn2 = tfl.BatchNormalization()
-        self.add = tfl.Add()
+        self.add = tfl.Concatenate()
         self.relu = tfl.Activation(activation)
 
     @tf.function
