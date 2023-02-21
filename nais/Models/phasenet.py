@@ -234,7 +234,7 @@ class ResidualPhaseNet(tf.keras.Model):
         
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for i, (f, ks) in enumerate(zip(self.filters, self.kernelsizes)):
-            x = ResnetBlock1D(f, ks, activation='relu', dropout=self.dropout_rate)
+            x = ResnetBlock1D(f, ks, activation='relu', dropout=self.dropout_rate)(x)
             x = tfl.MaxPooling1D(4, strides=2, padding="same")(x)
             skips.append(x)
             
@@ -245,7 +245,7 @@ class ResidualPhaseNet(tf.keras.Model):
         skips = skips[::-1]
         
         for i, (f, ks) in enumerate(zip(self.filters[::-1], self.kernelsizes[::-1])):
-            x = ResnetBlock1D(f, ks, activation='relu', dropout=self.dropout_rate)
+            x = ResnetBlock1D(f, ks, activation='relu', dropout=self.dropout_rate)(x)
             x = tfl.UpSampling1D(2)(x)
 
             x = crop_and_concat(x, skips[i])
