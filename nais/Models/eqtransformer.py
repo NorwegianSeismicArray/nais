@@ -124,10 +124,8 @@ class EarthQuakeTransformer(tf.keras.Model):
                 x = tfl.LSTM(filters[1], 
                              return_sequences=True, 
                              kernel_regularizer=kernel_regularizer)(x)
-                x, w = SeqSelfAttention(units=filters[1],
-                                        attention_width=attention_width,
-                                        attention_type=att_type,
-                                        return_attention=True)(x)
+                
+                x = TransformerBlock(num_heads=8, ff_dim=filters[1], embed_dim=filters[1])(x)
 
             x = tf.keras.Sequential([inv_conv_block(f, kz) for f, kz in zip(invfilters, invkernelsizes)])(x)
             to_crop = x.shape[1] - input_dim[0]
