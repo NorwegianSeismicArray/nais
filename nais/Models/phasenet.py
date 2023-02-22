@@ -169,8 +169,6 @@ class PhaseNetMetadata(PhaseNet):
         return p, self.metadata_model(m)
     
     
-    
-
 from nais.Layers import ResidualConv1D, ResidualConv1DTranspose, ResnetBlock1D
 
 class ResidualPhaseNet(tf.keras.Model):
@@ -181,7 +179,7 @@ class ResidualPhaseNet(tf.keras.Model):
                  output_activation='linear',
                  kernel_regularizer=None,
                  dropout_rate=0.2,
-                 pool_type = 'max',
+                 pool_type='max',
                  initializer='glorot_normal',
                  name='ResidualPhaseNet'):
         """Adapted to 1D from https://keras.io/examples/vision/oxford_pets_image_segmentation/

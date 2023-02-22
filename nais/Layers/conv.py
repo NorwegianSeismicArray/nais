@@ -22,11 +22,11 @@ class DynamicConv1D(tfl.Layer):
 
         super(DynamicConv1D, self).__init__(**kwargs)
         
-        self.attention = tf.keras.Sequential([tfl.GlobalAveragePooling1D(), 
+        self.attention = tf.keras.Sequential([tfl.GlobalAveragePooling1D(),
                                               tfl.Dense(filters, activation='relu'),
                                               tfl.Dropout(dropout),
                                               tfl.Dense(num_layers, activation='softmax')])
-        self.convs = [tfl.Conv1D(filters, kernelsize, padding='same') for _ in range(num_layers)]
+        self.convs = [tfl.Conv1D(filters, kernelsize, padding='same', **kwargs) for _ in range(num_layers)]
         self.out_layer = tf.keras.Sequential([tfl.Conv1D(filters, kernelsize, padding='same'),
                                               tfl.BatchNormalization(),
                                               tfl.Activation(activation),

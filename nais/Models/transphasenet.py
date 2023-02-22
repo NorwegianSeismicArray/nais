@@ -10,7 +10,7 @@ import tensorflow.keras.backend as K
 import numpy as np
 from nais.utils import crop_and_concat
 
-from nais.Layers import DynamicConv1D
+from nais.Layers import DynamicConv1D, TransformerBlock
 
 class TransPhaseNet(tf.keras.Model):
     def __init__(self,
@@ -76,23 +76,8 @@ class TransPhaseNet(tf.keras.Model):
                                               tfl.Conv1D(f, 1, 
                                                          padding='same', 
                                                          kernel_regularizer=self.kernel_regularizer)])
-            
-            query = lstm_block(query)
-            #value = lstm_block(value)
-            
-            att, w = tfl.MultiHeadAttention(num_heads=8, 
-                                            key_dim=f, 
-                                            dropout=self.dropout_rate)(query, value, return_attention_scores=True)
-            
-            att = tfl.Add()([query, att])
-            norm = tfl.LayerNormalization()(att)
-            ff = tf.keras.Sequential([tfl.Dense(f, activation='relu', kernel_regularizer='l2'),
-                                      tfl.Dropout(self.dropout_rate),
-                                      tfl.Dense(norm.shape[2]),
-                                      ])(norm)
-            ff_add = tfl.Add()([norm, ff])
-            norm_out = tfl.LayerNormalization()(ff_add)
-            return norm_out, w
+            Q, V = lstm_block(query), lstm_block(value)
+            return TransformerBlock(num_heads=8, embed_dim=f, ff_dim=f, rate=seld.dropout_rate)([Q, V])
 
         ### [First half of the network: downsampling inputs] ###
 
