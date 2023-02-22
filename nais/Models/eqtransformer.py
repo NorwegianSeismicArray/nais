@@ -4,7 +4,7 @@ Author: Erik
 Email: erik@norsar.no
 """
 
-from nais.Layers import ResnetBlock1D, SeqSelfAttention
+from nais.Layers import ResnetBlock1D
 import tensorflow as tf 
 import tensorflow.keras.layers as tfl 
 import tensorflow.keras.backend as K
@@ -93,18 +93,25 @@ class EarthQuakeTransformer(tf.keras.Model):
             x = tfl.Bidirectional(tfl.LSTM(f, return_sequences=True))(x)
             x = tfl.Conv1D(f, 1, padding='same', kernel_regularizer=kernel_regularizer)(x)
             x = tfl.BatchNormalization()(x)
-            return x
-
-        def block_transformer(f, width, x):
-            att, w = SeqSelfAttention(units=f,
-                        attention_width=width,
-                        attention_type=att_type,
-                        return_attention=True)(x)
+            return x        
+        
+        def block_transformer(f, width, query, value):
+            lstm_block = tf.keras.Sequential([tfl.Bidirectional(tfl.LSTM(f, return_sequences=True)),
+                                              tfl.Conv1D(f, 1, 
+                                                         padding='same', 
+                                                         kernel_regularizer=self.kernel_regularizer)])
             
-            att = tfl.Add()([x, att])
+            query = lstm_block(query)
+            value = lstm_block(value)
+            
+            att, w = tfl.MultiHeadAttention(num_heads=8, 
+                                            key_dim=f, 
+                                            dropout=self.dropout_rate)(query, value, return_attention_scores=True)
+            
+            att = tfl.Add()([query, att])
             norm = tfl.LayerNormalization()(att)
-            ff = tf.keras.Sequential([tfl.Dense(f, activation='relu', kernel_regularizer=kernel_regularizer),
-                                      tfl.Dropout(dropout),
+            ff = tf.keras.Sequential([tfl.Dense(f, activation='relu', kernel_regularizer='l2'),
+                                      tfl.Dropout(self.dropout_rate),
                                       tfl.Dense(norm.shape[2]),
                                       ])(norm)
             ff_add = tfl.Add()([norm, ff])
@@ -122,7 +129,7 @@ class EarthQuakeTransformer(tf.keras.Model):
                     x = block_BiLSTM(f, x)
                 x = tfl.LSTM(64, return_sequences=True, kernel_regularizer=kernel_regularizer)(x)
                 for ts in transformer_sizes:
-                    x, w0 = block_transformer(ts, None, x)
+                    x, w0 = block_transformer(ts, None, x, x)
                 return x
             return tf.keras.Model(inp, encode(inp))
 
