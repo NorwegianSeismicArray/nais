@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>nais.Models.scatnet API documentation</title>
+<meta name="description" content="Scattering networks
+Author: Erik
+Email: erik@norsar.no" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>nais.Models.scatnet</code></h1>
+</header>
+<section id="section-intro">
+<p>Scattering networks
+Author: Erik
+Email: erik@norsar.no</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34; 
+Scattering networks
+Author: Erik 
+Email: erik@norsar.no
+&#34;&#34;&#34;
+
+from nais.Mixture import GMM
+from nais.Cluster import KMeans
+import tensorflow as tf 
+import numpy as np
+
+class ScatNet(tf.keras.Model):
+    def __init__(self,
+                 input_shape,
+                 j=[4,6,8],
+                 q=[8,2,1],
+                 k=7,
+                 pooling_type=&#39;avg&#39;,
+                 decimation=2,
+                 pooling_size=1024,
+                 eps=1e-3,
+                 n_pca=5,
+                 eps_log=0.001,
+                 n_clusters=10,
+                 moving_pca=0.9,
+                 clustering_method=&#39;GMM&#39;,
+                 name=&#39;scatnet&#39;,
+                 loss_weights=(1.0, 1.0),
+                 **filters_kw
+                 ):
+        &#34;&#34;&#34;_summary_
+
+        Args:
+            input_shape (_type_): _description_
+            j (list, optional): _description_. Defaults to [4,6,8].
+            q (list, optional): _description_. Defaults to [8,2,1].
+            k (int, optional): _description_. Defaults to 7.
+            pooling_type (str, optional): _description_. Defaults to &#39;avg&#39;.
+            decimation (int, optional): _description_. Defaults to 2.
+            pooling_size (int, optional): _description_. Defaults to 1024.
+            eps (_type_, optional): _description_. Defaults to 1e-3.
+            n_pca (int, optional): _description_. Defaults to 5.
+            eps_log (float, optional): _description_. Defaults to 0.001.
+            n_clusters (int, optional): _description_. Defaults to 10.
+            moving_pca (float, optional): _description_. Defaults to 0.9.
+            clustering_method (str, optional): _description_. Defaults to &#39;GMM&#39;.
+            name (str, optional): _description_. Defaults to &#39;scatnet&#39;.
+            loss_weights (tuple, optional): _description_. Defaults to (1.0, 1.0).
+        &#34;&#34;&#34;
+        super(ScatNet, self).__init__(name=name)
+
+        self.batch_size = input_shape[0]
+        self.n_pca = n_pca
+        self.eps_log = eps_log
+        self.moving_pca = moving_pca
+        self.n_clusters = n_clusters
+        self.eps = eps
+        self.loss_weights = loss_weights
+        self.clustering_method = clustering_method
+
+        depth = len(j)
+        self.ls = [Scattering(batch_size=self.batch_size,
+                             index=0,
+                             j=j,
+                             q=q,
+                             k=k,
+                             decimation=decimation,
+                             pooling=pooling_size,
+                             pooling_type=pooling_type,
+                             **filters_kw)]
+
+        for i in range(1,depth):
+            layer = Scattering(batch_size=self.batch_size,
+                               index=i,
+                             j=j,
+                             q=q,
+                             k=k,
+                             decimation=decimation,
+                             pooling=pooling_size,
+                             pooling_type=pooling_type,
+                             **filters_kw)
+
+            self.ls.append(layer)
+
+        if pooling_type == &#39;max&#39;:
+            self.global_pool = tf.keras.layers.GlobalMaxPooling1D()
+        else:
+            self.global_pool = tf.keras.layers.GlobalAveragePooling1D()
+
+        self.total_loss_tracker = tf.keras.metrics.Mean(name=&#34;total_loss&#34;)
+        self.reconstruction_loss_tracker = tf.keras.metrics.Mean(name=&#34;reconstruction_loss&#34;)
+        self.cluster_loss_tracker = tf.keras.metrics.Mean(name=&#34;cluster_loss&#34;)
+
+    @property
+    def metrics(self):
+        return [
+            self.total_loss_tracker,
+            self.reconstruction_loss_tracker,
+            self.cluster_loss_tracker,
+        ]
+
+    def forward(self, x, training=False):
+        def renorm(child, parent, epsilon=1e-3):
+            # Extract all shapes.
+            batch_size, *_, samples = child.shape
+            if epsilon &gt; 0:
+                s = tf.experimental.numpy.swapaxes(child,1,2) / (tf.expand_dims(parent, -2) + epsilon)
+                batch_size, *_, samples = s.shape
+                return tf.reshape(s, [batch_size, -1, samples])
+            else:
+                return tf.reshape(child, [batch_size, -1, samples])
+
+        x = tf.experimental.numpy.swapaxes(x, 1, 2)
+        us, ss = [], []
+        for layer in self.ls:
+            u, s = layer(x)
+            x = u
+            us.append(u)
+            ss.append(s)
+
+        r = []
+        for i in range(1, len(ss)):
+            r.append(renorm(ss[i], ss[i-1], self.eps))
+
+        sx = tf.concat(r, axis=1)
+
+        sx = tf.math.log(sx + self.eps_log)
+        sx = self.global_pool(sx)
+
+        #sx = tf.reshape(sx, (self.batch_size, -1))
+        #sx -= tf.math.reduce_mean(sx, axis=0, keepdims=True)
+
+        return sx
+
+    def predict_step(self, data):
+        if type(data) == tuple:
+            data, _ = data
+        x = data
+        proj = self.forward(x, training=False)
+        if self.clustering_method == &#39;GMM&#39;:
+            sample, prob, mean, logvar = self.clustering(tf.ones((proj.shape[0],1)))
+        else:
+            dist, assignment = self.clustering(proj)
+            prob = tf.nn.softmax(-dist)
+
+        return proj, prob
+
+    def train_step(self, data):
+        if type(data) == tuple:
+            data, _ = data
+
+        x = data
+
+        with tf.GradientTape() as tape:
+
+            proj = self.forward(x, training=True)
+            scat_layers_loss = self.loss_weights[0] * tf.reduce_sum([sum(layer.losses) for layer in self.ls])
+
+            if not hasattr(self, &#39;clustering&#39;):
+                if self.clustering_method == &#39;GMM&#39;:
+                    self.clustering = GMM(proj.shape[1], self.n_clusters)
+                else:
+                    self.clustering = KMeans(proj.shape[1], self.n_clusters)
+
+            if self.clustering_method == &#39;GMM&#39;:
+                sample, prob, mean, logvar = self.clustering(tf.ones((proj.shape[0],1)))
+                log_likelihood = self.clustering.log_likelihood(proj, prob, mean, logvar) #Should it be proj or sample?
+            else:
+                dist, _ = self.clustering(proj)
+                log_likelihood = tf.reduce_mean(dist)
+
+            cluster_loss = self.loss_weights[1] * log_likelihood
+            total_loss = scat_layers_loss + cluster_loss
+
+        w = []
+        for layer in self.ls:
+            w += layer.variables
+        w += self.clustering.variables
+
+        grads = tape.gradient(total_loss, w)
+        self.optimizer.apply_gradients(zip(grads, w))
+        self.total_loss_tracker.update_state(total_loss)
+        self.cluster_loss_tracker.update_state(cluster_loss)
+        self.reconstruction_loss_tracker.update_state(scat_layers_loss)
+
+        return {
+            &#34;loss&#34;: self.total_loss_tracker.result(),
+            &#34;reconstruction_loss&#34;: self.reconstruction_loss_tracker.result(),
+            &#34;cluster_loss&#34;: self.cluster_loss_tracker.result(),
+        }</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="nais.Models.scatnet.ScatNet"><code class="flex name class">
+<span>class <span class="ident">ScatNet</span></span>
+<span>(</span><span>input_shape, j=[4, 6, 8], q=[8, 2, 1], k=7, pooling_type='avg', decimation=2, pooling_size=1024, eps=0.001, n_pca=5, eps_log=0.001, n_clusters=10, moving_pca=0.9, clustering_method='GMM', name='scatnet', loss_weights=(1.0, 1.0), **filters_kw)</span>
+</code></dt>
+<dd>
+<div class="desc"><p><code>Model</code> groups layers into an object with training and inference features.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>inputs</code></strong></dt>
+<dd>The input(s) of the model: a <code>keras.Input</code> object or list of
+<code>keras.Input</code> objects.</dd>
+<dt><strong><code>outputs</code></strong></dt>
+<dd>The output(s) of the model. See Functional API example below.</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>String, the name of the model.</dd>
+</dl>
+<p>There are two ways to instantiate a <code>Model</code>:</p>
+<p>1 - With the "Functional API", where you start from <code>Input</code>,
+you chain layer calls to specify the model's forward pass,
+and finally you create your model from inputs and outputs:</p>
+<pre><code class="language-python">import tensorflow as tf
+
+inputs = tf.keras.Input(shape=(3,))
+x = tf.keras.layers.Dense(4, activation=tf.nn.relu)(inputs)
+outputs = tf.keras.layers.Dense(5, activation=tf.nn.softmax)(x)
+model = tf.keras.Model(inputs=inputs, outputs=outputs)
+</code></pre>
+<p>Note: Only dicts, lists, and tuples of input tensors are supported. Nested
+inputs are not supported (e.g. lists of list or dicts of dict).</p>
+<p>2 - By subclassing the <code>Model</code> class: in that case, you should define your
+layers in <code>__init__</code> and you should implement the model's forward pass
+in <code>call</code>.</p>
+<pre><code class="language-python">import tensorflow as tf
+
+class MyModel(tf.keras.Model):
+
+  def __init__(self):
+    super(MyModel, self).__init__()
+    self.dense1 = tf.keras.layers.Dense(4, activation=tf.nn.relu)
+    self.dense2 = tf.keras.layers.Dense(5, activation=tf.nn.softmax)
+
+  def call(self, inputs):
+    x = self.dense1(inputs)
+    return self.dense2(x)
+
+model = MyModel()
+</code></pre>
+<p>If you subclass <code>Model</code>, you can optionally have
+a <code>training</code> argument (boolean) in <code>call</code>, which you can use to specify
+a different behavior in training and inference:</p>
+<pre><code class="language-python">import tensorflow as tf
+
+class MyModel(tf.keras.Model):
+
+  def __init__(self):
+    super(MyModel, self).__init__()
+    self.dense1 = tf.keras.layers.Dense(4, activation=tf.nn.relu)
+    self.dense2 = tf.keras.layers.Dense(5, activation=tf.nn.softmax)
+    self.dropout = tf.keras.layers.Dropout(0.5)
+
+  def call(self, inputs, training=False):
+    x = self.dense1(inputs)
+    if training:
+      x = self.dropout(x, training=training)
+    return self.dense2(x)
+
+model = MyModel()
+</code></pre>
+<p>Once the model is created, you can config the model with losses and metrics
+with <code>model.compile()</code>, train the model with <code>model.fit()</code>, or use the model
+to do prediction with <code>model.predict()</code>.</p>
+<p><em>summary</em></p>
+<h2 id="args_1">Args</h2>
+<dl>
+<dt><strong><code>input_shape</code></strong> :&ensp;<code>_type_</code></dt>
+<dd><em>description</em></dd>
+<dt><strong><code>j</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd><em>description</em>. Defaults to [4,6,8].</dd>
+<dt><strong><code>q</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd><em>description</em>. Defaults to [8,2,1].</dd>
+<dt><strong><code>k</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd><em>description</em>. Defaults to 7.</dd>
+<dt><strong><code>pooling_type</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd><em>description</em>. Defaults to 'avg'.</dd>
+<dt><strong><code>decimation</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd><em>description</em>. Defaults to 2.</dd>
+<dt><strong><code>pooling_size</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd><em>description</em>. Defaults to 1024.</dd>
+<dt><strong><code>eps</code></strong> :&ensp;<code>_type_</code>, optional</dt>
+<dd><em>description</em>. Defaults to 1e-3.</dd>
+<dt><strong><code>n_pca</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd><em>description</em>. Defaults to 5.</dd>
+<dt><strong><code>eps_log</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd><em>description</em>. Defaults to 0.001.</dd>
+<dt><strong><code>n_clusters</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd><em>description</em>. Defaults to 10.</dd>
+<dt><strong><code>moving_pca</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd><em>description</em>. Defaults to 0.9.</dd>
+<dt><strong><code>clustering_method</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd><em>description</em>. Defaults to 'GMM'.</dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd><em>description</em>. Defaults to 'scatnet'.</dd>
+<dt><strong><code>loss_weights</code></strong> :&ensp;<code>tuple</code>, optional</dt>
+<dd><em>description</em>. Defaults to (1.0, 1.0).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ScatNet(tf.keras.Model):
+    def __init__(self,
+                 input_shape,
+                 j=[4,6,8],
+                 q=[8,2,1],
+                 k=7,
+                 pooling_type=&#39;avg&#39;,
+                 decimation=2,
+                 pooling_size=1024,
+                 eps=1e-3,
+                 n_pca=5,
+                 eps_log=0.001,
+                 n_clusters=10,
+                 moving_pca=0.9,
+                 clustering_method=&#39;GMM&#39;,
+                 name=&#39;scatnet&#39;,
+                 loss_weights=(1.0, 1.0),
+                 **filters_kw
+                 ):
+        &#34;&#34;&#34;_summary_
+
+        Args:
+            input_shape (_type_): _description_
+            j (list, optional): _description_. Defaults to [4,6,8].
+            q (list, optional): _description_. Defaults to [8,2,1].
+            k (int, optional): _description_. Defaults to 7.
+            pooling_type (str, optional): _description_. Defaults to &#39;avg&#39;.
+            decimation (int, optional): _description_. Defaults to 2.
+            pooling_size (int, optional): _description_. Defaults to 1024.
+            eps (_type_, optional): _description_. Defaults to 1e-3.
+            n_pca (int, optional): _description_. Defaults to 5.
+            eps_log (float, optional): _description_. Defaults to 0.001.
+            n_clusters (int, optional): _description_. Defaults to 10.
+            moving_pca (float, optional): _description_. Defaults to 0.9.
+            clustering_method (str, optional): _description_. Defaults to &#39;GMM&#39;.
+            name (str, optional): _description_. Defaults to &#39;scatnet&#39;.
+            loss_weights (tuple, optional): _description_. Defaults to (1.0, 1.0).
+        &#34;&#34;&#34;
+        super(ScatNet, self).__init__(name=name)
+
+        self.batch_size = input_shape[0]
+        self.n_pca = n_pca
+        self.eps_log = eps_log
+        self.moving_pca = moving_pca
+        self.n_clusters = n_clusters
+        self.eps = eps
+        self.loss_weights = loss_weights
+        self.clustering_method = clustering_method
+
+        depth = len(j)
+        self.ls = [Scattering(batch_size=self.batch_size,
+                             index=0,
+                             j=j,
+                             q=q,
+                             k=k,
+                             decimation=decimation,
+                             pooling=pooling_size,
+                             pooling_type=pooling_type,
+                             **filters_kw)]
+
+        for i in range(1,depth):
+            layer = Scattering(batch_size=self.batch_size,
+                               index=i,
+                             j=j,
+                             q=q,
+                             k=k,
+                             decimation=decimation,
+                             pooling=pooling_size,
+                             pooling_type=pooling_type,
+                             **filters_kw)
+
+            self.ls.append(layer)
+
+        if pooling_type == &#39;max&#39;:
+            self.global_pool = tf.keras.layers.GlobalMaxPooling1D()
+        else:
+            self.global_pool = tf.keras.layers.GlobalAveragePooling1D()
+
+        self.total_loss_tracker = tf.keras.metrics.Mean(name=&#34;total_loss&#34;)
+        self.reconstruction_loss_tracker = tf.keras.metrics.Mean(name=&#34;reconstruction_loss&#34;)
+        self.cluster_loss_tracker = tf.keras.metrics.Mean(name=&#34;cluster_loss&#34;)
+
+    @property
+    def metrics(self):
+        return [
+            self.total_loss_tracker,
+            self.reconstruction_loss_tracker,
+            self.cluster_loss_tracker,
+        ]
+
+    def forward(self, x, training=False):
+        def renorm(child, parent, epsilon=1e-3):
+            # Extract all shapes.
+            batch_size, *_, samples = child.shape
+            if epsilon &gt; 0:
+                s = tf.experimental.numpy.swapaxes(child,1,2) / (tf.expand_dims(parent, -2) + epsilon)
+                batch_size, *_, samples = s.shape
+                return tf.reshape(s, [batch_size, -1, samples])
+            else:
+                return tf.reshape(child, [batch_size, -1, samples])
+
+        x = tf.experimental.numpy.swapaxes(x, 1, 2)
+        us, ss = [], []
+        for layer in self.ls:
+            u, s = layer(x)
+            x = u
+            us.append(u)
+            ss.append(s)
+
+        r = []
+        for i in range(1, len(ss)):
+            r.append(renorm(ss[i], ss[i-1], self.eps))
+
+        sx = tf.concat(r, axis=1)
+
+        sx = tf.math.log(sx + self.eps_log)
+        sx = self.global_pool(sx)
+
+        #sx = tf.reshape(sx, (self.batch_size, -1))
+        #sx -= tf.math.reduce_mean(sx, axis=0, keepdims=True)
+
+        return sx
+
+    def predict_step(self, data):
+        if type(data) == tuple:
+            data, _ = data
+        x = data
+        proj = self.forward(x, training=False)
+        if self.clustering_method == &#39;GMM&#39;:
+            sample, prob, mean, logvar = self.clustering(tf.ones((proj.shape[0],1)))
+        else:
+            dist, assignment = self.clustering(proj)
+            prob = tf.nn.softmax(-dist)
+
+        return proj, prob
+
+    def train_step(self, data):
+        if type(data) == tuple:
+            data, _ = data
+
+        x = data
+
+        with tf.GradientTape() as tape:
+
+            proj = self.forward(x, training=True)
+            scat_layers_loss = self.loss_weights[0] * tf.reduce_sum([sum(layer.losses) for layer in self.ls])
+
+            if not hasattr(self, &#39;clustering&#39;):
+                if self.clustering_method == &#39;GMM&#39;:
+                    self.clustering = GMM(proj.shape[1], self.n_clusters)
+                else:
+                    self.clustering = KMeans(proj.shape[1], self.n_clusters)
+
+            if self.clustering_method == &#39;GMM&#39;:
+                sample, prob, mean, logvar = self.clustering(tf.ones((proj.shape[0],1)))
+                log_likelihood = self.clustering.log_likelihood(proj, prob, mean, logvar) #Should it be proj or sample?
+            else:
+                dist, _ = self.clustering(proj)
+                log_likelihood = tf.reduce_mean(dist)
+
+            cluster_loss = self.loss_weights[1] * log_likelihood
+            total_loss = scat_layers_loss + cluster_loss
+
+        w = []
+        for layer in self.ls:
+            w += layer.variables
+        w += self.clustering.variables
+
+        grads = tape.gradient(total_loss, w)
+        self.optimizer.apply_gradients(zip(grads, w))
+        self.total_loss_tracker.update_state(total_loss)
+        self.cluster_loss_tracker.update_state(cluster_loss)
+        self.reconstruction_loss_tracker.update_state(scat_layers_loss)
+
+        return {
+            &#34;loss&#34;: self.total_loss_tracker.result(),
+            &#34;reconstruction_loss&#34;: self.reconstruction_loss_tracker.result(),
+            &#34;cluster_loss&#34;: self.cluster_loss_tracker.result(),
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>keras.engine.training.Model</li>
+<li>keras.engine.base_layer.Layer</li>
+<li>tensorflow.python.module.module.Module</li>
+<li>tensorflow.python.training.tracking.tracking.AutoTrackable</li>
+<li>tensorflow.python.training.tracking.base.Trackable</li>
+<li>keras.utils.version_utils.LayerVersionSelector</li>
+<li>keras.utils.version_utils.ModelVersionSelector</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="nais.Models.scatnet.ScatNet.metrics"><code class="name">var <span class="ident">metrics</span></code></dt>
+<dd>
+<div class="desc"><p>Returns the model's metrics added using <code>compile</code>, <code>add_metric</code> APIs.</p>
+<p>Note: Metrics passed to <code>compile()</code> are available only after a <code>keras.Model</code>
+has been trained/evaluated on actual data.</p>
+<p>Examples:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; inputs = tf.keras.layers.Input(shape=(3,))
+&gt;&gt;&gt; outputs = tf.keras.layers.Dense(2)(inputs)
+&gt;&gt;&gt; model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
+&gt;&gt;&gt; model.compile(optimizer=&quot;Adam&quot;, loss=&quot;mse&quot;, metrics=[&quot;mae&quot;])
+&gt;&gt;&gt; [m.name for m in model.metrics]
+[]
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; x = np.random.random((2, 3))
+&gt;&gt;&gt; y = np.random.randint(0, 2, (2, 2))
+&gt;&gt;&gt; model.fit(x, y)
+&gt;&gt;&gt; [m.name for m in model.metrics]
+['loss', 'mae']
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; inputs = tf.keras.layers.Input(shape=(3,))
+&gt;&gt;&gt; d = tf.keras.layers.Dense(2, name='out')
+&gt;&gt;&gt; output_1 = d(inputs)
+&gt;&gt;&gt; output_2 = d(inputs)
+&gt;&gt;&gt; model = tf.keras.models.Model(
+...    inputs=inputs, outputs=[output_1, output_2])
+&gt;&gt;&gt; model.add_metric(
+...    tf.reduce_sum(output_2), name='mean', aggregation='mean')
+&gt;&gt;&gt; model.compile(optimizer=&quot;Adam&quot;, loss=&quot;mse&quot;, metrics=[&quot;mae&quot;, &quot;acc&quot;])
+&gt;&gt;&gt; model.fit(x, (y, y))
+&gt;&gt;&gt; [m.name for m in model.metrics]
+['loss', 'out_loss', 'out_1_loss', 'out_mae', 'out_acc', 'out_1_mae',
+'out_1_acc', 'mean']
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def metrics(self):
+    return [
+        self.total_loss_tracker,
+        self.reconstruction_loss_tracker,
+        self.cluster_loss_tracker,
+    ]</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="nais.Models.scatnet.ScatNet.forward"><code class="name flex">
+<span>def <span class="ident">forward</span></span>(<span>self, x, training=False)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def forward(self, x, training=False):
+    def renorm(child, parent, epsilon=1e-3):
+        # Extract all shapes.
+        batch_size, *_, samples = child.shape
+        if epsilon &gt; 0:
+            s = tf.experimental.numpy.swapaxes(child,1,2) / (tf.expand_dims(parent, -2) + epsilon)
+            batch_size, *_, samples = s.shape
+            return tf.reshape(s, [batch_size, -1, samples])
+        else:
+            return tf.reshape(child, [batch_size, -1, samples])
+
+    x = tf.experimental.numpy.swapaxes(x, 1, 2)
+    us, ss = [], []
+    for layer in self.ls:
+        u, s = layer(x)
+        x = u
+        us.append(u)
+        ss.append(s)
+
+    r = []
+    for i in range(1, len(ss)):
+        r.append(renorm(ss[i], ss[i-1], self.eps))
+
+    sx = tf.concat(r, axis=1)
+
+    sx = tf.math.log(sx + self.eps_log)
+    sx = self.global_pool(sx)
+
+    #sx = tf.reshape(sx, (self.batch_size, -1))
+    #sx -= tf.math.reduce_mean(sx, axis=0, keepdims=True)
+
+    return sx</code></pre>
+</details>
+</dd>
+<dt id="nais.Models.scatnet.ScatNet.predict_step"><code class="name flex">
+<span>def <span class="ident">predict_step</span></span>(<span>self, data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The logic for one inference step.</p>
+<p>This method can be overridden to support custom inference logic.
+This method is called by <code>Model.make_predict_function</code>.</p>
+<p>This method should contain the mathematical logic for one step of inference.
+This typically includes the forward pass.</p>
+<p>Configuration details for <em>how</em> this logic is run (e.g. <code>tf.function</code> and
+<code>tf.distribute.Strategy</code> settings), should be left to
+<code>Model.make_predict_function</code>, which can also be overridden.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong></dt>
+<dd>A nested structure of <code>Tensor</code>s.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>The result of one inference step, typically the output of calling the
+<code>Model</code> on data.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def predict_step(self, data):
+    if type(data) == tuple:
+        data, _ = data
+    x = data
+    proj = self.forward(x, training=False)
+    if self.clustering_method == &#39;GMM&#39;:
+        sample, prob, mean, logvar = self.clustering(tf.ones((proj.shape[0],1)))
+    else:
+        dist, assignment = self.clustering(proj)
+        prob = tf.nn.softmax(-dist)
+
+    return proj, prob</code></pre>
+</details>
+</dd>
+<dt id="nais.Models.scatnet.ScatNet.train_step"><code class="name flex">
+<span>def <span class="ident">train_step</span></span>(<span>self, data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The logic for one training step.</p>
+<p>This method can be overridden to support custom training logic.
+For concrete examples of how to override this method see
+<a href="https://www.tensorflow.org/guide/keras/customizing_what_happens_in_fit">Customizing what happends in fit</a>.
+This method is called by <code>Model.make_train_function</code>.</p>
+<p>This method should contain the mathematical logic for one step of training.
+This typically includes the forward pass, loss calculation, backpropagation,
+and metric updates.</p>
+<p>Configuration details for <em>how</em> this logic is run (e.g. <code>tf.function</code> and
+<code>tf.distribute.Strategy</code> settings), should be left to
+<code>Model.make_train_function</code>, which can also be overridden.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong></dt>
+<dd>A nested structure of <code>Tensor</code>s.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A <code>dict</code> containing values that will be passed to
+<code>tf.keras.callbacks.CallbackList.on_train_batch_end</code>. Typically, the
+values of the <code>Model</code>'s metrics are returned. Example:
+<code>{'loss': 0.2, 'accuracy': 0.7}</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def train_step(self, data):
+    if type(data) == tuple:
+        data, _ = data
+
+    x = data
+
+    with tf.GradientTape() as tape:
+
+        proj = self.forward(x, training=True)
+        scat_layers_loss = self.loss_weights[0] * tf.reduce_sum([sum(layer.losses) for layer in self.ls])
+
+        if not hasattr(self, &#39;clustering&#39;):
+            if self.clustering_method == &#39;GMM&#39;:
+                self.clustering = GMM(proj.shape[1], self.n_clusters)
+            else:
+                self.clustering = KMeans(proj.shape[1], self.n_clusters)
+
+        if self.clustering_method == &#39;GMM&#39;:
+            sample, prob, mean, logvar = self.clustering(tf.ones((proj.shape[0],1)))
+            log_likelihood = self.clustering.log_likelihood(proj, prob, mean, logvar) #Should it be proj or sample?
+        else:
+            dist, _ = self.clustering(proj)
+            log_likelihood = tf.reduce_mean(dist)
+
+        cluster_loss = self.loss_weights[1] * log_likelihood
+        total_loss = scat_layers_loss + cluster_loss
+
+    w = []
+    for layer in self.ls:
+        w += layer.variables
+    w += self.clustering.variables
+
+    grads = tape.gradient(total_loss, w)
+    self.optimizer.apply_gradients(zip(grads, w))
+    self.total_loss_tracker.update_state(total_loss)
+    self.cluster_loss_tracker.update_state(cluster_loss)
+    self.reconstruction_loss_tracker.update_state(scat_layers_loss)
+
+    return {
+        &#34;loss&#34;: self.total_loss_tracker.result(),
+        &#34;reconstruction_loss&#34;: self.reconstruction_loss_tracker.result(),
+        &#34;cluster_loss&#34;: self.cluster_loss_tracker.result(),
+    }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="nais.Models" href="index.html">nais.Models</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="nais.Models.scatnet.ScatNet" href="#nais.Models.scatnet.ScatNet">ScatNet</a></code></h4>
+<ul class="">
+<li><code><a title="nais.Models.scatnet.ScatNet.forward" href="#nais.Models.scatnet.ScatNet.forward">forward</a></code></li>
+<li><code><a title="nais.Models.scatnet.ScatNet.metrics" href="#nais.Models.scatnet.ScatNet.metrics">metrics</a></code></li>
+<li><code><a title="nais.Models.scatnet.ScatNet.predict_step" href="#nais.Models.scatnet.ScatNet.predict_step">predict_step</a></code></li>
+<li><code><a title="nais.Models.scatnet.ScatNet.train_step" href="#nais.Models.scatnet.ScatNet.train_step">train_step</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

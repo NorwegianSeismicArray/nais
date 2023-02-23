@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>nais.Mixture API documentation</title>
+<meta name="description" content="@author: Olivier Algoet
+@summary:
+Causality model defining two gaussian mixture models in tensorflow
+model gives probability of …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>nais.Mixture</code></h1>
+</header>
+<section id="section-intro">
+<p>@author: Olivier Algoet
+@summary:
+Causality model defining two gaussian mixture models in tensorflow
+model gives probability of state/observations/other given failure/normal operation
+&ndash;&gt; p(x|f) and p(x|n_o)
+@legend:
+k cluster amount
+N batch size
+D dimensions of state x | observation z</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># -*- coding: utf-8 -*-
+&#34;&#34;&#34;
+@author: Olivier Algoet
+@summary:
+    Causality model defining two gaussian mixture models in tensorflow
+    model gives probability of state/observations/other given failure/normal operation
+    --&gt; p(x|f) and p(x|n_o)
+@legend:
+    k cluster amount
+    N batch size
+    D dimensions of state x | observation z
+&#34;&#34;&#34;
+
+# Imports
+import numpy as np
+import tensorflow as tf
+
+# Numerical stability
+EPS = 1e-12
+
+
+class GMM(tf.keras.Model):
+    def __init__(self, o_shape, K=10, gumbel_tau=0.001, name=&#34;GMM&#34;):
+        &#34;&#34;&#34;
+        Parameters
+        ----------
+        o_shape : Integer
+            Output shape
+        K : Integer, optional
+            Number of Gaussian mixture model clusters The default is 10.
+        gumbel_tau : float, optional
+            Gumbel temperature The default is 0.001.
+            More information: https://arxiv.org/pdf/1611.01144.pdf
+        name : Model name, optional
+        &#34;&#34;&#34;
+        super(GMM, self).__init__(name=name)
+        # Initialalize all the variables
+        w_init = tf.keras.initializers.RandomNormal(mean=0., stddev=1.)
+        self.mean_f = tf.Variable(
+            initial_value=w_init(shape=(K, o_shape), dtype=&#34;float32&#34;),
+            name=&#39;mean_f&#39;,
+            trainable=True)
+        self.logvar_f = tf.Variable(
+            initial_value=w_init(shape=(K, o_shape), dtype=&#34;float32&#34;),
+            name=&#39;logvar_f&#39;,
+            trainable=True)
+        self.prob_f = tf.Variable(
+            initial_value=w_init(shape=(K,), dtype=&#34;float32&#34;),
+            name=&#39;prob_f&#39;,
+            trainable=True)
+        self.mean_p = tf.Variable(
+            initial_value=w_init(shape=(K, o_shape), dtype=&#34;float32&#34;),
+            name=&#39;mean_p&#39;,
+            trainable=True)
+        self.logvar_p = tf.Variable(
+            initial_value=w_init(shape=(K, o_shape), dtype=&#34;float32&#34;),
+            name=&#39;logvar_p&#39;,
+            trainable=True)
+        self.prob_p = tf.Variable(
+            initial_value=w_init(shape=(K,), dtype=&#34;float32&#34;),
+            name=&#39;prob_p&#39;,
+            trainable=True)
+        self.K = K
+        self.o_shape = o_shape
+        self.tau = gumbel_tau
+
+    def initialize_gmm(self, mean_f, logvar_f, logprob_f, mean_p, logvar_p, logprob_p):
+        &#34;&#34;&#34;
+        Initializes the model variables
+        E.g. Can firstly use EM Algorithm to avoid local minima
+        Parameters
+        ----------
+        mean_f : float array (KxD)
+            means to initialize the GMM for the failure model
+        logvar_f : float array (KxD)
+            logvar to initialize the GMM for the failure model
+        logprob_f : float array (K)
+            logprob to initialize the GMM for the failure model
+        mean_p : float array (KxD)
+            means to initialize the GMM for the normal model
+        logvar_p : float array (KxD)
+            logvar to initialize the GMM for the normal model
+        prob_p : float array (K)
+            logvar to initialize the GMM for the normal model
+        &#34;&#34;&#34;
+        self.mean_f.assign(mean_f)
+        self.logvar_f.assign(logvar_f)
+        self.prob_f.assign(logprob_f)
+        self.mean_p.assign(mean_p)
+        self.logvar_p.assign(logvar_p)
+        self.prob_p.assign(logprob_p)
+
+    def log_likelihood(self, y, prob, mean, logvar):
+        &#34;&#34;&#34;
+        Calculates the log likelihood
+        Parameters
+        ----------
+        y : float array (NxD)
+            Data batch from the data_set
+        prob : float array (NxK)
+            probability of the GMM
+        mean : float array (KxNxD)
+            mean of the GMM
+        logvar : float array (KxNxD)
+            logvar of the GMM
+        &#34;&#34;&#34;
+        ln2piD = tf.constant(np.log(2 * np.pi) * self.o_shape, dtype=tf.float32)
+        sq_distances = tf.math.squared_difference(tf.cast(tf.expand_dims(y, 1), dtype=tf.float32), mean)
+        sum_sq_dist_times_inv_var = tf.reduce_sum(sq_distances / (logvar + EPS), 2)
+        log_coefficients = ln2piD + tf.reduce_sum(tf.math.log(logvar + EPS), 2)
+        log_components = -0.5 * (log_coefficients + sum_sq_dist_times_inv_var)
+        log_weighted = log_components + tf.math.log(prob)
+        exp_log_shifted_sum = tf.reduce_sum(tf.exp(log_weighted), axis=1)
+        log_likelihood = tf.reduce_sum(tf.math.log(exp_log_shifted_sum + EPS))
+        mean_log_likelihood = log_likelihood / tf.cast(tf.shape(y)[0] * tf.shape(y)[1], tf.float32)
+        return -mean_log_likelihood
+
+    def gumbel_sample(self, prob, mean, logvar):
+        &#34;&#34;&#34;
+        Uses gumbel sampling:
+            goal = allowing gradient to flow whilst sampling
+                   similar to reparametrization trick for gaussians
+            see https://arxiv.org/pdf/1611.01144.pdf
+        Parameters
+        ----------
+        prob : float array (NxK)
+            probability of GMM (weights)
+        mean : float array (KxNxD)
+            mean of GMM
+        logvar : float array (KxNxD)
+            logvar of GMM
+        Returns
+        -------
+        sample : float array
+            returns samples equal to the batch size (NxD)
+        &#34;&#34;&#34;
+
+        epsilon = tf.random.uniform(shape=prob.shape, minval=0, maxval=1)
+        g = tf.math.log(-tf.math.log(epsilon + EPS) + EPS)
+        gumbel_logits = (tf.math.log(prob + EPS) + g) / self.tau
+        one_hot = tf.nn.softmax(gumbel_logits)
+        gaussian_samples = mean + tf.random.normal(shape=mean.shape) * logvar
+        sample = tf.einsum(&#34;ij,ijk-&gt;ik&#34;, one_hot, gaussian_samples)
+        return sample
+
+    def call(self, inputs):
+        &#34;&#34;&#34;
+        Computes Samples and returns the GMM parameters
+        using tf.where the decision between failure and normal GMM parameters is made
+        Parameters
+        ----------
+        inputs : float array (Nx1)
+            labels for failure or normal operation
+        Returns
+        -------
+        sample: float array (NxD)
+
+        prob : float array (NxK)
+
+        final_mean : float array (KxNxD)
+
+        final_logvar : float array (KxNxD)
+
+        &#34;&#34;&#34;
+        batch = inputs.shape[0]
+        mean_inputs = tf.ones([batch, self.K, self.o_shape]) * tf.expand_dims(inputs, axis=-1)
+        prob = tf.where(inputs == 1, self.prob_f, self.prob_p)
+        mean = tf.where(mean_inputs == 1, self.mean_f, self.mean_p)
+        logvar = tf.exp(tf.where(mean_inputs == 1, self.logvar_f, self.logvar_p))
+        prob = tf.nn.softmax(prob)
+        return self.gumbel_sample(prob, mean, logvar), prob, mean, logvar</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="nais.Mixture.GMM"><code class="flex name class">
+<span>class <span class="ident">GMM</span></span>
+<span>(</span><span>o_shape, K=10, gumbel_tau=0.001, name='GMM')</span>
+</code></dt>
+<dd>
+<div class="desc"><p><code>Model</code> groups layers into an object with training and inference features.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>inputs</code></strong></dt>
+<dd>The input(s) of the model: a <code>keras.Input</code> object or list of
+<code>keras.Input</code> objects.</dd>
+<dt><strong><code>outputs</code></strong></dt>
+<dd>The output(s) of the model. See Functional API example below.</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>String, the name of the model.</dd>
+</dl>
+<p>There are two ways to instantiate a <code>Model</code>:</p>
+<p>1 - With the "Functional API", where you start from <code>Input</code>,
+you chain layer calls to specify the model's forward pass,
+and finally you create your model from inputs and outputs:</p>
+<pre><code class="language-python">import tensorflow as tf
+
+inputs = tf.keras.Input(shape=(3,))
+x = tf.keras.layers.Dense(4, activation=tf.nn.relu)(inputs)
+outputs = tf.keras.layers.Dense(5, activation=tf.nn.softmax)(x)
+model = tf.keras.Model(inputs=inputs, outputs=outputs)
+</code></pre>
+<p>Note: Only dicts, lists, and tuples of input tensors are supported. Nested
+inputs are not supported (e.g. lists of list or dicts of dict).</p>
+<p>2 - By subclassing the <code>Model</code> class: in that case, you should define your
+layers in <code>__init__</code> and you should implement the model's forward pass
+in <code>call</code>.</p>
+<pre><code class="language-python">import tensorflow as tf
+
+class MyModel(tf.keras.Model):
+
+  def __init__(self):
+    super(MyModel, self).__init__()
+    self.dense1 = tf.keras.layers.Dense(4, activation=tf.nn.relu)
+    self.dense2 = tf.keras.layers.Dense(5, activation=tf.nn.softmax)
+
+  def call(self, inputs):
+    x = self.dense1(inputs)
+    return self.dense2(x)
+
+model = MyModel()
+</code></pre>
+<p>If you subclass <code>Model</code>, you can optionally have
+a <code>training</code> argument (boolean) in <code>call</code>, which you can use to specify
+a different behavior in training and inference:</p>
+<pre><code class="language-python">import tensorflow as tf
+
+class MyModel(tf.keras.Model):
+
+  def __init__(self):
+    super(MyModel, self).__init__()
+    self.dense1 = tf.keras.layers.Dense(4, activation=tf.nn.relu)
+    self.dense2 = tf.keras.layers.Dense(5, activation=tf.nn.softmax)
+    self.dropout = tf.keras.layers.Dropout(0.5)
+
+  def call(self, inputs, training=False):
+    x = self.dense1(inputs)
+    if training:
+      x = self.dropout(x, training=training)
+    return self.dense2(x)
+
+model = MyModel()
+</code></pre>
+<p>Once the model is created, you can config the model with losses and metrics
+with <code>model.compile()</code>, train the model with <code>model.fit()</code>, or use the model
+to do prediction with <code>model.predict()</code>.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>o_shape</code></strong> :&ensp;<code>Integer</code></dt>
+<dd>Output shape</dd>
+<dt><strong><code>K</code></strong> :&ensp;<code>Integer</code>, optional</dt>
+<dd>Number of Gaussian mixture model clusters The default is 10.</dd>
+<dt><strong><code>gumbel_tau</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>Gumbel temperature The default is 0.001.
+More information: <a href="https://arxiv.org/pdf/1611.01144.pdf">https://arxiv.org/pdf/1611.01144.pdf</a></dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>Model name</code>, optional</dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GMM(tf.keras.Model):
+    def __init__(self, o_shape, K=10, gumbel_tau=0.001, name=&#34;GMM&#34;):
+        &#34;&#34;&#34;
+        Parameters
+        ----------
+        o_shape : Integer
+            Output shape
+        K : Integer, optional
+            Number of Gaussian mixture model clusters The default is 10.
+        gumbel_tau : float, optional
+            Gumbel temperature The default is 0.001.
+            More information: https://arxiv.org/pdf/1611.01144.pdf
+        name : Model name, optional
+        &#34;&#34;&#34;
+        super(GMM, self).__init__(name=name)
+        # Initialalize all the variables
+        w_init = tf.keras.initializers.RandomNormal(mean=0., stddev=1.)
+        self.mean_f = tf.Variable(
+            initial_value=w_init(shape=(K, o_shape), dtype=&#34;float32&#34;),
+            name=&#39;mean_f&#39;,
+            trainable=True)
+        self.logvar_f = tf.Variable(
+            initial_value=w_init(shape=(K, o_shape), dtype=&#34;float32&#34;),
+            name=&#39;logvar_f&#39;,
+            trainable=True)
+        self.prob_f = tf.Variable(
+            initial_value=w_init(shape=(K,), dtype=&#34;float32&#34;),
+            name=&#39;prob_f&#39;,
+            trainable=True)
+        self.mean_p = tf.Variable(
+            initial_value=w_init(shape=(K, o_shape), dtype=&#34;float32&#34;),
+            name=&#39;mean_p&#39;,
+            trainable=True)
+        self.logvar_p = tf.Variable(
+            initial_value=w_init(shape=(K, o_shape), dtype=&#34;float32&#34;),
+            name=&#39;logvar_p&#39;,
+            trainable=True)
+        self.prob_p = tf.Variable(
+            initial_value=w_init(shape=(K,), dtype=&#34;float32&#34;),
+            name=&#39;prob_p&#39;,
+            trainable=True)
+        self.K = K
+        self.o_shape = o_shape
+        self.tau = gumbel_tau
+
+    def initialize_gmm(self, mean_f, logvar_f, logprob_f, mean_p, logvar_p, logprob_p):
+        &#34;&#34;&#34;
+        Initializes the model variables
+        E.g. Can firstly use EM Algorithm to avoid local minima
+        Parameters
+        ----------
+        mean_f : float array (KxD)
+            means to initialize the GMM for the failure model
+        logvar_f : float array (KxD)
+            logvar to initialize the GMM for the failure model
+        logprob_f : float array (K)
+            logprob to initialize the GMM for the failure model
+        mean_p : float array (KxD)
+            means to initialize the GMM for the normal model
+        logvar_p : float array (KxD)
+            logvar to initialize the GMM for the normal model
+        prob_p : float array (K)
+            logvar to initialize the GMM for the normal model
+        &#34;&#34;&#34;
+        self.mean_f.assign(mean_f)
+        self.logvar_f.assign(logvar_f)
+        self.prob_f.assign(logprob_f)
+        self.mean_p.assign(mean_p)
+        self.logvar_p.assign(logvar_p)
+        self.prob_p.assign(logprob_p)
+
+    def log_likelihood(self, y, prob, mean, logvar):
+        &#34;&#34;&#34;
+        Calculates the log likelihood
+        Parameters
+        ----------
+        y : float array (NxD)
+            Data batch from the data_set
+        prob : float array (NxK)
+            probability of the GMM
+        mean : float array (KxNxD)
+            mean of the GMM
+        logvar : float array (KxNxD)
+            logvar of the GMM
+        &#34;&#34;&#34;
+        ln2piD = tf.constant(np.log(2 * np.pi) * self.o_shape, dtype=tf.float32)
+        sq_distances = tf.math.squared_difference(tf.cast(tf.expand_dims(y, 1), dtype=tf.float32), mean)
+        sum_sq_dist_times_inv_var = tf.reduce_sum(sq_distances / (logvar + EPS), 2)
+        log_coefficients = ln2piD + tf.reduce_sum(tf.math.log(logvar + EPS), 2)
+        log_components = -0.5 * (log_coefficients + sum_sq_dist_times_inv_var)
+        log_weighted = log_components + tf.math.log(prob)
+        exp_log_shifted_sum = tf.reduce_sum(tf.exp(log_weighted), axis=1)
+        log_likelihood = tf.reduce_sum(tf.math.log(exp_log_shifted_sum + EPS))
+        mean_log_likelihood = log_likelihood / tf.cast(tf.shape(y)[0] * tf.shape(y)[1], tf.float32)
+        return -mean_log_likelihood
+
+    def gumbel_sample(self, prob, mean, logvar):
+        &#34;&#34;&#34;
+        Uses gumbel sampling:
+            goal = allowing gradient to flow whilst sampling
+                   similar to reparametrization trick for gaussians
+            see https://arxiv.org/pdf/1611.01144.pdf
+        Parameters
+        ----------
+        prob : float array (NxK)
+            probability of GMM (weights)
+        mean : float array (KxNxD)
+            mean of GMM
+        logvar : float array (KxNxD)
+            logvar of GMM
+        Returns
+        -------
+        sample : float array
+            returns samples equal to the batch size (NxD)
+        &#34;&#34;&#34;
+
+        epsilon = tf.random.uniform(shape=prob.shape, minval=0, maxval=1)
+        g = tf.math.log(-tf.math.log(epsilon + EPS) + EPS)
+        gumbel_logits = (tf.math.log(prob + EPS) + g) / self.tau
+        one_hot = tf.nn.softmax(gumbel_logits)
+        gaussian_samples = mean + tf.random.normal(shape=mean.shape) * logvar
+        sample = tf.einsum(&#34;ij,ijk-&gt;ik&#34;, one_hot, gaussian_samples)
+        return sample
+
+    def call(self, inputs):
+        &#34;&#34;&#34;
+        Computes Samples and returns the GMM parameters
+        using tf.where the decision between failure and normal GMM parameters is made
+        Parameters
+        ----------
+        inputs : float array (Nx1)
+            labels for failure or normal operation
+        Returns
+        -------
+        sample: float array (NxD)
+
+        prob : float array (NxK)
+
+        final_mean : float array (KxNxD)
+
+        final_logvar : float array (KxNxD)
+
+        &#34;&#34;&#34;
+        batch = inputs.shape[0]
+        mean_inputs = tf.ones([batch, self.K, self.o_shape]) * tf.expand_dims(inputs, axis=-1)
+        prob = tf.where(inputs == 1, self.prob_f, self.prob_p)
+        mean = tf.where(mean_inputs == 1, self.mean_f, self.mean_p)
+        logvar = tf.exp(tf.where(mean_inputs == 1, self.logvar_f, self.logvar_p))
+        prob = tf.nn.softmax(prob)
+        return self.gumbel_sample(prob, mean, logvar), prob, mean, logvar</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>keras.engine.training.Model</li>
+<li>keras.engine.base_layer.Layer</li>
+<li>tensorflow.python.module.module.Module</li>
+<li>tensorflow.python.training.tracking.tracking.AutoTrackable</li>
+<li>tensorflow.python.training.tracking.base.Trackable</li>
+<li>keras.utils.version_utils.LayerVersionSelector</li>
+<li>keras.utils.version_utils.ModelVersionSelector</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="nais.Mixture.GMM.call"><code class="name flex">
+<span>def <span class="ident">call</span></span>(<span>self, inputs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Computes Samples and returns the GMM parameters
+using tf.where the decision between failure and normal GMM parameters is made
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>inputs</code></strong> :&ensp;<code>float array (Nx1)</code></dt>
+<dd>labels for failure or normal operation</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>sample</code></strong> :&ensp;<code>float array (NxD)</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>prob</code></strong> :&ensp;<code>float array (NxK)</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>final_mean</code></strong> :&ensp;<code>float array (KxNxD)</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>final_logvar</code></strong> :&ensp;<code>float array (KxNxD)</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def call(self, inputs):
+    &#34;&#34;&#34;
+    Computes Samples and returns the GMM parameters
+    using tf.where the decision between failure and normal GMM parameters is made
+    Parameters
+    ----------
+    inputs : float array (Nx1)
+        labels for failure or normal operation
+    Returns
+    -------
+    sample: float array (NxD)
+
+    prob : float array (NxK)
+
+    final_mean : float array (KxNxD)
+
+    final_logvar : float array (KxNxD)
+
+    &#34;&#34;&#34;
+    batch = inputs.shape[0]
+    mean_inputs = tf.ones([batch, self.K, self.o_shape]) * tf.expand_dims(inputs, axis=-1)
+    prob = tf.where(inputs == 1, self.prob_f, self.prob_p)
+    mean = tf.where(mean_inputs == 1, self.mean_f, self.mean_p)
+    logvar = tf.exp(tf.where(mean_inputs == 1, self.logvar_f, self.logvar_p))
+    prob = tf.nn.softmax(prob)
+    return self.gumbel_sample(prob, mean, logvar), prob, mean, logvar</code></pre>
+</details>
+</dd>
+<dt id="nais.Mixture.GMM.gumbel_sample"><code class="name flex">
+<span>def <span class="ident">gumbel_sample</span></span>(<span>self, prob, mean, logvar)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Uses gumbel sampling:
+goal = allowing gradient to flow whilst sampling
+similar to reparametrization trick for gaussians
+see <a href="https://arxiv.org/pdf/1611.01144.pdf">https://arxiv.org/pdf/1611.01144.pdf</a>
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>prob</code></strong> :&ensp;<code>float array (NxK)</code></dt>
+<dd>probability of GMM (weights)</dd>
+<dt><strong><code>mean</code></strong> :&ensp;<code>float array (KxNxD)</code></dt>
+<dd>mean of GMM</dd>
+<dt><strong><code>logvar</code></strong> :&ensp;<code>float array (KxNxD)</code></dt>
+<dd>logvar of GMM</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>sample</code></strong> :&ensp;<code>float array</code></dt>
+<dd>returns samples equal to the batch size (NxD)</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gumbel_sample(self, prob, mean, logvar):
+    &#34;&#34;&#34;
+    Uses gumbel sampling:
+        goal = allowing gradient to flow whilst sampling
+               similar to reparametrization trick for gaussians
+        see https://arxiv.org/pdf/1611.01144.pdf
+    Parameters
+    ----------
+    prob : float array (NxK)
+        probability of GMM (weights)
+    mean : float array (KxNxD)
+        mean of GMM
+    logvar : float array (KxNxD)
+        logvar of GMM
+    Returns
+    -------
+    sample : float array
+        returns samples equal to the batch size (NxD)
+    &#34;&#34;&#34;
+
+    epsilon = tf.random.uniform(shape=prob.shape, minval=0, maxval=1)
+    g = tf.math.log(-tf.math.log(epsilon + EPS) + EPS)
+    gumbel_logits = (tf.math.log(prob + EPS) + g) / self.tau
+    one_hot = tf.nn.softmax(gumbel_logits)
+    gaussian_samples = mean + tf.random.normal(shape=mean.shape) * logvar
+    sample = tf.einsum(&#34;ij,ijk-&gt;ik&#34;, one_hot, gaussian_samples)
+    return sample</code></pre>
+</details>
+</dd>
+<dt id="nais.Mixture.GMM.initialize_gmm"><code class="name flex">
+<span>def <span class="ident">initialize_gmm</span></span>(<span>self, mean_f, logvar_f, logprob_f, mean_p, logvar_p, logprob_p)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initializes the model variables
+E.g. Can firstly use EM Algorithm to avoid local minima
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>mean_f</code></strong> :&ensp;<code>float array (KxD)</code></dt>
+<dd>means to initialize the GMM for the failure model</dd>
+<dt><strong><code>logvar_f</code></strong> :&ensp;<code>float array (KxD)</code></dt>
+<dd>logvar to initialize the GMM for the failure model</dd>
+<dt><strong><code>logprob_f</code></strong> :&ensp;<code>float array (K)</code></dt>
+<dd>logprob to initialize the GMM for the failure model</dd>
+<dt><strong><code>mean_p</code></strong> :&ensp;<code>float array (KxD)</code></dt>
+<dd>means to initialize the GMM for the normal model</dd>
+<dt><strong><code>logvar_p</code></strong> :&ensp;<code>float array (KxD)</code></dt>
+<dd>logvar to initialize the GMM for the normal model</dd>
+<dt><strong><code>prob_p</code></strong> :&ensp;<code>float array (K)</code></dt>
+<dd>logvar to initialize the GMM for the normal model</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def initialize_gmm(self, mean_f, logvar_f, logprob_f, mean_p, logvar_p, logprob_p):
+    &#34;&#34;&#34;
+    Initializes the model variables
+    E.g. Can firstly use EM Algorithm to avoid local minima
+    Parameters
+    ----------
+    mean_f : float array (KxD)
+        means to initialize the GMM for the failure model
+    logvar_f : float array (KxD)
+        logvar to initialize the GMM for the failure model
+    logprob_f : float array (K)
+        logprob to initialize the GMM for the failure model
+    mean_p : float array (KxD)
+        means to initialize the GMM for the normal model
+    logvar_p : float array (KxD)
+        logvar to initialize the GMM for the normal model
+    prob_p : float array (K)
+        logvar to initialize the GMM for the normal model
+    &#34;&#34;&#34;
+    self.mean_f.assign(mean_f)
+    self.logvar_f.assign(logvar_f)
+    self.prob_f.assign(logprob_f)
+    self.mean_p.assign(mean_p)
+    self.logvar_p.assign(logvar_p)
+    self.prob_p.assign(logprob_p)</code></pre>
+</details>
+</dd>
+<dt id="nais.Mixture.GMM.log_likelihood"><code class="name flex">
+<span>def <span class="ident">log_likelihood</span></span>(<span>self, y, prob, mean, logvar)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculates the log likelihood
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>y</code></strong> :&ensp;<code>float array (NxD)</code></dt>
+<dd>Data batch from the data_set</dd>
+<dt><strong><code>prob</code></strong> :&ensp;<code>float array (NxK)</code></dt>
+<dd>probability of the GMM</dd>
+<dt><strong><code>mean</code></strong> :&ensp;<code>float array (KxNxD)</code></dt>
+<dd>mean of the GMM</dd>
+<dt><strong><code>logvar</code></strong> :&ensp;<code>float array (KxNxD)</code></dt>
+<dd>logvar of the GMM</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def log_likelihood(self, y, prob, mean, logvar):
+    &#34;&#34;&#34;
+    Calculates the log likelihood
+    Parameters
+    ----------
+    y : float array (NxD)
+        Data batch from the data_set
+    prob : float array (NxK)
+        probability of the GMM
+    mean : float array (KxNxD)
+        mean of the GMM
+    logvar : float array (KxNxD)
+        logvar of the GMM
+    &#34;&#34;&#34;
+    ln2piD = tf.constant(np.log(2 * np.pi) * self.o_shape, dtype=tf.float32)
+    sq_distances = tf.math.squared_difference(tf.cast(tf.expand_dims(y, 1), dtype=tf.float32), mean)
+    sum_sq_dist_times_inv_var = tf.reduce_sum(sq_distances / (logvar + EPS), 2)
+    log_coefficients = ln2piD + tf.reduce_sum(tf.math.log(logvar + EPS), 2)
+    log_components = -0.5 * (log_coefficients + sum_sq_dist_times_inv_var)
+    log_weighted = log_components + tf.math.log(prob)
+    exp_log_shifted_sum = tf.reduce_sum(tf.exp(log_weighted), axis=1)
+    log_likelihood = tf.reduce_sum(tf.math.log(exp_log_shifted_sum + EPS))
+    mean_log_likelihood = log_likelihood / tf.cast(tf.shape(y)[0] * tf.shape(y)[1], tf.float32)
+    return -mean_log_likelihood</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="nais" href="index.html">nais</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="nais.Mixture.GMM" href="#nais.Mixture.GMM">GMM</a></code></h4>
+<ul class="">
+<li><code><a title="nais.Mixture.GMM.call" href="#nais.Mixture.GMM.call">call</a></code></li>
+<li><code><a title="nais.Mixture.GMM.gumbel_sample" href="#nais.Mixture.GMM.gumbel_sample">gumbel_sample</a></code></li>
+<li><code><a title="nais.Mixture.GMM.initialize_gmm" href="#nais.Mixture.GMM.initialize_gmm">initialize_gmm</a></code></li>
+<li><code><a title="nais.Mixture.GMM.log_likelihood" href="#nais.Mixture.GMM.log_likelihood">log_likelihood</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

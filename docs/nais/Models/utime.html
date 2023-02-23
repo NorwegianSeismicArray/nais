@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>nais.Models.utime API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>nais.Models.utime</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import tensorflow as tf 
+import tensorflow.keras.layers as tfl 
+from nais.Models import PhaseNet
+
+class UTime(tf.keras.Model):
+    def __init__(self,
+                 phasenet_filters=None,
+                 output_filters=None,
+                 output_activation=&#39;softmax&#39;,
+                 num_classes=2,
+                 pool_sizes=[4],
+                 pool_strides=[2],
+                 dropout_rate=0.2,
+                 pool_type=&#39;avg&#39;,
+                 name=&#39;UTime&#39;):
+        &#34;&#34;&#34;https://arxiv.org/abs/1910.11162
+
+        Args:
+            phasenet_filters (list, optional): list of number of filters used in PhaseNet. Defaults to None.
+            output_filters (list, optional): list of number of filters after PhaseNet. Defaults to None.
+            output_activation (str, optional): Activation function of last layer. Defaults to &#39;softmax&#39;.
+            num_classes (int, optional): number of output classes. Defaults to 2.
+            pool_sizes (list, optional): list of pooling sizes. Defaults to [4].
+            pool_strides (list, optional): list of pooling strides. Defaults to [2].
+            dropout_rate (float, optional): dropout. Defaults to 0.2.
+            pool_type (str, optional): type of pooling, &#39;max&#39; or &#39;avg&#39;. Defaults to &#39;avg&#39;.
+            name (str, optional): model name. Defaults to &#39;UTime&#39;.
+            
+        Raises:
+            NotImplementedError: pool_type not in &#39;max&#39;, &#39;avg. 
+        &#34;&#34;&#34;
+        super(UTime, self).__init__(name=name)
+        self.phasenet = PhaseNet(filters=phasenet_filters, num_classes=None)
+        if output_filters is None:
+            self.filters = [4]
+        else:
+            self.filters = output_filters
+
+        self.pool_sizes = pool_sizes
+        self.pool_strides = pool_strides
+        self.pool_type = pool_type
+        self.output_activation = output_activation
+        self.num_classes = num_classes
+        self.dropout_rate = dropout_rate
+
+    def build(self, input_shape):
+        self.phasenet.build(input_shape)
+        inputs = tf.keras.Input(shape=input_shape[1:])
+        x = self.phasenet(inputs)
+        for i, psize, pstride in enumerate(zip(self.pool_sizes, self.pool_strides)):
+            if self.pool_type == &#39;avg&#39;:
+                x = tfl.AveragePooling1D(psize, strides=pstride, padding=&#39;same&#39;)(x)
+            elif self.pool_type == &#39;max&#39;:
+                x = tfl.MaxPooling1D(psize, strides=pstride, padding=&#39;same&#39;)(x)
+            else:
+                raise NotImplementedError(f&#39;pool_type={self.pool_type} is not supported.&#39;)
+            if i &lt; len(self.pool_size) - 1: #skip when on last pool layer.
+                x = tfl.Conv1D(self.filters[i], activation=None, padding=&#39;same&#39;)(x)
+                x = tfl.BatchNormalization()(x)
+                x = tfl.Activation(&#39;relu&#39;)(x)
+                x = tfl.Dropout(self.dropout_rate)(x)
+
+        outputs = tfl.Conv1D(self.num_classes, activation=self.output_activation, padding=&#39;same&#39;)(x)
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs)
+
+    def summary(self):
+        return self.model.summary()
+
+    def call(self, inputs):
+        return self.model(inputs)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="nais.Models.utime.UTime"><code class="flex name class">
+<span>class <span class="ident">UTime</span></span>
+<span>(</span><span>phasenet_filters=None, output_filters=None, output_activation='softmax', num_classes=2, pool_sizes=[4], pool_strides=[2], dropout_rate=0.2, pool_type='avg', name='UTime')</span>
+</code></dt>
+<dd>
+<div class="desc"><p><code>Model</code> groups layers into an object with training and inference features.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>inputs</code></strong></dt>
+<dd>The input(s) of the model: a <code>keras.Input</code> object or list of
+<code>keras.Input</code> objects.</dd>
+<dt><strong><code>outputs</code></strong></dt>
+<dd>The output(s) of the model. See Functional API example below.</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>String, the name of the model.</dd>
+</dl>
+<p>There are two ways to instantiate a <code>Model</code>:</p>
+<p>1 - With the "Functional API", where you start from <code>Input</code>,
+you chain layer calls to specify the model's forward pass,
+and finally you create your model from inputs and outputs:</p>
+<pre><code class="language-python">import tensorflow as tf
+
+inputs = tf.keras.Input(shape=(3,))
+x = tf.keras.layers.Dense(4, activation=tf.nn.relu)(inputs)
+outputs = tf.keras.layers.Dense(5, activation=tf.nn.softmax)(x)
+model = tf.keras.Model(inputs=inputs, outputs=outputs)
+</code></pre>
+<p>Note: Only dicts, lists, and tuples of input tensors are supported. Nested
+inputs are not supported (e.g. lists of list or dicts of dict).</p>
+<p>2 - By subclassing the <code>Model</code> class: in that case, you should define your
+layers in <code>__init__</code> and you should implement the model's forward pass
+in <code>call</code>.</p>
+<pre><code class="language-python">import tensorflow as tf
+
+class MyModel(tf.keras.Model):
+
+  def __init__(self):
+    super(MyModel, self).__init__()
+    self.dense1 = tf.keras.layers.Dense(4, activation=tf.nn.relu)
+    self.dense2 = tf.keras.layers.Dense(5, activation=tf.nn.softmax)
+
+  def call(self, inputs):
+    x = self.dense1(inputs)
+    return self.dense2(x)
+
+model = MyModel()
+</code></pre>
+<p>If you subclass <code>Model</code>, you can optionally have
+a <code>training</code> argument (boolean) in <code>call</code>, which you can use to specify
+a different behavior in training and inference:</p>
+<pre><code class="language-python">import tensorflow as tf
+
+class MyModel(tf.keras.Model):
+
+  def __init__(self):
+    super(MyModel, self).__init__()
+    self.dense1 = tf.keras.layers.Dense(4, activation=tf.nn.relu)
+    self.dense2 = tf.keras.layers.Dense(5, activation=tf.nn.softmax)
+    self.dropout = tf.keras.layers.Dropout(0.5)
+
+  def call(self, inputs, training=False):
+    x = self.dense1(inputs)
+    if training:
+      x = self.dropout(x, training=training)
+    return self.dense2(x)
+
+model = MyModel()
+</code></pre>
+<p>Once the model is created, you can config the model with losses and metrics
+with <code>model.compile()</code>, train the model with <code>model.fit()</code>, or use the model
+to do prediction with <code>model.predict()</code>.</p>
+<p><a href="https://arxiv.org/abs/1910.11162">https://arxiv.org/abs/1910.11162</a></p>
+<h2 id="args_1">Args</h2>
+<dl>
+<dt><strong><code>phasenet_filters</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>list of number of filters used in PhaseNet. Defaults to None.</dd>
+<dt><strong><code>output_filters</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>list of number of filters after PhaseNet. Defaults to None.</dd>
+<dt><strong><code>output_activation</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Activation function of last layer. Defaults to 'softmax'.</dd>
+<dt><strong><code>num_classes</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>number of output classes. Defaults to 2.</dd>
+<dt><strong><code>pool_sizes</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>list of pooling sizes. Defaults to [4].</dd>
+<dt><strong><code>pool_strides</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>list of pooling strides. Defaults to [2].</dd>
+<dt><strong><code>dropout_rate</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>dropout. Defaults to 0.2.</dd>
+<dt><strong><code>pool_type</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>type of pooling, 'max' or 'avg'. Defaults to 'avg'.</dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>model name. Defaults to 'UTime'.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>NotImplementedError</code></dt>
+<dd>pool_type not in 'max', 'avg.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UTime(tf.keras.Model):
+    def __init__(self,
+                 phasenet_filters=None,
+                 output_filters=None,
+                 output_activation=&#39;softmax&#39;,
+                 num_classes=2,
+                 pool_sizes=[4],
+                 pool_strides=[2],
+                 dropout_rate=0.2,
+                 pool_type=&#39;avg&#39;,
+                 name=&#39;UTime&#39;):
+        &#34;&#34;&#34;https://arxiv.org/abs/1910.11162
+
+        Args:
+            phasenet_filters (list, optional): list of number of filters used in PhaseNet. Defaults to None.
+            output_filters (list, optional): list of number of filters after PhaseNet. Defaults to None.
+            output_activation (str, optional): Activation function of last layer. Defaults to &#39;softmax&#39;.
+            num_classes (int, optional): number of output classes. Defaults to 2.
+            pool_sizes (list, optional): list of pooling sizes. Defaults to [4].
+            pool_strides (list, optional): list of pooling strides. Defaults to [2].
+            dropout_rate (float, optional): dropout. Defaults to 0.2.
+            pool_type (str, optional): type of pooling, &#39;max&#39; or &#39;avg&#39;. Defaults to &#39;avg&#39;.
+            name (str, optional): model name. Defaults to &#39;UTime&#39;.
+            
+        Raises:
+            NotImplementedError: pool_type not in &#39;max&#39;, &#39;avg. 
+        &#34;&#34;&#34;
+        super(UTime, self).__init__(name=name)
+        self.phasenet = PhaseNet(filters=phasenet_filters, num_classes=None)
+        if output_filters is None:
+            self.filters = [4]
+        else:
+            self.filters = output_filters
+
+        self.pool_sizes = pool_sizes
+        self.pool_strides = pool_strides
+        self.pool_type = pool_type
+        self.output_activation = output_activation
+        self.num_classes = num_classes
+        self.dropout_rate = dropout_rate
+
+    def build(self, input_shape):
+        self.phasenet.build(input_shape)
+        inputs = tf.keras.Input(shape=input_shape[1:])
+        x = self.phasenet(inputs)
+        for i, psize, pstride in enumerate(zip(self.pool_sizes, self.pool_strides)):
+            if self.pool_type == &#39;avg&#39;:
+                x = tfl.AveragePooling1D(psize, strides=pstride, padding=&#39;same&#39;)(x)
+            elif self.pool_type == &#39;max&#39;:
+                x = tfl.MaxPooling1D(psize, strides=pstride, padding=&#39;same&#39;)(x)
+            else:
+                raise NotImplementedError(f&#39;pool_type={self.pool_type} is not supported.&#39;)
+            if i &lt; len(self.pool_size) - 1: #skip when on last pool layer.
+                x = tfl.Conv1D(self.filters[i], activation=None, padding=&#39;same&#39;)(x)
+                x = tfl.BatchNormalization()(x)
+                x = tfl.Activation(&#39;relu&#39;)(x)
+                x = tfl.Dropout(self.dropout_rate)(x)
+
+        outputs = tfl.Conv1D(self.num_classes, activation=self.output_activation, padding=&#39;same&#39;)(x)
+        self.model = tf.keras.Model(inputs=inputs, outputs=outputs)
+
+    def summary(self):
+        return self.model.summary()
+
+    def call(self, inputs):
+        return self.model(inputs)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>keras.engine.training.Model</li>
+<li>keras.engine.base_layer.Layer</li>
+<li>tensorflow.python.module.module.Module</li>
+<li>tensorflow.python.training.tracking.tracking.AutoTrackable</li>
+<li>tensorflow.python.training.tracking.base.Trackable</li>
+<li>keras.utils.version_utils.LayerVersionSelector</li>
+<li>keras.utils.version_utils.ModelVersionSelector</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="nais.Models.utime.UTime.build"><code class="name flex">
+<span>def <span class="ident">build</span></span>(<span>self, input_shape)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds the model based on input shapes received.</p>
+<p>This is to be used for subclassed models, which do not know at instantiation
+time what their inputs look like.</p>
+<p>This method only exists for users who want to call <code>model.build()</code> in a
+standalone way (as a substitute for calling the model on real data to
+build it). It will never be called by the framework (and thus it will
+never throw unexpected errors in an unrelated workflow).</p>
+<p>Args:
+input_shape: Single tuple, TensorShape, or list/dict of shapes, where
+shapes are tuples, integers, or TensorShapes.</p>
+<h2 id="raises">Raises</h2>
+<p>ValueError:
+1. In case of invalid user-provided data (not of type tuple,
+list, TensorShape, or dict).
+2. If the model requires call arguments that are agnostic
+to the input shapes (positional or kwarg in call signature).
+3. If not all layers were properly built.
+4. If float type inputs are not supported within the layers.</p>
+<p>In each of these cases, the user should build their model by calling it
+on real tensor data.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build(self, input_shape):
+    self.phasenet.build(input_shape)
+    inputs = tf.keras.Input(shape=input_shape[1:])
+    x = self.phasenet(inputs)
+    for i, psize, pstride in enumerate(zip(self.pool_sizes, self.pool_strides)):
+        if self.pool_type == &#39;avg&#39;:
+            x = tfl.AveragePooling1D(psize, strides=pstride, padding=&#39;same&#39;)(x)
+        elif self.pool_type == &#39;max&#39;:
+            x = tfl.MaxPooling1D(psize, strides=pstride, padding=&#39;same&#39;)(x)
+        else:
+            raise NotImplementedError(f&#39;pool_type={self.pool_type} is not supported.&#39;)
+        if i &lt; len(self.pool_size) - 1: #skip when on last pool layer.
+            x = tfl.Conv1D(self.filters[i], activation=None, padding=&#39;same&#39;)(x)
+            x = tfl.BatchNormalization()(x)
+            x = tfl.Activation(&#39;relu&#39;)(x)
+            x = tfl.Dropout(self.dropout_rate)(x)
+
+    outputs = tfl.Conv1D(self.num_classes, activation=self.output_activation, padding=&#39;same&#39;)(x)
+    self.model = tf.keras.Model(inputs=inputs, outputs=outputs)</code></pre>
+</details>
+</dd>
+<dt id="nais.Models.utime.UTime.call"><code class="name flex">
+<span>def <span class="ident">call</span></span>(<span>self, inputs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calls the model on new inputs.</p>
+<p>In this case <code>call</code> just reapplies
+all ops in the graph to the new inputs
+(e.g. build a new computational graph from the provided inputs).</p>
+<p>Note: This method should not be called directly. It is only meant to be
+overridden when subclassing <code>tf.keras.Model</code>.
+To call a model on an input, always use the <code>__call__</code> method,
+i.e. <code>model(inputs)</code>, which relies on the underlying <code>call</code> method.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>inputs</code></strong></dt>
+<dd>Input tensor, or dict/list/tuple of input tensors.</dd>
+<dt><strong><code>training</code></strong></dt>
+<dd>Boolean or boolean scalar tensor, indicating whether to run
+the <code>Network</code> in training mode or inference mode.</dd>
+<dt><strong><code>mask</code></strong></dt>
+<dd>A mask or list of masks. A mask can be
+either a tensor or None (no mask).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A tensor if there is a single output, or
+a list of tensors if there are more than one outputs.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def call(self, inputs):
+    return self.model(inputs)</code></pre>
+</details>
+</dd>
+<dt id="nais.Models.utime.UTime.summary"><code class="name flex">
+<span>def <span class="ident">summary</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Prints a string summary of the network.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>line_length</code></strong></dt>
+<dd>Total length of printed lines
+(e.g. set this to adapt the display to different
+terminal window sizes).</dd>
+<dt><strong><code>positions</code></strong></dt>
+<dd>Relative or absolute positions of log elements
+in each line. If not provided,
+defaults to <code>[.33, .55, .67, 1.]</code>.</dd>
+<dt><strong><code>print_fn</code></strong></dt>
+<dd>Print function to use. Defaults to <code>print</code>.
+It will be called on each line of the summary.
+You can set it to a custom function
+in order to capture the string summary.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>if <code>summary()</code> is called before the model is built.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def summary(self):
+    return self.model.summary()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="nais.Models" href="index.html">nais.Models</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="nais.Models.utime.UTime" href="#nais.Models.utime.UTime">UTime</a></code></h4>
+<ul class="">
+<li><code><a title="nais.Models.utime.UTime.build" href="#nais.Models.utime.UTime.build">build</a></code></li>
+<li><code><a title="nais.Models.utime.UTime.call" href="#nais.Models.utime.UTime.call">call</a></code></li>
+<li><code><a title="nais.Models.utime.UTime.summary" href="#nais.Models.utime.UTime.summary">summary</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
