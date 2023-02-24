@@ -10,7 +10,7 @@ import tensorflow.keras.backend as K
 import numpy as np
 from nais.utils import crop_and_concat
 
-from nais.Layers import DynamicConv1D, TransformerBlock
+from nais.Layers import DynamicConv1D, TransformerBlock, ResnetBlock1D
 
 class TransPhaseNet(tf.keras.Model):
     def __init__(self,
@@ -85,45 +85,14 @@ class TransPhaseNet(tf.keras.Model):
 
         # Entry block
         
-        x = tfl.Conv1D(self.filters[0], self.kernelsizes[0],
-                       strides=1,
-                       kernel_regularizer=self.kernel_regularizer,
-                       padding="same",
-                       name='entry')(inputs)
-        x = tfl.BatchNormalization()(x)
-        x = tfl.Activation(self.activation)(x)
-        x = tfl.Dropout(self.dropout_rate)(x)
-
-        previous_block_activation = x  # Set aside residual
+        x = ResnetBlock1D(self.filters[0], self.kernelsizes[0], activation=self.activation, dropout=self.dropout_rate)(x)
 
         skips = [x]
         
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for i, filters in enumerate(self.filters):
-            x = tfl.Conv1D(filters, self.kernelsizes[i], padding="same",
-                           kernel_regularizer=self.kernel_regularizer,
-                           kernel_initializer=self.initializer,
-                           )(x)
-            x = tfl.BatchNormalization()(x)
-            x = tfl.Activation(self.activation)(x)
-            x = tfl.Dropout(self.dropout_rate)(x)
-
-            x = tfl.Conv1D(filters, self.kernelsizes[i], padding="same",
-                           kernel_regularizer=self.kernel_regularizer,
-                           kernel_initializer=self.initializer,
-                           )(x)
-            x = tfl.BatchNormalization()(x)
-
+            x = ResnetBlock1D(filters, self.kernelsizes[i], activation=self.activation, dropout=self.dropout_rate)(x)
             x = self.pool_layer(4, strides=2, padding="same")(x)
-
-            # Project residual
-            residual = tfl.Conv1D(filters, 1, strides=2, padding="same", kernel_initializer=self.initializer,
-                                  )(
-                previous_block_activation
-            )
-            x = tfl.concatenate([x, residual])  # Add back residual
-            x = tfl.Activation('relu')
-            previous_block_activation = x  # Set aside next residual
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
@@ -136,28 +105,8 @@ class TransPhaseNet(tf.keras.Model):
         c, f = range(len(self.residual_attention)-2, -1, -1), self.filters[::-1]
         
         for i, filters in zip(c, f):
-            x = tfl.Activation(self.activation)(x)
-            x = tfl.Conv1DTranspose(filters, self.kernelsizes[::-1][i], padding="same",
-                                    kernel_regularizer=self.kernel_regularizer,
-                                    kernel_initializer=self.initializer,
-                                    )(x)
-            x = tfl.BatchNormalization()(x)
-            x = tfl.Activation(self.activation)(x)
-            x = tfl.Dropout(self.dropout_rate)(x)
-
-            x = tfl.Conv1DTranspose(filters, self.kernelsizes[::-1][i], padding="same",
-                                    kernel_regularizer=self.kernel_regularizer,
-                                    kernel_initializer=self.initializer,
-                                    )(x)
-            x = tfl.BatchNormalization()(x)
+            x = ResnetBlock1D(filters, self.kernelsizes[::-1][i], activation=self.activation, dropout=self.dropout_rate)(x)
             x = tfl.UpSampling1D(2)(x)
-
-            # Project residual
-            residual = tfl.UpSampling1D(2)(previous_block_activation)
-            residual = tfl.Conv1D(filters, 1, padding="same",
-                                  kernel_regularizer=self.kernel_regularizer,
-                                  kernel_initializer=self.initializer,
-                                  )(residual)
             
             if self.residual_attention[i] > 0:
                 att, _ = block_transformer(self.residual_attention[i], None, x, skips[i])
