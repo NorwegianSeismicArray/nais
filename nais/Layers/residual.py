@@ -134,7 +134,7 @@ class ResnetBlock1D(tfl.Layer):
         fx = self.relu(fx)
         fx = self.dropout1(fx)
         fx = self.conv2(fx)
-        x = self.add([inputs, fx])
+        x = self.add([x, fx])
         x = self.bn2(x)
         x = self.relu(x)
         return x
@@ -185,7 +185,7 @@ class ResStageBlock1D(tfl.Layer):
         fx = self.relu(fx)
         fx = self.dropout1(fx)
         fx = self.conv2(fx)
-        x = self.add([inputs, fx])
+        x = self.add([x, fx])
         x = self.bn4(x)
         x = self.relu(x)
         return x
