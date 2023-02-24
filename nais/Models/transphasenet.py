@@ -24,6 +24,7 @@ class TransPhaseNet(tf.keras.Model):
                  initializer='glorot_normal',
                  residual_attention=None,
                  pool_type='max',
+                 activation='relu',
                  name='TransPhaseNet'):
         """Adapted to 1D from https://keras.io/examples/vision/oxford_pets_image_segmentation/
 
@@ -47,6 +48,7 @@ class TransPhaseNet(tf.keras.Model):
         self.output_activation = output_activation
         self.residual_attention = residual_attention
         self.att_type = att_type
+        self.activation = activation
 
         if filters is None:
             self.filters = [4, 8, 16, 32]
@@ -89,7 +91,7 @@ class TransPhaseNet(tf.keras.Model):
                        padding="same",
                        name='entry')(inputs)
         x = tfl.BatchNormalization()(x)
-        x = tfl.Activation("relu")(x)
+        x = tfl.Activation(self.activation)(x)
         x = tfl.Dropout(self.dropout_rate)(x)
 
         previous_block_activation = x  # Set aside residual
@@ -98,13 +100,12 @@ class TransPhaseNet(tf.keras.Model):
         
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for i, filters in enumerate(self.filters):
-            x = tfl.Activation("relu")(x)
             x = tfl.Conv1D(filters, self.kernelsizes[i], padding="same",
                            kernel_regularizer=self.kernel_regularizer,
                            kernel_initializer=self.initializer,
                            )(x)
             x = tfl.BatchNormalization()(x)
-            x = tfl.Activation("relu")(x)
+            x = tfl.Activation(self.activation)(x)
             x = tfl.Dropout(self.dropout_rate)(x)
 
             x = tfl.Conv1D(filters, self.kernelsizes[i], padding="same",
@@ -121,6 +122,7 @@ class TransPhaseNet(tf.keras.Model):
                 previous_block_activation
             )
             x = tfl.concatenate([x, residual])  # Add back residual
+            x = tfl.Activation('relu')
             previous_block_activation = x  # Set aside next residual
             skips.append(x)
 
@@ -134,13 +136,13 @@ class TransPhaseNet(tf.keras.Model):
         c, f = range(len(self.residual_attention)-2, -1, -1), self.filters[::-1]
         
         for i, filters in zip(c, f):
-            x = tfl.Activation("relu")(x)
+            x = tfl.Activation(self.activation)(x)
             x = tfl.Conv1DTranspose(filters, self.kernelsizes[::-1][i], padding="same",
                                     kernel_regularizer=self.kernel_regularizer,
                                     kernel_initializer=self.initializer,
                                     )(x)
             x = tfl.BatchNormalization()(x)
-            x = tfl.Activation("relu")(x)
+            x = tfl.Activation(self.activation)(x)
             x = tfl.Dropout(self.dropout_rate)(x)
 
             x = tfl.Conv1DTranspose(filters, self.kernelsizes[::-1][i], padding="same",
@@ -176,7 +178,7 @@ class TransPhaseNet(tf.keras.Model):
                        name='exit')(x)
 
         x = tfl.BatchNormalization()(x)
-        x = tfl.Activation("relu")(x)
+        x = tfl.Activation(self.activation)(x)
         x = tfl.Dropout(self.dropout_rate)(x) 
 
         # Add a per-pixel classification layer

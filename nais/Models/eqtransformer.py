@@ -24,6 +24,7 @@ class EarthQuakeTransformer(tf.keras.Model):
                  kernel_regularizer=None,
                  classify=True,
                  att_type='additive',
+                 activation='relu',
                  name='EarthQuakeTransformer'):
         """
         https://www.nature.com/articles/s41467-020-17591-w
@@ -84,7 +85,7 @@ class EarthQuakeTransformer(tf.keras.Model):
         def conv_block(f,kz):
             return tf.keras.Sequential([tfl.Conv1D(f, kz, padding='same', kernel_regularizer=kernel_regularizer),
                                         tfl.BatchNormalization(),
-                                        tfl.Activation('relu'),
+                                        tfl.Activation(activation),
                                         tfl.Dropout(dropout),
                                         tfl.MaxPooling1D(2, padding='same')])
 
@@ -114,7 +115,7 @@ class EarthQuakeTransformer(tf.keras.Model):
             return tf.keras.Sequential([tfl.UpSampling1D(2),
                                         tfl.Conv1D(f, kz, padding='same', kernel_regularizer=kernel_regularizer),
                                         tfl.BatchNormalization(),
-                                        tfl.Activation('relu'),
+                                        tfl.Activation(activation),
                                         tfl.Dropout(dropout)])
 
         def _decoder(input_shape, attention=False, activation='sigmoid', output_name=None):

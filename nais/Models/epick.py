@@ -20,6 +20,7 @@ class EPick(tf.keras.Model):
                  kernel_regularizer=None,
                  dropout_rate=0.2,
                  att_type='additive',
+                 activation='relu',
                  initializer='glorot_normal',
                  residual_attention=None,
                  name='EPick'):
@@ -47,6 +48,7 @@ class EPick(tf.keras.Model):
         self.residual_attention = residual_attention
         self.att_type = att_type
         self.output_layer = output_layer
+        self.activation = activation
 
         if filters is None:
             self.filters = [16, 16, 16, 16]
@@ -74,7 +76,7 @@ class EPick(tf.keras.Model):
                            kernel_initializer=self.initializer,
                            )(x)
             x = tfl.BatchNormalization()(x)
-            x = tfl.Activation("relu")(x)
+            x = tfl.Activation(self.activation)(x)
             x = tfl.Dropout(self.dropout_rate)(x)
             x = tfl.MaxPooling1D(4, strides=2, padding='same')(x)
             return x
@@ -85,7 +87,7 @@ class EPick(tf.keras.Model):
                                     kernel_initializer=self.initializer,
                                     )(x)
             x = tfl.BatchNormalization()(x)
-            x = tfl.Activation("relu")(x)
+            x = tfl.Activation(self.activation)(x)
             x = tfl.Dropout(self.dropout_rate)(x)
             if upsample:
                 x = tfl.UpSampling1D(2)(x)
@@ -99,7 +101,7 @@ class EPick(tf.keras.Model):
                        name='entry')(inputs)
 
         x = tfl.BatchNormalization()(x)
-        x = tfl.Activation("relu")(x)
+        x = tfl.Activation(self.activation)(x)
         x = tfl.Dropout(self.dropout_rate)(x)
         
         skips = [x]
