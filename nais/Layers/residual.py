@@ -129,7 +129,7 @@ class ResnetBlock1D(tfl.Layer):
             x = self.projection(x)
         
         fx = self.bn1(inputs)
-        fx = self.conv1(inputs)
+        fx = self.conv1(fx)
         fx = self.bn1(fx)
         fx = self.relu(fx)
         fx = self.dropout1(fx)
