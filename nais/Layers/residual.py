@@ -124,7 +124,7 @@ class ResnetBlock1D(tfl.Layer):
 
     @tf.function
     def call(self, inputs, training=None):
-        if x.shape[-1] != self.filters:
+        if inputs.shape[-1] != self.filters:
             x = self.projection(inputs)
         else:
             x = inputs
