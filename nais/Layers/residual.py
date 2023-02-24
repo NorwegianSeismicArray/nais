@@ -112,7 +112,8 @@ class ResnetBlock1D(tfl.Layer):
             dropout (float): dropout fraction .
         """
         super(ResnetBlock1D, self).__init__()
-        self.conv_sample = tfl.Conv1D(filters, 1, padding='same', **kwargs)
+        self.filters = filters
+        self.projection = tfl.Conv1D(filters, 1, padding='same', **kwargs)
         self.conv1 = tfl.Conv1D(filters, kernelsize, activation=None, padding='same', **kwargs)
         self.conv2 = tfl.Conv1D(filters, kernelsize, activation=None, padding='same', **kwargs)
         self.dropout1 = tfl.SpatialDropout1D(dropout)
@@ -125,7 +126,7 @@ class ResnetBlock1D(tfl.Layer):
     def call(self, inputs, training=None):
         x = inputs 
         if x.shape[-1] != self.filters:
-            x = self.conv_sample(x)
+            x = self.projection(x)
         
         fx = self.bn1(inputs)
         fx = self.conv1(inputs)
@@ -156,7 +157,7 @@ class ResStageBlock1D(tfl.Layer):
         """
         super(ResStageBlock1D, self).__init__()
         self.filters = filters
-        self.conv_sample = tfl.Conv1D(filters, 1, padding='same', **kwargs)
+        self.projection = tfl.Conv1D(filters, 1, padding='same', **kwargs)
         self.conv1 = tfl.Conv1D(filters, 1, activation=None, padding='same', **kwargs)
         self.conv2 = tfl.Conv1D(filters, 1, activation=None, padding='same', **kwargs)
         self.conv_bottleneck = tfl.Conv1D(filters//4, 3, activation=None, padding='same', **kwargs)
@@ -172,7 +173,7 @@ class ResStageBlock1D(tfl.Layer):
     def call(self, inputs, training=None):
         x = inputs 
         if x.shape[-1] != self.filters:
-            x = self.conv_sample(x)
+            x = self.projection(x)
         
         fx = self.bn1(inputs)
         fx = self.relu(fx)
