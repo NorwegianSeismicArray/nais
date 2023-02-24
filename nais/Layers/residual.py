@@ -98,7 +98,11 @@ class ResidualConv1DTranspose(tfl.Layer):
     
     
 class ResnetBlock1D(tfl.Layer):
-    def __init__(self, filters, kernelsize, activation='relu', dropout=0.1, **kwargs):
+    def __init__(self, 
+                 filters, 
+                 kernelsize, 
+                 activation='relu', 
+                 dropout=0.1, **kwargs):
         """1D resnet block
 
         Args:
@@ -113,7 +117,7 @@ class ResnetBlock1D(tfl.Layer):
         self.dropout1 = tfl.SpatialDropout1D(dropout)
         self.bn1 = tfl.BatchNormalization()
         self.bn2 = tfl.BatchNormalization()
-        self.add = tfl.Concatenate()
+        self.add = tfl.Add()
         self.relu = tfl.Activation(activation)
 
     @tf.function
@@ -125,5 +129,50 @@ class ResnetBlock1D(tfl.Layer):
         fx = self.conv2(fx)
         x = self.add([inputs, fx])
         x = self.bn2(x)
+        x = self.relu(x)
+        return x
+
+
+    
+class ResStageBlock1D(tfl.Layer):
+    def __init__(self, 
+                 filters, 
+                 kernelsize, 
+                 activation='relu', 
+                 dropout=0.1, **kwargs):
+        """1D resnet block
+
+        Args:
+            filters (int): number of filters .
+            kernel_size (int): size of filters .
+            activation (str): layer activation.
+            dropout (float): dropout fraction .
+        """
+        super(ResStageBlock1D, self).__init__()
+        self.conv1 = tfl.Conv1D(filters, 1, activation=None, padding='same', **kwargs)
+        self.conv2 = tfl.Conv1D(filters, 1, activation=None, padding='same', **kwargs)
+        self.conv_bottleneck = tfl.Conv1D(filters//4, 3, activation=None, padding='same', **kwargs)
+        self.dropout1 = tfl.SpatialDropout1D(dropout)
+        self.bn1 = tfl.BatchNormalization()
+        self.bn2 = tfl.BatchNormalization()
+        self.bn3 = tfl.BatchNormalization()
+        self.bn4 = tfl.BatchNormalization()
+        self.add = tfl.Add()
+        self.relu = tfl.Activation(activation)
+
+    @tf.function
+    def call(self, inputs, training=None):
+        fx = self.bn1(inputs)
+        fx = self.relu(fx)
+        fx = self.conv1(fx)
+        fx = self.bn2(fx)
+        fx = self.relu(fx)
+        fx = self.conv_bottleneck(fx)
+        fx = self.bn3(fx)
+        fx = self.relu(fx)
+        fx = self.dropout1(fx)
+        fx = self.conv2(fx)
+        x = self.add([inputs, fx])
+        x = self.bn4(x)
         x = self.relu(x)
         return x
