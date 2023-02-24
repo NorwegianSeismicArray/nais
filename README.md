@@ -1,4 +1,4 @@
-### [Documentation](https://norwegianseismicarray.github.io/nais/)
+### [Documentation](https://norwegianseismicarray.github.io/nais/nais)
 
 ### NORSAR Artificial Inteligence System (NAIS, yes, the acronym was chosen first)
 
