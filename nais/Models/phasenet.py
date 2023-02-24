@@ -224,7 +224,7 @@ class ResidualPhaseNet(tf.keras.Model):
         ### [First half of the network: downsampling inputs] ###
 
         # Entry block
-        x = ResnetBlock1D(self.filters[0], self.kernelsizes[0], activation=self.activation, dropout=self.dropout_rate)(x)
+        x = ResnetBlock1D(self.filters[0], self.kernelsizes[0], activation=self.activation, dropout=self.dropout_rate)(inputs)
 
         skips = [x]
         
