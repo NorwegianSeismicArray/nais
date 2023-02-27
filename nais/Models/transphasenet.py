@@ -78,7 +78,8 @@ class TransPhaseNet(tf.keras.Model):
                                               tfl.Conv1D(f, 1, 
                                                          padding='same', 
                                                          kernel_regularizer=self.kernel_regularizer)])
-            Q, V = lstm_block(query), lstm_block(value)
+            Q = lstm_block(query)
+            V = value
             return TransformerBlock(num_heads=8, embed_dim=f, ff_dim=f, rate=self.dropout_rate)([Q, V])
 
         ### [First half of the network: downsampling inputs] ###
