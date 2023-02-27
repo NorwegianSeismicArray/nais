@@ -101,8 +101,7 @@ class ResnetBlock1D(tfl.Layer):
     def __init__(self, 
                  filters, 
                  kernelsize, 
-                 activation='relu', 
-                 match_filters=True, 
+                 activation='relu',
                  dropout=0.1, **kwargs):
         """1D resnet block
 
@@ -114,8 +113,7 @@ class ResnetBlock1D(tfl.Layer):
         """
         super(ResnetBlock1D, self).__init__()
         self.filters = filters
-        if match_filters:
-            self.projection = tfl.Conv1D(filters, 1, padding='same', **kwargs)
+        self.projection = tfl.Conv1D(filters, 1, padding='same', **kwargs)
         self.conv1 = tfl.Conv1D(filters, kernelsize, activation=None, padding='same', **kwargs)
         self.conv2 = tfl.Conv1D(filters, kernelsize, activation=None, padding='same', **kwargs)
         self.dropout1 = tfl.SpatialDropout1D(dropout)
@@ -126,11 +124,7 @@ class ResnetBlock1D(tfl.Layer):
         self.relu = tfl.Activation(activation)
 
     def call(self, inputs, training=None):
-        if inputs.shape[-1] != self.filters:
-            x = self.projection(inputs)
-        else:
-            x = inputs
-
+        x = self.projection(inputs)
         fx = self.bn1(inputs)
         fx = self.conv1(fx)
         fx = self.bn2(fx)

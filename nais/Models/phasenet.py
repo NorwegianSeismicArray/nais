@@ -227,8 +227,7 @@ class ResidualPhaseNet(tf.keras.Model):
         x = ResnetBlock1D(self.filters[0], 
                           self.kernelsizes[0], 
                           activation=self.activation, 
-                          dropout=self.dropout_rate,
-                          match_filters=not self.filters[0] == inputs.shape[-1])(inputs)
+                          dropout=self.dropout_rate)(inputs)
 
         skips = [x]
         
@@ -237,8 +236,7 @@ class ResidualPhaseNet(tf.keras.Model):
             x = ResnetBlock1D(f, 
                               ks, 
                               activation=self.activation,
-                              dropout=self.dropout_rate,
-                              match_filters=not self.filters[i] == x.shape[-1])(x)
+                              dropout=self.dropout_rate)(x)
             x = self.pool_layer(4, strides=2, padding="same")(x)
             skips.append(x)
             
@@ -252,8 +250,7 @@ class ResidualPhaseNet(tf.keras.Model):
             x = ResnetBlock1D(f, 
                               ks, 
                               activation=self.activation, 
-                              dropout=self.dropout_rate,
-                              match_filters=not self.filters[i] == x.shape[-1])(x)
+                              dropout=self.dropout_rate)(x)
             x = tfl.UpSampling1D(2)(x)
 
             x = crop_and_concat(x, skips[i])
