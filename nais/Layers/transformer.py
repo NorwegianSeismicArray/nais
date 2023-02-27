@@ -19,7 +19,7 @@ class TransformerBlock(tfl.Layer):
             query, value = inputs 
         else: 
             query, value = inputs, inputs 
-        
+
         attn_output = self.att(query, value)
         attn_output = self.dropout1(attn_output, training=training)
         out1 = self.layernorm1(query + attn_output)

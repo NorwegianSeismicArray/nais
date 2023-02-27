@@ -80,32 +80,30 @@ class TransPhaseNet(tf.keras.Model):
         skips = [x]
         
         # Blocks 1, 2, 3 are identical apart from the feature depth.
-        for i, filters in enumerate(self.filters):
-            x = ResnetBlock1D(filters, self.kernelsizes[i], activation=self.activation, dropout=self.dropout_rate)(x)
+        for i, filters in enumerate(self.filters[1:]):
+            x = ResnetBlock1D(filters, self.kernelsizes[i+1], activation=self.activation, dropout=self.dropout_rate)(x)
             x = self.pool_layer(4, strides=2, padding="same")(x)
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
-            x = TransformerBlock(num_heads=8,
+            att = TransformerBlock(num_heads=8,
                                   embed_dim=self.residual_attention[-1],
-                                  ff_dim=4*self.residual_attention[-1],
+                                  ff_dim=self.residual_attention[-1],
                                   rate=self.dropout_rate)(x)
+            x = crop_and_concat(x, att)
 
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
-        skips = skips[:-1]
         
-        c, f = range(len(self.residual_attention)-2, -1, -1), self.filters[::-1]
-        
-        for i, filters in zip(c, f):
-            x = ResnetBlock1D(filters, self.kernelsizes[::-1][i], activation=self.activation, dropout=self.dropout_rate)(x)
+        for i in range(1, len(self.filters)):
+            x = ResnetBlock1D(self.filters[::-1][i], self.kernelsizes[::-1][i], activation=self.activation, dropout=self.dropout_rate)(x)
             x = tfl.UpSampling1D(2)(x)
             
-            if self.residual_attention[i] > 0:
+            if self.residual_attention[::-1][i] > 0:
                 att = TransformerBlock(num_heads=8,
-                                  embed_dim=self.residual_attention[-1],
-                                  ff_dim=4*self.residual_attention[-1],
-                                  rate=self.dropout_rate)([x, skips[i]])
+                                  embed_dim=x.shape[-1],
+                                  ff_dim=self.residual_attention[::-1][i],
+                                  rate=self.dropout_rate)([x, skips[::-1][i]])
                 x = crop_and_concat(x, att)
 
         to_crop = x.shape[1] - input_shape[1]
@@ -114,15 +112,7 @@ class TransPhaseNet(tf.keras.Model):
         x = tfl.Cropping1D((of_start, of_end))(x)
         
         #Exit block
-        x = tfl.Conv1D(self.filters[0], self.kernelsizes[0],
-                       strides=1,
-                       kernel_regularizer=self.kernel_regularizer,
-                       padding="same",
-                       name='exit')(x)
-
-        x = tfl.BatchNormalization()(x)
-        x = tfl.Activation(self.activation)(x)
-        x = tfl.Dropout(self.dropout_rate)(x) 
+        x = ResnetBlock1D(self.filters[0], self.kernelsizes[0], activation=self.activation, dropout=self.dropout_rate)(x)
 
         # Add a per-pixel classification layer
         if self.num_classes is not None:
@@ -145,6 +135,10 @@ class TransPhaseNet(tf.keras.Model):
 
     def call(self, inputs):
         return self.model(inputs)
+    
+model = TransPhaseNet(residual_attention=[32,32,32,32,32])
+model.build((None, 1024, 3))
+model.summary()
 
 class TransPhaseNetMetadata(TransPhaseNet):
     def __init__(self, num_outputs=None, metadata_model=None, ph_kw=None):
