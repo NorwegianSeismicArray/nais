@@ -75,22 +75,26 @@ class TransPhaseNet(tf.keras.Model):
         
         # Entry block
         
-        x = ResnetBlock1D(self.filters[0], 
-                          self.kernelsizes[0], 
-                          activation=self.activation, 
-                          dropout=self.dropout_rate,
-                          match_filters=not self.filters[0] == inputs.shape[-1])(inputs)
+        #x = ResnetBlock1D(self.filters[0], 
+        #                  self.kernelsizes[0], 
+        #                  activation=self.activation, 
+        #                  dropout=self.dropout_rate,
+        #                  match_filters=not self.filters[0] == inputs.shape[-1])(inputs)
+
+        
+        x = tfl.Conv1D(self.filters[0], self.kernelsizes[0], activation=self.activation, padding='same')(inputs)
 
         skips = [x]
         
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for i in range(1, len(self.filters)):
-            x = ResnetBlock1D(self.filters[i], 
-                              self.kernelsizes[i], 
-                              activation=self.activation, 
-                              dropout=self.dropout_rate,
-                              match_filters=not self.filters[i] == x.shape[-1])(x)
+            #x = ResnetBlock1D(self.filters[i], 
+            #                  self.kernelsizes[i], 
+            #                  activation=self.activation, 
+            #                  dropout=self.dropout_rate,
+            #                  match_filters=not self.filters[i] == x.shape[-1])(x)
             
+            x = tfl.Conv1D(self.filters[i], self.kernelsizes[i], activation=self.activation, padding='same')(x)
             x = self.pool_layer(4, strides=2, padding="same")(x)
             skips.append(x)
 
@@ -106,11 +110,12 @@ class TransPhaseNet(tf.keras.Model):
         ### [Second half of the network: upsampling inputs] ###
         
         for i in range(1, len(self.filters)):
-            x = ResnetBlock1D(self.filters[::-1][i], 
-                              self.kernelsizes[::-1][i], 
-                              activation=self.activation, 
-                              dropout=self.dropout_rate,
-                              match_filters=not self.filters[::-1][i] == x.shape[-1])(x)
+            #x = ResnetBlock1D(self.filters[::-1][i], 
+            #                  self.kernelsizes[::-1][i], 
+            #                  activation=self.activation, 
+            #                  dropout=self.dropout_rate,
+            #                  match_filters=not self.filters[::-1][i] == x.shape[-1])(x)
+            x = tfl.Conv1D(self.filters[::-1][i], self.kernelsizes[::-1][i], activation=self.activation, padding='same')(x)
             x = tfl.UpSampling1D(2)(x)
             
             if self.residual_attention[::-1][i] > 0:
