@@ -79,7 +79,7 @@ class TransPhaseNet(tf.keras.Model):
                                                          padding='same', 
                                                          kernel_regularizer=self.kernel_regularizer)])
             Q, V = lstm_block(query), lstm_block(value)
-            return TransformerBlock(num_heads=8, embed_dim=f, ff_dim=f, rate=seld.dropout_rate)([Q, V])
+            return TransformerBlock(num_heads=8, embed_dim=f, ff_dim=f, rate=self.dropout_rate)([Q, V])
 
         ### [First half of the network: downsampling inputs] ###
 
