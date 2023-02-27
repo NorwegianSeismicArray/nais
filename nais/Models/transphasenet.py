@@ -73,17 +73,6 @@ class TransPhaseNet(tf.keras.Model):
     def build(self, input_shape):
         inputs = tf.keras.Input(shape=input_shape[1:])
         
-        def block_transformer(f, width, query, value):
-            lstm_block = tf.keras.Sequential([tfl.Bidirectional(tfl.LSTM(f, return_sequences=True)),
-                                              tfl.Conv1D(f, 1, 
-                                                         padding='same', 
-                                                         kernel_regularizer=self.kernel_regularizer)])
-            Q = lstm_block(query)
-            V = value
-            return TransformerBlock(num_heads=8, embed_dim=f, ff_dim=f, rate=self.dropout_rate)([Q, V])
-
-        ### [First half of the network: downsampling inputs] ###
-
         # Entry block
         
         x = ResnetBlock1D(self.filters[0], self.kernelsizes[0], activation=self.activation, dropout=self.dropout_rate)(inputs)
@@ -97,7 +86,10 @@ class TransPhaseNet(tf.keras.Model):
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
-            x = block_transformer(self.residual_attention[-1], None, x, x)
+            x = TransformerBlock(num_heads=8,
+                                  embed_dim=self.residual_attention[-1],
+                                  ff_dim=4*self.residual_attention[-1],
+                                  rate=self.dropout_rate)(x)
 
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
@@ -110,7 +102,10 @@ class TransPhaseNet(tf.keras.Model):
             x = tfl.UpSampling1D(2)(x)
             
             if self.residual_attention[i] > 0:
-                att = block_transformer(self.residual_attention[i], None, x, skips[i])
+                att = TransformerBlock(num_heads=8,
+                                  embed_dim=self.residual_attention[-1],
+                                  ff_dim=4*self.residual_attention[-1],
+                                  rate=self.dropout_rate)([x, skips[i]])
                 x = crop_and_concat(x, att)
 
         to_crop = x.shape[1] - input_shape[1]
