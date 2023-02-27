@@ -89,7 +89,7 @@ class TransPhaseNet(tf.keras.Model):
             x = tfl.Bidirectional(tfl.LSTM(self.residual_attention[-1], return_sequences=True), merge_mode='ave')(x)
             att = TransformerBlock(num_heads=8,
                                   embed_dim=self.residual_attention[-1],
-                                  ff_dim=2*self.residual_attention[-1],
+                                  ff_dim=self.residual_attention[-1],
                                   rate=self.dropout_rate)(x)
             x = crop_and_concat(x, att)
 
@@ -104,7 +104,7 @@ class TransPhaseNet(tf.keras.Model):
                 x = tfl.Bidirectional(tfl.LSTM(self.residual_attention[::-1][i], return_sequences=True), merge_mode='ave')(x)
                 att = TransformerBlock(num_heads=8,
                                   embed_dim=self.residual_attention[::-1][i],
-                                  ff_dim=2*self.residual_attention[::-1][i],
+                                  ff_dim=self.residual_attention[::-1][i],
                                   rate=self.dropout_rate)([x, skips[::-1][i]])
                 x = crop_and_concat(x, att)
 
