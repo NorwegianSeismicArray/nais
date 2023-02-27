@@ -125,7 +125,6 @@ class ResnetBlock1D(tfl.Layer):
         self.add = tfl.Add()
         self.relu = tfl.Activation(activation)
 
-    @tf.function
     def call(self, inputs, training=None):
         if inputs.shape[-1] != self.filters:
             x = self.projection(inputs)
@@ -150,6 +149,7 @@ class ResStageBlock1D(tfl.Layer):
                  filters, 
                  kernelsize, 
                  activation='relu', 
+                 match_filters = False,
                  dropout=0.1, **kwargs):
         """1D resnet block
 
@@ -161,7 +161,8 @@ class ResStageBlock1D(tfl.Layer):
         """
         super(ResStageBlock1D, self).__init__()
         self.filters = filters
-        self.projection = tfl.Conv1D(filters, 1, padding='same', **kwargs)
+        if match_filters:
+            self.projection = tfl.Conv1D(filters, 1, padding='same', **kwargs)
         self.conv1 = tfl.Conv1D(filters, 1, activation=None, padding='same', **kwargs)
         self.conv2 = tfl.Conv1D(filters, 1, activation=None, padding='same', **kwargs)
         self.conv_bottleneck = tfl.Conv1D(filters//4, 3, activation=None, padding='same', **kwargs)
@@ -173,7 +174,6 @@ class ResStageBlock1D(tfl.Layer):
         self.add = tfl.Add()
         self.relu = tfl.Activation(activation)
 
-    @tf.function
     def call(self, inputs, training=None):
         x = inputs 
         if x.shape[-1] != self.filters:
