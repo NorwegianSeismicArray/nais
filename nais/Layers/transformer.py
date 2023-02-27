@@ -5,7 +5,8 @@ import tensorflow as tf
 class TransformerBlock(tfl.Layer):
     def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1):
         super().__init__()
-        self.att = tfl.MultiHeadAttention(num_heads=num_heads, key_dim=embed_dim)
+        self.att = tfl.MultiHeadAttention(num_heads=num_heads, 
+                                          key_dim=embed_dim)
         self.ffn = tf.keras.Sequential(
             [tfl.Dense(ff_dim, activation="relu"), tfl.Dense(embed_dim)]
         )

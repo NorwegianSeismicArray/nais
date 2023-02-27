@@ -86,9 +86,10 @@ class TransPhaseNet(tf.keras.Model):
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
+            x = tfl.Bidirectional(tfl.LSTM(self.residual_attention[-1], return_sequences=True), merge_mode='ave')(x)
             att = TransformerBlock(num_heads=8,
                                   embed_dim=self.residual_attention[-1],
-                                  ff_dim=self.residual_attention[-1],
+                                  ff_dim=2*self.residual_attention[-1],
                                   rate=self.dropout_rate)(x)
             x = crop_and_concat(x, att)
 
@@ -100,9 +101,10 @@ class TransPhaseNet(tf.keras.Model):
             x = tfl.UpSampling1D(2)(x)
             
             if self.residual_attention[::-1][i] > 0:
+                x = tfl.Bidirectional(tfl.LSTM(self.residual_attention[::-1][i], return_sequences=True), merge_mode='ave')(x)
                 att = TransformerBlock(num_heads=8,
-                                  embed_dim=x.shape[-1],
-                                  ff_dim=self.residual_attention[::-1][i],
+                                  embed_dim=self.residual_attention[::-1][i],
+                                  ff_dim=2*self.residual_attention[::-1][i],
                                   rate=self.dropout_rate)([x, skips[::-1][i]])
                 x = crop_and_concat(x, att)
 
@@ -135,10 +137,6 @@ class TransPhaseNet(tf.keras.Model):
 
     def call(self, inputs):
         return self.model(inputs)
-    
-model = TransPhaseNet(residual_attention=[32,32,32,32,32])
-model.build((None, 1024, 3))
-model.summary()
 
 class TransPhaseNetMetadata(TransPhaseNet):
     def __init__(self, num_outputs=None, metadata_model=None, ph_kw=None):
