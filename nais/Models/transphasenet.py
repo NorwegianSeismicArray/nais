@@ -96,7 +96,7 @@ class TransPhaseNet(tf.keras.Model):
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
-            x, _ = block_transformer(self.residual_attention[-1], None, x, x)
+            x = block_transformer(self.residual_attention[-1], None, x, x)
 
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
@@ -109,7 +109,7 @@ class TransPhaseNet(tf.keras.Model):
             x = tfl.UpSampling1D(2)(x)
             
             if self.residual_attention[i] > 0:
-                att, _ = block_transformer(self.residual_attention[i], None, x, skips[i])
+                att = block_transformer(self.residual_attention[i], None, x, skips[i])
                 x = crop_and_concat(x, att)
             x = tfl.concatenate([x, residual]) # Add back residual
             previous_block_activation = x  # Set aside next residual
