@@ -224,13 +224,21 @@ class ResidualPhaseNet(tf.keras.Model):
         ### [First half of the network: downsampling inputs] ###
 
         # Entry block
-        x = ResnetBlock1D(self.filters[0], self.kernelsizes[0], activation=self.activation, dropout=self.dropout_rate)(inputs)
+        x = ResnetBlock1D(self.filters[0], 
+                          self.kernelsizes[0], 
+                          activation=self.activation, 
+                          dropout=self.dropout_rate,
+                          match_filters=not self.filters[0] == inputs.shape[-1])(inputs)
 
         skips = [x]
         
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for i, (f, ks) in enumerate(zip(self.filters, self.kernelsizes)):
-            x = ResnetBlock1D(f, ks, activation=self.activation, dropout=self.dropout_rate)(x)
+            x = ResnetBlock1D(f, 
+                              ks, 
+                              activation=self.activation,
+                              dropout=self.dropout_rate,
+                              match_filters=not self.filters[i] == x.shape[-1])(x)
             x = self.pool_layer(4, strides=2, padding="same")(x)
             skips.append(x)
             
@@ -241,7 +249,11 @@ class ResidualPhaseNet(tf.keras.Model):
         skips = skips[::-1]
         
         for i, (f, ks) in enumerate(zip(self.filters[::-1], self.kernelsizes[::-1])):
-            x = ResnetBlock1D(f, ks, activation=self.activation, dropout=self.dropout_rate)(x)
+            x = ResnetBlock1D(f, 
+                              ks, 
+                              activation=self.activation, 
+                              dropout=self.dropout_rate,
+                              match_filters=not self.filters[i] == x.shape[-1])(x)
             x = tfl.UpSampling1D(2)(x)
 
             x = crop_and_concat(x, skips[i])

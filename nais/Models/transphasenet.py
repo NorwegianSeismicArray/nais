@@ -127,11 +127,15 @@ class TransPhaseNet(tf.keras.Model):
         x = tfl.Cropping1D((of_start, of_end))(x)
         
         #Exit block
-        x = ResnetBlock1D(self.filters[0], 
-                          self.kernelsizes[0], 
-                          activation=self.activation, 
-                          dropout=self.dropout_rate,
-                          match_filters=self.filters[0] == x.shape[-1])(x)
+        x = tfl.Conv1D(self.filters[0], 
+                       self.kernelsizes[0],
+                       strides=1,
+                       kernel_regularizer=self.kernel_regularizer,
+                       padding="same",
+                       name='exit')(x)
+        x = tfl.BatchNormalization()(x)
+        x = tfl.Activation(self.activation)(x)
+        x = tfl.Dropout(self.dropout_rate)(x)
 
         # Add a per-pixel classification layer
         if self.num_classes is not None:
