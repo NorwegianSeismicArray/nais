@@ -15,7 +15,7 @@ This repository will contain:
 * Augmentation methods.
 
 ## Installation
-``pip install git+ssh://git@github.com/NorwegianSeismicArray/nais.git#egg=nais``
+``pip install nais``
 
 If an error occurs when importing `nais`, likely ``sndfile`` library is not installed (check the error), and needs to be:
 
