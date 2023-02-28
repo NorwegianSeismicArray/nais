@@ -146,23 +146,25 @@ class EarthQuakeTransformer(tf.keras.Model):
         self.feature_extractor = _encoder()
         encoded_dim = self.feature_extractor.layers[-1].output.shape[1:]
         
-        self.detector = _decoder(encoded_dim, attention=False, activation='sigmoid' if classify else None, output_name='detection')
+        #self.detector = _decoder(encoded_dim, attention=False, activation='sigmoid' if classify else None, output_name='detection')
         self.p_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, output_name='p_phase')
         self.s_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, output_name='s_phase')
+        
+        self.concat = tfl.Concatenate()
 
     @property
     def num_parameters(self):
         s = 0
-        for m in [self.feature_extractor, self.detector, self.s_picker, self.p_picker]:
+        for m in [self.feature_extractor, self.s_picker, self.p_picker]:
             s += sum([np.prod(K.get_value(w).shape) for w in m.trainable_weights])
         return s
 
     def call(self, inputs):
         encoded = self.feature_extractor(inputs)
-        d = self.detector(encoded)
+        #d = self.detector(encoded)
         p = self.p_picker(encoded)
         s = self.s_picker(encoded)
-        return d, p, s
+        return self.concat([1-p-s, p, s])
 
 
 class EarthQuakeTransformerMetadata(EarthQuakeTransformer):
