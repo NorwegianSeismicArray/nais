@@ -102,7 +102,11 @@ class EarthQuakeTransformer(tf.keras.Model):
                 for f, kz in zip(filters, kernelsizes):
                     x = conv_block(f, kz)(x)
                 for f, kz in zip(resfilters, reskernelsizes):
-                    x = ResnetBlock1D(f, kz, dropout=dropout, kernel_regularizer=kernel_regularizer)(x)
+                    x = ResnetBlock1D(f, 
+                                      kz, 
+                                      activation=activation,
+                                      dropout=dropout, 
+                                      kernel_regularizer=kernel_regularizer)(x)
                 for f in lstmfilters:
                     x = block_BiLSTM(f, x)
                 x = tfl.LSTM(f, return_sequences=True, kernel_regularizer=kernel_regularizer)(x)
@@ -125,7 +129,6 @@ class EarthQuakeTransformer(tf.keras.Model):
                 x = tfl.LSTM(filters[1], 
                              return_sequences=True, 
                              kernel_regularizer=kernel_regularizer)(x)
-                
                 x = TransformerBlock(num_heads=8, ff_dim=filters[1], embed_dim=filters[1])(x)
 
             x = tf.keras.Sequential([inv_conv_block(f, kz) for f, kz in zip(invfilters, invkernelsizes)])(x)
