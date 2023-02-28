@@ -101,7 +101,7 @@ class ResnetBlock1D(tfl.Layer):
     def __init__(self, 
                  filters, 
                  kernelsize, 
-                 activation='relu',
+                 activation='linear',
                  dropout=0.1, **kwargs):
         """1D resnet block
 
