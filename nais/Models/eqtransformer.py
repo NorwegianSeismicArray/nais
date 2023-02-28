@@ -147,10 +147,13 @@ class EarthQuakeTransformer(tf.keras.Model):
         encoded_dim = self.feature_extractor.layers[-1].output.shape[1:]
         
         #self.detector = _decoder(encoded_dim, attention=False, activation='sigmoid' if classify else None, output_name='detection')
-        self.p_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, output_name='p_phase')
-        self.s_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, output_name='s_phase')
+        #self.p_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, output_name='p_phase')
+        #self.s_picker = _decoder(encoded_dim, attention=True, activation='sigmoid' if classify else None, output_name='s_phase')
+        self.p_picker = _decoder(encoded_dim, attention=True, activation=None, output_name='p_phase')
+        self.s_picker = _decoder(encoded_dim, attention=True, activation=None, output_name='s_phase')
         
         self.concat = tfl.Concatenate()
+        self.classifer = tfl.Conv1D(3, 1, padding='same', activation='softmax')
 
     @property
     def num_parameters(self):
@@ -164,7 +167,8 @@ class EarthQuakeTransformer(tf.keras.Model):
         #d = self.detector(encoded)
         p = self.p_picker(encoded)
         s = self.s_picker(encoded)
-        return self.concat([1-p-s, p, s])
+        x = self.concat([p, s])
+        return self.classifier(x)
 
 
 class EarthQuakeTransformerMetadata(EarthQuakeTransformer):
