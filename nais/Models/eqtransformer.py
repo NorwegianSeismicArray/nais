@@ -153,7 +153,7 @@ class EarthQuakeTransformer(tf.keras.Model):
         self.s_picker = _decoder(encoded_dim, attention=True, activation=None, output_name='s_phase')
         
         self.concat = tfl.Concatenate()
-        self.classifer = tfl.Conv1D(3, 1, padding='same', activation='softmax')
+        self.classifier = tfl.Conv1D(3, 1, padding='same', activation='softmax')
 
     @property
     def num_parameters(self):
