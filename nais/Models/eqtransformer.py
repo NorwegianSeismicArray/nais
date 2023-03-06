@@ -23,6 +23,7 @@ class EarthQuakeTransformer(tf.keras.Model):
                  transformer_sizes=None,
                  kernel_regularizer=None,
                  classify=True,
+                 pool_type='max',
                  att_type='additive',
                  activation='relu',
                  name='EarthQuakeTransformer'):
@@ -82,12 +83,14 @@ class EarthQuakeTransformer(tf.keras.Model):
             print('Filters missmatch.')
             filters[-1] = resfilters[0]
 
+        pool_layer = tfl.MaxPooling1D if pool_type else tfl.AveragePooling1D
+
         def conv_block(f,kz):
             return tf.keras.Sequential([tfl.Conv1D(f, kz, padding='same', kernel_regularizer=kernel_regularizer),
                                         tfl.BatchNormalization(),
                                         tfl.Activation(activation),
                                         tfl.Dropout(dropout),
-                                        tfl.MaxPooling1D(2, padding='same')])
+                                        pool_layer(2, padding='same')])
 
         def block_BiLSTM(f, x):
             'Returns LSTM residual block'
