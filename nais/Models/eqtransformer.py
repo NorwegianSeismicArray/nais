@@ -90,7 +90,7 @@ class EarthQuakeTransformer(tf.keras.Model):
                                         tfl.BatchNormalization(),
                                         tfl.Activation(activation),
                                         tfl.Dropout(dropout),
-                                        pool_layer(2, padding='same')])
+                                        pool_layer(4, strides=2, padding="same")])
 
         def block_BiLSTM(f, x):
             'Returns LSTM residual block'
