@@ -78,15 +78,18 @@ class PhaseNet(tf.keras.Model):
         
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for i, filters in enumerate(self.filters):
-            x = tfl.Conv1D(filters, self.kernelsizes[i], padding="same",
+            x = tfl.Conv1D(filters, 
+                           self.kernelsizes[i], 
+                           strides=2,
+                           padding="same",
                            kernel_regularizer=self.kernel_regularizer,
                            kernel_initializer=self.initializer,
                            )(x)
-            x = tfl.BatchNormalization()(x)
+            #x = tfl.BatchNormalization()(x)
             x = tfl.Activation(self.activation)(x)
             x = tfl.Dropout(self.dropout_rate)(x)
 
-            x = self.pool_layer(4, strides=2, padding="same")(x)
+            #x = self.pool_layer(4, strides=2, padding="same")(x)
 
             skips.append(x)
             
@@ -97,15 +100,18 @@ class PhaseNet(tf.keras.Model):
         skips = skips[::-1]
         
         for i, filters in enumerate(self.filters[::-1]):
-            x = tfl.Conv1DTranspose(filters, self.kernelsizes[::-1][i], padding="same",
+            x = tfl.Conv1DTranspose(filters, 
+                                    self.kernelsizes[::-1][i], 
+                                    strides=2,
+                                    padding="same",
                                     kernel_regularizer=self.kernel_regularizer,
                                     kernel_initializer=self.initializer,
                                     )(x)
-            x = tfl.BatchNormalization()(x)
+            #x = tfl.BatchNormalization()(x)
             x = tfl.Activation(self.activation)(x)
             x = tfl.Dropout(self.dropout_rate)(x)
 
-            x = tfl.UpSampling1D(2)(x)
+            #x = tfl.UpSampling1D(2)(x)
 
             x = crop_and_concat(x, skips[i])
 
