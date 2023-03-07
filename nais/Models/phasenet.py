@@ -70,7 +70,7 @@ class PhaseNet(tf.keras.Model):
                        padding="same",
                        name='entry')(inputs)
 
-        x = tfl.BatchNormalization()(x)
+        #x = tfl.BatchNormalization()(x)
         x = tfl.Activation(self.activation)(x)
         x = tfl.Dropout(self.dropout_rate)(x)
 
@@ -127,7 +127,7 @@ class PhaseNet(tf.keras.Model):
                        padding="same",
                        name='exit')(x)
 
-        x = tfl.BatchNormalization()(x)
+        #x = tfl.BatchNormalization()(x)
         x = tfl.Activation(self.activation)(x)
         x = tfl.Dropout(self.dropout_rate)(x)
 
