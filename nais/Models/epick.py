@@ -9,8 +9,9 @@ import tensorflow.keras.layers as tfl
 import tensorflow.keras.backend as K
 import numpy as np
 from nais.utils import crop_and_concat
+from nais.Models import PhaseNet
     
-class EPick(tf.keras.Model):
+class EPick(PhaseNet):
     def __init__(self,
                  num_classes=2,
                  output_layer=None,
@@ -39,60 +40,51 @@ class EPick(tf.keras.Model):
             initializer (tf.keras.initializers.Initializer, optional): weight initializer. Defaults to 'glorot_normal'.
             name (str, optional): model name. Defaults to 'PhaseNet'.
         """
-        super(EPick, self).__init__(name=name)
-        self.num_classes = num_classes
-        self.initializer = initializer
-        self.kernel_regularizer = kernel_regularizer
-        self.dropout_rate = dropout_rate
-        self.output_activation = output_activation
-        self.residual_attention = residual_attention
-        self.att_type = att_type
-        self.output_layer = output_layer
-        self.activation = activation
+        super(EPick, self).__init__(num_classes=num_classes, 
+                                              filters=filters, 
+                                              kernelsizes=kernelsizes, 
+                                              output_activation=output_activation, 
+                                              kernel_regularizer=kernel_regularizer, 
+                                              dropout_rate=dropout_rate,
+                                              pool_type=pool_type, 
+                                              activation=activation, 
+                                              initializer=initializer, 
+                                              name=name)
 
-        if filters is None:
-            self.filters = [16, 16, 16, 16]
-        else:
-            self.filters = filters
-            
         if residual_attention is None:
             self.residual_attention = [16, 16, 16, 16, 16]
         else:
             self.residual_attention = residual_attention
 
-        if kernelsizes is None:
-            self.kernelsizes = [7, 7, 7, 7]
-        else:
-            self.kernelsizes = kernelsizes
+    def _down_block(self, f, ks, x):
+        x = tfl.Conv1D(f, ks, padding="same",
+                        kernel_regularizer=self.kernel_regularizer,
+                        kernel_initializer=self.initializer,
+                        )(x)
+        x = tfl.BatchNormalization()(x)
+        x = tfl.Activation(self.activation)(x)
+        x = tfl.Dropout(self.dropout_rate)(x)
+        x = self.pool_layer(4, strides=2, padding='same')(x)
+        return x
+
+    def _up_block(self, f, ks, x, upsample=True):
+        x = tfl.Conv1DTranspose(f, ks, padding="same",
+                                kernel_regularizer=self.kernel_regularizer,
+                                kernel_initializer=self.initializer,
+                                )(x)
+        x = tfl.BatchNormalization()(x)
+        x = tfl.Activation(self.activation)(x)
+        x = tfl.Dropout(self.dropout_rate)(x)
+        if upsample:
+            x = tfl.UpSampling1D(2)(x)
+        return x
+            
 
     def build(self, input_shape):
         inputs = tf.keras.Input(shape=input_shape[1:])
 
         ### [First half of the network: downsampling inputs] ###
 
-        def down_block(f, ks, x):
-            x = tfl.Conv1D(f, ks, padding="same",
-                           kernel_regularizer=self.kernel_regularizer,
-                           kernel_initializer=self.initializer,
-                           )(x)
-            x = tfl.BatchNormalization()(x)
-            x = tfl.Activation(self.activation)(x)
-            x = tfl.Dropout(self.dropout_rate)(x)
-            x = tfl.MaxPooling1D(4, strides=2, padding='same')(x)
-            return x
-
-        def up_block(f, ks, x, upsample=True):
-            x = tfl.Conv1DTranspose(f, ks, padding="same",
-                                    kernel_regularizer=self.kernel_regularizer,
-                                    kernel_initializer=self.initializer,
-                                    )(x)
-            x = tfl.BatchNormalization()(x)
-            x = tfl.Activation(self.activation)(x)
-            x = tfl.Dropout(self.dropout_rate)(x)
-            if upsample:
-                x = tfl.UpSampling1D(2)(x)
-            return x
-            
         # Entry block
         x = tfl.Conv1D(self.filters[0], self.kernelsizes[0],
                        strides=1,
@@ -108,7 +100,7 @@ class EPick(tf.keras.Model):
         
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for ks, f in zip(self.kernelsizes[1:], self.filters[1:]):
-            x = down_block(f, ks, x) 
+            x = self._down_block(f, ks, x) 
             skips.append(x)
         
         attentions = []
@@ -136,14 +128,15 @@ class EPick(tf.keras.Model):
             
         i = len(self.filters) - 1
         for f, ks in zip(self.filters[::-1][:-1], self.kernelsizes[::-1][:-1]):
-            x = up_block(f, ks, x, upsample = i != 0)
+            x = self._up_block(f, ks, x, upsample = i != 0)
             x = crop_and_concat(x, attentions[i-1])
             i -= 1
         
         to_crop = x.shape[1] - input_shape[1]
-        of_start, of_end = to_crop // 2, to_crop // 2
-        of_end += to_crop % 2
-        x = tfl.Cropping1D((of_start, of_end))(x)
+        if to_crop != 0:
+            of_start, of_end = to_crop // 2, to_crop // 2
+            of_end += to_crop % 2
+            x = tfl.Cropping1D((of_start, of_end))(x)
 
         # Add a per-pixel classification layer
         if self.num_classes is not None:

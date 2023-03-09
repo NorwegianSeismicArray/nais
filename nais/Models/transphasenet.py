@@ -10,9 +10,10 @@ import tensorflow.keras.backend as K
 import numpy as np
 from nais.utils import crop_and_concat
 
+from nais.Models import PhaseNet
 from nais.Layers import DynamicConv1D, TransformerBlock, ResnetBlock1D
 
-class TransPhaseNet(tf.keras.Model):
+class TransPhaseNet(PhaseNet):
     def __init__(self,
                  num_classes=2,
                  filters=None,
@@ -40,35 +41,38 @@ class TransPhaseNet(tf.keras.Model):
             initializer (tf.keras.initializers.Initializer, optional): weight initializer. Defaults to 'glorot_normal'.
             name (str, optional): model name. Defaults to 'PhaseNet'.
         """
-        super(TransPhaseNet, self).__init__(name=name)
-        self.num_classes = num_classes
-        self.initializer = initializer
-        self.kernel_regularizer = kernel_regularizer
-        self.dropout_rate = dropout_rate
-        self.output_activation = output_activation
-        self.residual_attention = residual_attention
-        self.att_type = att_type
-        self.activation = activation
-
-        if filters is None:
-            self.filters = [4, 8, 16, 32]
-        else:
-            self.filters = filters
+        super(TransPhaseNet, self).__init__(num_classes=num_classes, 
+                                              filters=filters, 
+                                              kernelsizes=kernelsizes, 
+                                              output_activation=output_activation, 
+                                              kernel_regularizer=kernel_regularizer, 
+                                              dropout_rate=dropout_rate,
+                                              pool_type=pool_type, 
+                                              activation=activation, 
+                                              initializer=initializer, 
+                                              name=name)
+        
             
         if residual_attention is None:
             self.residual_attention = [0, 0, 0, 0, 0]
         else:
             self.residual_attention = residual_attention
-
-        if kernelsizes is None:
-            self.kernelsizes = [7, 7, 7, 7]
-        else:
-            self.kernelsizes = kernelsizes
-            
-        if pool_type == 'max':
-            self.pool_layer = tfl.MaxPooling1D
-        else:
-            self.pool_layer = tfl.AveragePooling1D
+    
+    def _down_block(self, f, ks, x):
+        x = ResnetBlock1D(f, 
+                        ks, 
+                        activation=self.activation, 
+                        dropout=self.dropout_rate)(x)    
+        x = self.pool_layer(4, strides=2, padding="same")(x)
+        return x
+    
+    def _up_block(self, f, ks, x):
+        x = ResnetBlock1D(f, 
+                        ks, 
+                        activation=self.activation, 
+                        dropout=self.dropout_rate)(x)
+        x = tfl.UpSampling1D(2)(x)
+        return x
 
     def build(self, input_shape):
         inputs = tf.keras.Input(shape=input_shape[1:])
@@ -80,23 +84,15 @@ class TransPhaseNet(tf.keras.Model):
                           activation=self.activation, 
                           dropout=self.dropout_rate)(inputs)
 
-        #x = tfl.Conv1D(self.filters[0], self.kernelsizes[0], activation=self.activation, padding='same')(inputs)
-
         skips = [x]
         
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for i in range(1, len(self.filters)):
-            x = ResnetBlock1D(self.filters[i], 
-                              self.kernelsizes[i], 
-                              activation=self.activation, 
-                              dropout=self.dropout_rate)(x)
-            
-            #x = tfl.Conv1D(self.filters[i], self.kernelsizes[i], activation=self.activation, padding='same')(x)
-            x = self.pool_layer(4, strides=2, padding="same")(x)
+            x = self._down_block(self.filters[i], self.kernelsizes[i], x)
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
-            x = tfl.Bidirectional(tfl.LSTM(self.residual_attention[-1], return_sequences=True), merge_mode='ave')(x)
+            x = tfl.Bidirectional(tfl.LSTM(self.residual_attention[-1], return_sequences=True), merge_mode='max')(x)
             att = TransformerBlock(num_heads=8,
                                   embed_dim=self.residual_attention[-1],
                                   ff_dim=self.residual_attention[-1],
@@ -107,15 +103,10 @@ class TransPhaseNet(tf.keras.Model):
         ### [Second half of the network: upsampling inputs] ###
         
         for i in range(1, len(self.filters)):
-            x = ResnetBlock1D(self.filters[::-1][i], 
-                              self.kernelsizes[::-1][i], 
-                              activation=self.activation, 
-                              dropout=self.dropout_rate)(x)
-            #x = tfl.Conv1D(self.filters[::-1][i], self.kernelsizes[::-1][i], activation=self.activation, padding='same')(x)
-            x = tfl.UpSampling1D(2)(x)
+            x = self._up_block(self.filters[::-1][i], self.kernelsizes[::-1][i], x)
             
             if self.residual_attention[::-1][i] > 0:
-                x = tfl.Bidirectional(tfl.LSTM(self.residual_attention[::-1][i], return_sequences=True), merge_mode='ave')(x)
+                x = tfl.Bidirectional(tfl.LSTM(self.residual_attention[::-1][i], return_sequences=True), merge_mode='max')(x)
                 att = TransformerBlock(num_heads=8,
                                   embed_dim=self.residual_attention[::-1][i],
                                   ff_dim=self.residual_attention[::-1][i],
@@ -123,9 +114,10 @@ class TransPhaseNet(tf.keras.Model):
                 x = crop_and_concat(x, att)
 
         to_crop = x.shape[1] - input_shape[1]
-        of_start, of_end = to_crop // 2, to_crop // 2
-        of_end += to_crop % 2
-        x = tfl.Cropping1D((of_start, of_end))(x)
+        if to_crop != 0:
+            of_start, of_end = to_crop // 2, to_crop // 2
+            of_end += to_crop % 2
+            x = tfl.Cropping1D((of_start, of_end))(x)
         
         #Exit block
         x = tfl.Conv1D(self.filters[0], 

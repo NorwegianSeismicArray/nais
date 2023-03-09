@@ -58,6 +58,31 @@ class PhaseNet(tf.keras.Model):
         else:
             self.pool_layer = tfl.AveragePooling1D
 
+    def _down_block(self, f, ks, x):
+        x = tfl.Conv1D(f, 
+                        ks, 
+                        strides=2,
+                        padding="same",
+                        kernel_regularizer=self.kernel_regularizer,
+                        kernel_initializer=self.initializer)(x)
+        x = tfl.BatchNormalization()(x)
+        x = tfl.Activation(self.activation)(x)
+        x = tfl.Dropout(self.dropout_rate)(x)
+        return x
+    
+    def _up_block(self, f, ks, x):
+        x = tfl.Conv1DTranspose(f, 
+                                ks, 
+                                strides=2,
+                                padding="same",
+                                kernel_regularizer=self.kernel_regularizer,
+                                kernel_initializer=self.initializer)(x)
+        x = tfl.BatchNormalization()(x)
+        x = tfl.Activation(self.activation)(x)
+        x = tfl.Dropout(self.dropout_rate)(x)
+        return x
+        
+
     def build(self, input_shape):
         inputs = tf.keras.Input(shape=input_shape[1:])
 
@@ -77,48 +102,23 @@ class PhaseNet(tf.keras.Model):
         skips = [x]
         
         # Blocks 1, 2, 3 are identical apart from the feature depth.
-        for i, filters in enumerate(self.filters):
-            x = tfl.Conv1D(filters, 
-                           self.kernelsizes[i], 
-                           strides=2,
-                           padding="same",
-                           kernel_regularizer=self.kernel_regularizer,
-                           kernel_initializer=self.initializer,
-                           )(x)
-            x = tfl.BatchNormalization()(x)
-            x = tfl.Activation(self.activation)(x)
-            x = tfl.Dropout(self.dropout_rate)(x)
-
-            #x = self.pool_layer(4, strides=2, padding="same")(x)
-
+        for i, _ in enumerate(self.filters):
+            x = self._down_block(self.filters[i], self.kernelsizes[i], x)
             skips.append(x)
             
         skips = skips[:-1]
 
         self.encoder = tf.keras.Model(inputs, x)
-        ### [Second half of the network: upsampling inputs] ###
-        skips = skips[::-1]
         
-        for i, filters in enumerate(self.filters[::-1]):
-            x = tfl.Conv1DTranspose(filters, 
-                                    self.kernelsizes[::-1][i], 
-                                    strides=2,
-                                    padding="same",
-                                    kernel_regularizer=self.kernel_regularizer,
-                                    kernel_initializer=self.initializer,
-                                    )(x)
-            x = tfl.BatchNormalization()(x)
-            x = tfl.Activation(self.activation)(x)
-            x = tfl.Dropout(self.dropout_rate)(x)
-
-            #x = tfl.UpSampling1D(2)(x)
-
+        for i in list(range(len(self.filters)))[::-1]:
+            x = self._up_block(self.filters[i], self.kernelsizes[i], x)
             x = crop_and_concat(x, skips[i])
 
         to_crop = x.shape[1] - input_shape[1]
-        of_start, of_end = to_crop // 2, to_crop // 2
-        of_end += to_crop % 2
-        x = tfl.Cropping1D((of_start, of_end))(x)
+        if to_crop != 0:
+            of_start, of_end = to_crop // 2, to_crop // 2
+            of_end += to_crop % 2
+            x = tfl.Cropping1D((of_start, of_end))(x)
         
         #Exit block
         x = tfl.Conv1D(self.filters[0], self.kernelsizes[0],
@@ -152,7 +152,7 @@ class PhaseNet(tf.keras.Model):
 
     def call(self, inputs):
         return self.model(inputs)
-
+    
 class PhaseNetMetadata(PhaseNet):
     def __init__(self, num_outputs=None, metadata_model=None, ph_kw=None):
         """Provides a wrapper for PhaseNet with a metadata output, eg., when learning back azimuth.
@@ -177,7 +177,7 @@ class PhaseNetMetadata(PhaseNet):
     
 from nais.Layers import ResidualConv1D, ResidualConv1DTranspose, ResnetBlock1D
 
-class ResidualPhaseNet(tf.keras.Model):
+class ResidualPhaseNet(PhaseNet):
     def __init__(self,
                  num_classes=2,
                  filters=None,
@@ -201,94 +201,33 @@ class ResidualPhaseNet(tf.keras.Model):
             initializer (tf.keras.initializers.Initializer, optional): weight initializer. Defaults to 'glorot_normal'.
             name (str, optional): model name. Defaults to 'PhaseNet'.
         """
-        super(ResidualPhaseNet, self).__init__(name=name)
-        self.num_classes = num_classes
-        self.initializer = initializer
-        self.kernel_regularizer = kernel_regularizer
-        self.dropout_rate = dropout_rate
-        self.output_activation = output_activation
-        self.activation = activation
+        super(ResidualPhaseNet, self).__init__(num_classes=num_classes, 
+                                              filters=filters, 
+                                              kernelsizes=kernelsizes, 
+                                              output_activation=output_activation, 
+                                              kernel_regularizer=kernel_regularizer, 
+                                              dropout_rate=dropout_rate,
+                                              pool_type=pool_type, 
+                                              activation=activation, 
+                                              initializer=initializer, 
+                                              name=name)
 
-        if filters is None:
-            self.filters = [4, 8, 16, 32]
-        else:
-            self.filters = filters
-
-        if kernelsizes is None:
-            self.kernelsizes = [7, 7, 7, 7]
-        else:
-            self.kernelsizes = kernelsizes
-            
-        if pool_type == 'max':
-            self.pool_layer = tfl.MaxPooling1D
-        else:
-            self.pool_layer = tfl.AveragePooling1D
-
-    def build(self, input_shape):
-        inputs = tf.keras.Input(shape=input_shape[1:])
-
-        ### [First half of the network: downsampling inputs] ###
-
-        # Entry block
-        x = ResnetBlock1D(self.filters[0], 
-                          self.kernelsizes[0], 
+    def _down_block(self, f, ks, x):
+        x = ResnetBlock1D(f, 
+                          ks, 
+                          activation=self.activation,
+                          dropout=self.dropout_rate)(x)
+        x = self.pool_layer(4, strides=2, padding="same")(x)
+        return x
+    
+    def _up_block(self, f, ks, x):
+        x = ResnetBlock1D(f, 
+                          ks, 
                           activation=self.activation, 
-                          dropout=self.dropout_rate)(inputs)
-
-        skips = [x]
-        
-        # Blocks 1, 2, 3 are identical apart from the feature depth.
-        for i, (f, ks) in enumerate(zip(self.filters, self.kernelsizes)):
-            x = ResnetBlock1D(f, 
-                              ks, 
-                              activation=self.activation,
-                              dropout=self.dropout_rate)(x)
-            x = self.pool_layer(4, strides=2, padding="same")(x)
-            skips.append(x)
-            
-        skips = skips[:-1]
-
-        self.encoder = tf.keras.Model(inputs, x)
-        ### [Second half of the network: upsampling inputs] ###
-        skips = skips[::-1]
-        
-        for i, (f, ks) in enumerate(zip(self.filters[::-1], self.kernelsizes[::-1])):
-            x = ResnetBlock1D(f, 
-                              ks, 
-                              activation=self.activation, 
-                              dropout=self.dropout_rate)(x)
-            x = tfl.UpSampling1D(2)(x)
-
-            x = crop_and_concat(x, skips[i])
-
-        to_crop = x.shape[1] - input_shape[1]
-        of_start, of_end = to_crop // 2, to_crop // 2
-        of_end += to_crop % 2
-        x = tfl.Cropping1D((of_start, of_end))(x)
-        
-        #Exit block
-        x = tfl.Conv1D(self.filters[0], self.kernelsizes[0],
-                       strides=1,
-                       kernel_regularizer=self.kernel_regularizer,
-                       padding="same",
-                       name='exit')(x)
-
-        x = tfl.BatchNormalization()(x)
-        x = tfl.Activation(self.activation)(x)
-        x = tfl.Dropout(self.dropout_rate)(x)
-
-        # Add a per-pixel classification layer
-        if self.num_classes is not None:
-            x = tfl.Conv1D(self.num_classes,
-                           1,
-                           padding="same")(x)
-            outputs = tfl.Activation(self.output_activation, dtype='float32')(x)
-        else:
-            outputs = x
-
-        # Define the model
-        self.model = tf.keras.Model(inputs, outputs)
-
+                          dropout=self.dropout_rate)(x)
+        x = tfl.UpSampling1D(2)(x)
+        return x
+    
     @property
     def num_parameters(self):
         return sum([np.prod(K.get_value(w).shape) for w in self.model.trainable_weights])
@@ -298,8 +237,6 @@ class ResidualPhaseNet(tf.keras.Model):
 
     def call(self, inputs):
         return self.model(inputs)
-    
-    
     
 class ResidualPhaseNetMetadata(ResidualPhaseNet):
     def __init__(self, num_outputs=None, metadata_model=None, ph_kw=None):
@@ -325,7 +262,7 @@ class ResidualPhaseNetMetadata(ResidualPhaseNet):
 
 from nais.Layers import DynamicConv1D
 
-class DynamicPhaseNet(tf.keras.Model):
+class DynamicPhaseNet(PhaseNet):
     def __init__(self,
                  num_classes=2,
                  filters=None,
@@ -350,29 +287,17 @@ class DynamicPhaseNet(tf.keras.Model):
             initializer (tf.keras.initializers.Initializer, optional): weight initializer. Defaults to 'glorot_normal'.
             name (str, optional): model name. Defaults to 'PhaseNet'.
         """
-        super(DynamicPhaseNet, self).__init__(name=name)
-        self.num_classes = num_classes
-        self.initializer = initializer
-        self.kernel_regularizer = kernel_regularizer
-        self.dropout_rate = dropout_rate
-        self.output_activation = output_activation
-        self.activation = activation
+        super(DynamicPhaseNet, self).__init__(num_classes=num_classes, 
+                                              filters=filters, 
+                                              kernelsizes=kernelsizes, 
+                                              output_activation=output_activation, 
+                                              kernel_regularizer=kernel_regularizer, 
+                                              dropout_rate=dropout_rate,
+                                              pool_type=pool_type, 
+                                              activation=activation, 
+                                              initializer=initializer, 
+                                              name=name)
         self.num_dynamic_layers = num_dynamic_layers
-
-        if filters is None:
-            self.filters = [4, 8, 16, 32]
-        else:
-            self.filters = filters
-
-        if kernelsizes is None:
-            self.kernelsizes = [7, 7, 7, 7]
-        else:
-            self.kernelsizes = kernelsizes
-            
-        if pool_type == 'max':
-            self.pool_layer = tfl.MaxPooling1D
-        else:
-            self.pool_layer = tfl.AveragePooling1D
             
     def _down_block(self, f, ks, x):
         x = DynamicConv1D(f, 
@@ -391,63 +316,6 @@ class DynamicPhaseNet(tf.keras.Model):
                         dropout=self.dropout_rate)(x)
         x = tfl.UpSampling1D(2)(x)
         return x
-        
-    def build(self, input_shape):
-        inputs = tf.keras.Input(shape=input_shape[1:])
-
-        ### [First half of the network: downsampling inputs] ###
-
-        # Entry block
-        x = tfl.Conv1D(self.filters[0], 
-                       self.kernelsizes[0],
-                       kernel_regularizer=self.kernel_regularizer,
-                       padding="same")(x)
-
-        skips = [x]
-        
-        # Blocks 1, 2, 3 are identical apart from the feature depth.
-        for i, (f, ks) in enumerate(zip(self.filters, self.kernelsizes)):
-            x = self._down_block(f, ks, x)
-            skips.append(x)
-            
-        skips = skips[:-1]
-
-        self.encoder = tf.keras.Model(inputs, x)
-        ### [Second half of the network: upsampling inputs] ###
-        skips = skips[::-1]
-        
-        for i, (f, ks) in enumerate(zip(self.filters[::-1], self.kernelsizes[::-1])):
-            x = self._up_block(f, ks, x)
-            x = crop_and_concat(x, skips[i])
-
-        to_crop = x.shape[1] - input_shape[1]
-        of_start, of_end = to_crop // 2, to_crop // 2
-        of_end += to_crop % 2
-        x = tfl.Cropping1D((of_start, of_end))(x)
-        
-        #Exit block
-        x = tfl.Conv1D(self.filters[0], 
-                       self.kernelsizes[0],
-                       strides=1,
-                       kernel_regularizer=self.kernel_regularizer,
-                       padding="same",
-                       name='exit')(x)
-
-        x = tfl.BatchNormalization()(x)
-        x = tfl.Activation(self.activation)(x)
-        x = tfl.Dropout(self.dropout_rate)(x)
-
-        # Add a per-pixel classification layer
-        if self.num_classes is not None:
-            x = tfl.Conv1D(self.num_classes,
-                           1,
-                           padding="same")(x)
-            outputs = tfl.Activation(self.output_activation, dtype='float32')(x)
-        else:
-            outputs = x
-
-        # Define the model
-        self.model = tf.keras.Model(inputs, outputs)
 
     @property
     def num_parameters(self):
@@ -484,7 +352,7 @@ class DynamicPhaseNetMetadata(DynamicPhaseNet):
 
 from nais.Layers import ResidualConv1D
 
-class DilatedPhaseNet(tf.keras.Model):
+class DilatedPhaseNet(PhaseNet):
     def __init__(self,
                  num_classes=2,
                  filters=None,
@@ -509,29 +377,16 @@ class DilatedPhaseNet(tf.keras.Model):
             initializer (tf.keras.initializers.Initializer, optional): weight initializer. Defaults to 'glorot_normal'.
             name (str, optional): model name. Defaults to 'PhaseNet'.
         """
-        super(DilatedPhaseNet, self).__init__(name=name)
-        self.num_classes = num_classes
-        self.initializer = initializer
-        self.kernel_regularizer = kernel_regularizer
-        self.dropout_rate = dropout_rate
-        self.output_activation = output_activation
-        self.activation = activation
-        self.num_stacked_layers = num_stacked_layers
-
-        if filters is None:
-            self.filters = [4, 8, 16, 32]
-        else:
-            self.filters = filters
-
-        if kernelsizes is None:
-            self.kernelsizes = [7, 7, 7, 7]
-        else:
-            self.kernelsizes = kernelsizes
-            
-        if pool_type == 'max':
-            self.pool_layer = tfl.MaxPooling1D
-        else:
-            self.pool_layer = tfl.AveragePooling1D
+        super(DilatedPhaseNet, self).__init__(num_classes=num_classes, 
+                                              filters=filters, 
+                                              kernelsizes=kernelsizes, 
+                                              output_activation=output_activation, 
+                                              kernel_regularizer=kernel_regularizer, 
+                                              dropout_rate=dropout_rate,
+                                              pool_type=pool_type, 
+                                              activation=activation, 
+                                              initializer=initializer, 
+                                              name=name)
             
     def _down_block(self, f, ks, x):
         x = ResidualConv1D(f, 
@@ -547,62 +402,6 @@ class DilatedPhaseNet(tf.keras.Model):
         x = tfl.UpSampling1D(2)(x)
         return x
         
-    def build(self, input_shape):
-        inputs = tf.keras.Input(shape=input_shape[1:])
-
-        ### [First half of the network: downsampling inputs] ###
-
-        # Entry block
-        x = tfl.Conv1D(self.filters[0], 
-                       self.kernelsizes[0],
-                       kernel_regularizer=self.kernel_regularizer,
-                       padding="same")(x)
-
-        skips = [x]
-        
-        # Blocks 1, 2, 3 are identical apart from the feature depth.
-        for i, (f, ks) in enumerate(zip(self.filters, self.kernelsizes)):
-            x = self._down_block(f, ks, x)
-            skips.append(x)
-            
-        skips = skips[:-1]
-
-        self.encoder = tf.keras.Model(inputs, x)
-        ### [Second half of the network: upsampling inputs] ###
-        skips = skips[::-1]
-        
-        for i, (f, ks) in enumerate(zip(self.filters[::-1], self.kernelsizes[::-1])):
-            x = self._up_block(f, ks, x)
-            x = crop_and_concat(x, skips[i])
-
-        to_crop = x.shape[1] - input_shape[1]
-        of_start, of_end = to_crop // 2, to_crop // 2
-        of_end += to_crop % 2
-        x = tfl.Cropping1D((of_start, of_end))(x)
-        
-        #Exit block
-        x = tfl.Conv1D(self.filters[0], 
-                       self.kernelsizes[0],
-                       strides=1,
-                       kernel_regularizer=self.kernel_regularizer,
-                       padding="same",
-                       name='exit')(x)
-
-        x = tfl.BatchNormalization()(x)
-        x = tfl.Activation(self.activation)(x)
-        x = tfl.Dropout(self.dropout_rate)(x)
-
-        # Add a per-pixel classification layer
-        if self.num_classes is not None:
-            x = tfl.Conv1D(self.num_classes,
-                           1,
-                           padding="same")(x)
-            outputs = tfl.Activation(self.output_activation, dtype='float32')(x)
-        else:
-            outputs = x
-
-        # Define the model
-        self.model = tf.keras.Model(inputs, outputs)
 
     @property
     def num_parameters(self):
