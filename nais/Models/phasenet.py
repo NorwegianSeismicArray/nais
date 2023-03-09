@@ -388,6 +388,7 @@ class DilatedPhaseNet(PhaseNet):
                                               activation=activation, 
                                               initializer=initializer, 
                                               name=name)
+        self.num_stacked_layers = num_stacked_layers
             
     def _down_block(self, f, ks, x):
         x = tfl.Conv1D(f, ks, padding='same')(x)
