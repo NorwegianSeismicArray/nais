@@ -352,6 +352,7 @@ class DynamicPhaseNetMetadata(DynamicPhaseNet):
 
 from nais.Layers import ResidualConv1D
 
+
 class DilatedPhaseNet(PhaseNet):
     def __init__(self,
                  num_classes=2,
@@ -389,6 +390,11 @@ class DilatedPhaseNet(PhaseNet):
                                               name=name)
             
     def _down_block(self, f, ks, x):
+        x = tfl.Conv1D(f, ks, padding='same')(x)
+        x = tfl.BatchNormalization()(x)
+        x = tfl.Activation(self.activation)(x)
+        x = tfl.Dropout(self.dropout_rate)(x)
+        
         x = ResidualConv1D(f, 
                           ks,
                           stacked_layer=self.num_stacked_layers)(x)
@@ -396,6 +402,11 @@ class DilatedPhaseNet(PhaseNet):
         return x
     
     def _up_block(self, f, ks, x):
+        x = tfl.Conv1D(f, ks, padding='same')(x)
+        x = tfl.BatchNormalization()(x)
+        x = tfl.Activation(self.activation)(x)
+        x = tfl.Dropout(self.dropout_rate)(x)
+        
         x = ResidualConv1D(f, 
                         ks,
                         stacked_layer=self.num_stacked_layers)(x)

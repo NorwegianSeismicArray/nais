@@ -1,5 +1,13 @@
 import tensorflow.keras.layers as tfl 
 import tensorflow as tf 
+import tensorflow.keras.backend as K
+
+def mish(x):
+	return tfl.Lambda(lambda x: x*K.tanh(K.softplus(x)))(x)
+
+from tensorflow.keras.utils import get_custom_objects
+from tensorflow.keras.layers import Activation
+get_custom_objects().update({'mish': Activation(mish)})
 
 class ResidualConv1D(tfl.Layer):
    
@@ -74,7 +82,7 @@ class ResidualConv1DTranspose(tfl.Layer):
 
         for dilation_rate in [2 ** i for i in range(self.stacked_layer)]:
             self.sigmoid_layers.append(tfl.Conv1DTranspose(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same', activation='sigmoid'))
-            self.tanh_layers.append(tfl.Conv1DTranspose(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same', activation='tanh'))
+            self.tanh_layers.append(tfl.Conv1DTranspose(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same', activation='mish'))
             self.conv_layers.append(tfl.Conv1DTranspose(self.filters, 1, padding='same'))
 
     def get_config(self):
