@@ -92,7 +92,7 @@ class TransPhaseNet(PhaseNet):
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
-            x = tfl.Bidirectional(tfl.LSTM(self.residual_attention[-1], return_sequences=True), merge_mode='max')(x)
+            x = tfl.Bidirectional(tfl.LSTM(self.residual_attention[-1], return_sequences=True), merge_mode='sum')(x)
             att = TransformerBlock(num_heads=8,
                                   embed_dim=self.residual_attention[-1],
                                   ff_dim=self.residual_attention[-1],
@@ -106,7 +106,7 @@ class TransPhaseNet(PhaseNet):
             x = self._up_block(self.filters[::-1][i], self.kernelsizes[::-1][i], x)
             
             if self.residual_attention[::-1][i] > 0:
-                x = tfl.Bidirectional(tfl.LSTM(self.residual_attention[::-1][i], return_sequences=True), merge_mode='max')(x)
+                x = tfl.Bidirectional(tfl.LSTM(self.residual_attention[::-1][i], return_sequences=True), merge_mode='sum')(x)
                 att = TransformerBlock(num_heads=8,
                                   embed_dim=self.residual_attention[::-1][i],
                                   ff_dim=self.residual_attention[::-1][i],
