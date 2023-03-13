@@ -21,7 +21,6 @@ class TransPhaseNet(PhaseNet):
                  output_activation='linear',
                  kernel_regularizer=None,
                  dropout_rate=0.2,
-                 att_type='additive',
                  initializer='glorot_normal',
                  residual_attention=None,
                  pool_type='max',
@@ -35,7 +34,6 @@ class TransPhaseNet(PhaseNet):
             filters (list, optional): list of number of filters. Defaults to None.
             kernelsizes (list, optional): list of kernel sizes. Defaults to None.
             residual_attention (list: optional): list of residual attention sizes, one longer that filters. 
-            att_type (str): dot or concat
             output_activation (str, optional): output activation, eg., 'softmax' for multiclass problems. Defaults to 'linear'.
             kernel_regularizer (tf.keras.regualizers.Regualizer, optional): kernel regualizer. Defaults to None.
             dropout_rate (float, optional): dropout. Defaults to 0.2.
