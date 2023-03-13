@@ -120,6 +120,10 @@ class PatchTransPhaseNet(PhaseNet):
         x = tfl.Reshape((x.shape[1], -1))(x)
         y = tfl.Reshape((y.shape[1], -1))(y)
         
+        
+        pos = tfl.Embedding(inp_dim=x.shape[1], output_dim=x.shape[2])(tf.range(start=0, limit=x.shape[1], delta=1))
+        x += pos
+        
         att = TransformerBlock(num_heads=8,
                                embed_dim=x.shape[-1],
                                ff_dim=ra,
