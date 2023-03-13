@@ -25,6 +25,7 @@ class TransPhaseNet(PhaseNet):
                  initializer='glorot_normal',
                  residual_attention=None,
                  pool_type='max',
+                 att_type='downstep',
                  activation='relu',
                  name='TransPhaseNet'):
         """Adapted to 1D from https://keras.io/examples/vision/oxford_pets_image_segmentation/
@@ -40,6 +41,7 @@ class TransPhaseNet(PhaseNet):
             dropout_rate (float, optional): dropout. Defaults to 0.2.
             initializer (tf.keras.initializers.Initializer, optional): weight initializer. Defaults to 'glorot_normal'.
             name (str, optional): model name. Defaults to 'PhaseNet'.
+            att_type (str, optional): if the attention should work during downstep or across. 
         """
         super(TransPhaseNet, self).__init__(num_classes=num_classes, 
                                               filters=filters, 
@@ -51,10 +53,10 @@ class TransPhaseNet(PhaseNet):
                                               activation=activation, 
                                               initializer=initializer, 
                                               name=name)
-        
+        self.att_type = att_type
             
         if residual_attention is None:
-            self.residual_attention = [0, 0, 0, 0, 0]
+            self.residual_attention = [2, 2, 2, 2]
         else:
             self.residual_attention = residual_attention
     
@@ -74,6 +76,15 @@ class TransPhaseNet(PhaseNet):
         x = tfl.UpSampling1D(2)(x)
         return x
 
+    def _att_block(self, x, y, ra):
+        x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True), merge_mode='sum')(x)
+        att = TransformerBlock(num_heads=8,
+                               embed_dim=ra,
+                               ff_dim=ra,
+                               rate=self.dropout_rate)([x,y])
+        x = crop_and_concat(x, att)
+        return x
+
     def build(self, input_shape):
         inputs = tf.keras.Input(shape=input_shape[1:])
         
@@ -89,15 +100,12 @@ class TransPhaseNet(PhaseNet):
         # Blocks 1, 2, 3 are identical apart from the feature depth.
         for i in range(1, len(self.filters)):
             x = self._down_block(self.filters[i], self.kernelsizes[i], x)
+            if self.residual_attention[i] > 0 and self.att_type == 'downstep':
+                x = self._att_block(x, skips[-1], self.residual_attention[i])
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
-            x = tfl.Bidirectional(tfl.LSTM(self.residual_attention[-1], return_sequences=True), merge_mode='sum')(x)
-            att = TransformerBlock(num_heads=8,
-                                  embed_dim=self.residual_attention[-1],
-                                  ff_dim=self.residual_attention[-1],
-                                  rate=self.dropout_rate)(x)
-            x = crop_and_concat(x, att)
+            x = self._att_block(x, x, self.residual_attention[-1])
 
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
@@ -105,13 +113,9 @@ class TransPhaseNet(PhaseNet):
         for i in range(1, len(self.filters)):
             x = self._up_block(self.filters[::-1][i], self.kernelsizes[::-1][i], x)
             
-            if self.residual_attention[::-1][i] > 0:
-                x = tfl.Bidirectional(tfl.LSTM(self.residual_attention[::-1][i], return_sequences=True), merge_mode='sum')(x)
-                att = TransformerBlock(num_heads=8,
-                                  embed_dim=self.residual_attention[::-1][i],
-                                  ff_dim=self.residual_attention[::-1][i],
-                                  rate=self.dropout_rate)([x, skips[::-1][i]])
-                x = crop_and_concat(x, att)
+            if self.residual_attention[::-1][i] > 0 and self.att_type == 'across':
+                x = self._att_block(x, skips[::-1][i])
+                
 
         to_crop = x.shape[1] - input_shape[1]
         if to_crop != 0:
