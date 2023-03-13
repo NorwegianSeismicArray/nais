@@ -22,6 +22,7 @@ class EPick(PhaseNet):
                  dropout_rate=0.2,
                  att_type='additive',
                  activation='relu',
+                 pool_type='max',
                  initializer='glorot_normal',
                  residual_attention=None,
                  name='EPick'):
