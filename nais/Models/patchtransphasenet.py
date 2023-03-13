@@ -11,9 +11,27 @@ import numpy as np
 from nais.utils import crop_and_concat
 
 from nais.Models import PhaseNet
-from nais.Layers import DynamicConv1D, TransformerBlock, ResnetBlock1D
+from nais.Layers import DynamicConv1D, ResnetBlock1D, TransformerBlock, Resampling1D
 
-class TransPhaseNet(PhaseNet):
+class Patches(tfl.Layer):
+    def __init__(self, patch_size, patch_stride):
+        super(Patches, self).__init__()
+        self.patch_size = patch_size
+        self.patch_stride = patch_stride
+
+    def call(self, images):
+        batch_size = tf.shape(images)[0]
+        patches = tf.image.extract_patches(
+            images=images,
+            sizes=[1, self.patch_size, 1, 1],
+            strides=[1, self.patch_stride, 1, 1],
+            rates=[1, 1, 1, 1],
+            padding="SAME",
+        )
+        
+        return patches
+
+class PatchTransPhaseNet(PhaseNet):
     def __init__(self,
                  num_classes=2,
                  filters=None,
@@ -23,10 +41,12 @@ class TransPhaseNet(PhaseNet):
                  dropout_rate=0.2,
                  initializer='glorot_normal',
                  residual_attention=None,
+                 num_patches=None,
+                 patch_strides=None,
                  pool_type='max',
                  att_type='downstep',
                  activation='relu',
-                 name='TransPhaseNet'):
+                 name='PatchTransPhaseNet'):
         """Adapted to 1D from https://keras.io/examples/vision/oxford_pets_image_segmentation/
 
         Args:
@@ -41,7 +61,7 @@ class TransPhaseNet(PhaseNet):
             name (str, optional): model name. Defaults to 'PhaseNet'.
             att_type (str, optional): if the attention should work during downstep or across. 
         """
-        super(TransPhaseNet, self).__init__(num_classes=num_classes, 
+        super(PatchTransPhaseNet, self).__init__(num_classes=num_classes, 
                                               filters=filters, 
                                               kernelsizes=kernelsizes, 
                                               output_activation=output_activation, 
@@ -57,6 +77,16 @@ class TransPhaseNet(PhaseNet):
             self.residual_attention = [16, 16, 16, 16]
         else:
             self.residual_attention = residual_attention
+        
+        if num_patches is None: 
+            self.num_patches = [16, 16, 16, 16]
+        else:
+            self.num_patches = num_patches
+            
+        if patch_strides is None:
+            self.patch_strides = [8, 8, 8, 8]
+        else:
+            self.patch_strides = patch_strides
     
     def _down_block(self, f, ks, x):
         x = ResnetBlock1D(f, 
@@ -74,14 +104,32 @@ class TransPhaseNet(PhaseNet):
         x = tfl.UpSampling1D(2)(x)
         return x
 
-    def _att_block(self, x, y, ra):
+    def _att_block(self, x, y, ra, npatch):
         out = x
+        
         x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True), merge_mode='sum')(x)
+        
+        out_length = x.shape[1]
+        
+        x = tf.expand_dims(x, axis=-1)
+        y = tf.expand_dims(y, axis=-1)
+        
+        x = Patches(patch_size=npatch, patch_stride=npatch//2)(x)
+        y = Patches(patch_size=npatch, patch_stride=npatch//2)(y)
+        
+        x = tfl.Reshape((x.shape[1], -1))(x)
+        y = tfl.Reshape((y.shape[1], -1))(y)
+        
         att = TransformerBlock(num_heads=8,
-                               embed_dim=ra,
+                               embed_dim=x.shape[-1],
                                ff_dim=ra,
                                rate=self.dropout_rate)([x,y])
+        
+        att = tfl.Conv1D(ra, 1, padding='same')(att)
+        att = Resampling1D(out_length)(att)
+        
         x = crop_and_concat(out, att)
+        
         return x
 
     def build(self, input_shape):
@@ -100,11 +148,11 @@ class TransPhaseNet(PhaseNet):
         for i in range(1, len(self.filters)):
             x = self._down_block(self.filters[i], self.kernelsizes[i], x)
             if self.residual_attention[i] > 0 and self.att_type == 'downstep':
-                x = self._att_block(x, skips[-1], self.residual_attention[i])
+                x = self._att_block(x, skips[-1], self.residual_attention[i], self.num_patches[i])
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
-            x = self._att_block(x, x, self.residual_attention[-1])
+            x = self._att_block(x, x, self.residual_attention[-1], self.num_patches[-1])
 
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
@@ -155,7 +203,7 @@ class TransPhaseNet(PhaseNet):
     def call(self, inputs):
         return self.model(inputs)
 
-class TransPhaseNetMetadata(TransPhaseNet):
+class PatchTransPhaseNetMetadata(PatchTransPhaseNet):
     def __init__(self, num_outputs=None, metadata_model=None, ph_kw=None):
         """Provides a wrapper for TransPhaseNet with a metadata output, eg., when learning back azimuth.
 
@@ -163,7 +211,7 @@ class TransPhaseNetMetadata(TransPhaseNet):
             num_outputs (int): Number of numerical metadata to learn. 
             ph_kw (dict): Args. for TransPhaseNet. 
         """
-        super(TransPhaseNetMetadata, self).__init__(**ph_kw)
+        super(PatchTransPhaseNetMetadata, self).__init__(**ph_kw)
         if metadata_model is None:
             self.metadata_model = tf.keras.Sequential([tfl.Flatten(),
                                                    tfl.Dense(128, activation='relu'),
