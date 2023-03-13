@@ -41,7 +41,7 @@ class PatchTransPhaseNet(PhaseNet):
                  dropout_rate=0.2,
                  initializer='glorot_normal',
                  residual_attention=None,
-                 num_patches=None,
+                 patch_sizes=None,
                  patch_strides=None,
                  pool_type='max',
                  att_type='downstep',
@@ -78,10 +78,10 @@ class PatchTransPhaseNet(PhaseNet):
         else:
             self.residual_attention = residual_attention
         
-        if num_patches is None: 
-            self.num_patches = [16, 16, 16, 16]
+        if patch_sizes is None: 
+            self.patch_sizes = [16, 16, 16, 16]
         else:
-            self.num_patches = num_patches
+            self.patch_sizes = patch_sizes
             
         if patch_strides is None:
             self.patch_strides = [8, 8, 8, 8]
@@ -104,7 +104,7 @@ class PatchTransPhaseNet(PhaseNet):
         x = tfl.UpSampling1D(2)(x)
         return x
 
-    def _att_block(self, x, y, ra, npatch):
+    def _att_block(self, x, y, ra, npatch, spatch):
         out = x
         
         x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True), merge_mode='sum')(x)
@@ -114,8 +114,8 @@ class PatchTransPhaseNet(PhaseNet):
         x = tf.expand_dims(x, axis=-1)
         y = tf.expand_dims(y, axis=-1)
         
-        x = Patches(patch_size=npatch, patch_stride=npatch//2)(x)
-        y = Patches(patch_size=npatch, patch_stride=npatch//2)(y)
+        x = Patches(patch_size=npatch, patch_stride=spatch)(x)
+        y = Patches(patch_size=npatch, patch_stride=spatch)(y)
         
         x = tfl.Reshape((x.shape[1], -1))(x)
         y = tfl.Reshape((y.shape[1], -1))(y)
@@ -152,11 +152,15 @@ class PatchTransPhaseNet(PhaseNet):
         for i in range(1, len(self.filters)):
             x = self._down_block(self.filters[i], self.kernelsizes[i], x)
             if self.residual_attention[i] > 0 and self.att_type == 'downstep':
-                x = self._att_block(x, skips[-1], self.residual_attention[i], self.num_patches[i])
+                x = self._att_block(x, 
+                                    skips[-1], 
+                                    self.residual_attention[i], 
+                                    self.patch_sizes[i], 
+                                    self.patch_strides[i])
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
-            x = self._att_block(x, x, self.residual_attention[-1], self.num_patches[-1])
+            x = self._att_block(x, x, self.residual_attention[-1], self.patch_sizes[-1], self.patch_strides[-1])
 
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
@@ -165,8 +169,11 @@ class PatchTransPhaseNet(PhaseNet):
             x = self._up_block(self.filters[::-1][i], self.kernelsizes[::-1][i], x)
             
             if self.residual_attention[::-1][i] > 0 and self.att_type == 'across':
-                x = self._att_block(x, skips[::-1][i])
-                
+                x = self._att_block(x, 
+                                    skips[::-1][i],
+                                    self.residual_attention[::-1][i], 
+                                    self.patch_sizes[::-1][i], 
+                                    self.patch_strides[::-1][i])
 
         to_crop = x.shape[1] - input_shape[1]
         if to_crop != 0:
