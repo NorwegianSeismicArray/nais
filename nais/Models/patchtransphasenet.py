@@ -121,7 +121,7 @@ class PatchTransPhaseNet(PhaseNet):
         y = tfl.Reshape((y.shape[1], -1))(y)
         
         
-        pos = tfl.Embedding(inp_dim=x.shape[1], output_dim=x.shape[2])(tf.range(start=0, limit=x.shape[1], delta=1))
+        pos = tfl.Embedding(input_dim=x.shape[1], output_dim=x.shape[2])(tf.range(start=0, limit=x.shape[1], delta=1))
         x += pos
         
         att = TransformerBlock(num_heads=8,
@@ -206,6 +206,9 @@ class PatchTransPhaseNet(PhaseNet):
 
     def call(self, inputs):
         return self.model(inputs)
+    
+model = PatchTransPhaseNet()
+model.build((None, 6000, 3))
 
 class PatchTransPhaseNetMetadata(PatchTransPhaseNet):
     def __init__(self, num_outputs=None, metadata_model=None, ph_kw=None):

@@ -12,7 +12,7 @@ with open('./requirements.txt') as file:
 
 setuptools.setup(
     name="nais",
-    version="1.0",
+    version="1.2",
     author="Erik B. Myklebust",
     author_email="erik@norsar.no",
     description="NORSAR AI System.",
