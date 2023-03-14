@@ -11,7 +11,7 @@ import numpy as np
 from nais.utils import crop_and_concat
 
 from nais.Models import PhaseNet
-from nais.Layers import DynamicConv1D, TransformerBlock, ResnetBlock1D
+from nais.Layers import DynamicConv1D, TransformerBlock, ResnetBlock1D, ResidualConv1D
 
 class TransPhaseNet(PhaseNet):
     def __init__(self,
