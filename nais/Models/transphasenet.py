@@ -78,7 +78,6 @@ class TransPhaseNet(PhaseNet):
         return x
 
     def _att_block(self, x, y, ra):
-        out = x
         if self.rnn_type == 'lstm':
             x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True))(x)
         elif self.rnn_type == 'casual':
@@ -93,7 +92,6 @@ class TransPhaseNet(PhaseNet):
                                embed_dim=ra,
                                ff_dim=ra*4,
                                rate=self.dropout_rate)([x,y])
-        x = crop_and_concat(out, att)
         return x
 
     def build(self, input_shape):
@@ -113,6 +111,7 @@ class TransPhaseNet(PhaseNet):
             x = self._down_block(self.filters[i], self.kernelsizes[i], x)
             if self.residual_attention[i] > 0 and self.att_type == 'downstep':
                 x = self._att_block(x, skips[-1], self.residual_attention[i])
+                x = crop_and_concat(x, att)
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
