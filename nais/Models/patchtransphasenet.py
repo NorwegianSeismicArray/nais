@@ -43,6 +43,7 @@ class PatchTransPhaseNet(PhaseNet):
                  residual_attention=None,
                  patch_sizes=None,
                  patch_strides=None,
+                 intra_patch_attention=False,
                  pool_type='max',
                  att_type='downstep',
                  activation='relu',
@@ -72,7 +73,8 @@ class PatchTransPhaseNet(PhaseNet):
                                               initializer=initializer, 
                                               name=name)
         self.att_type = att_type
-            
+        self.intra_patch_attention = intra_patch_attention
+        
         if residual_attention is None:
             self.residual_attention = [16, 16, 16, 16]
         else:
@@ -107,7 +109,8 @@ class PatchTransPhaseNet(PhaseNet):
     def _att_block(self, x, y, ra, npatch, spatch):
         out = x
         
-        x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True), merge_mode='sum')(x)
+        x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True))(x)
+        x = tfl.Conv1D(ra, 1, padding='same')(x)
         
         out_length = x.shape[1]
         
@@ -120,13 +123,28 @@ class PatchTransPhaseNet(PhaseNet):
         x = tfl.Reshape((x.shape[1], -1))(x)
         y = tfl.Reshape((y.shape[1], -1))(y)
         
+        if self.intra_patch_attention:
+            x = tf.experimental.numpy.swapaxes(x, 1, 2)
+            y = tf.experimental.numpy.swapaxes(y, 1, 2)
+            
+            x = TransformerBlock(num_heads=8,
+                                embed_dim=x.shape[-1],
+                                ff_dim=ra*4,
+                                rate=self.dropout_rate)(x)
+            y = TransformerBlock(num_heads=8,
+                                embed_dim=x.shape[-1],
+                                ff_dim=ra*4,
+                                rate=self.dropout_rate)(y)
+            
+            x = tf.experimental.numpy.swapaxes(x, 1, 2)
+            y = tf.experimental.numpy.swapaxes(y, 1, 2)
         
         pos = tfl.Embedding(input_dim=x.shape[1], output_dim=x.shape[2])(tf.range(start=0, limit=x.shape[1], delta=1))
         x += pos
         
         att = TransformerBlock(num_heads=8,
                                embed_dim=x.shape[-1],
-                               ff_dim=ra,
+                               ff_dim=ra*4,
                                rate=self.dropout_rate)([x,y])
         
         att = tfl.Conv1D(ra, 1, padding='same')(att)

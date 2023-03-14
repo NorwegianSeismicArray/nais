@@ -76,10 +76,11 @@ class TransPhaseNet(PhaseNet):
 
     def _att_block(self, x, y, ra):
         out = x
-        x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True), merge_mode='sum')(x)
+        x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True))(x)
+        x = tfl.Conv1D(ra, 1, padding='same')(x)
         att = TransformerBlock(num_heads=8,
                                embed_dim=ra,
-                               ff_dim=ra,
+                               ff_dim=ra*4,
                                rate=self.dropout_rate)([x,y])
         x = crop_and_concat(out, att)
         return x
