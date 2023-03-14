@@ -81,7 +81,7 @@ class PatchTransPhaseNet(PhaseNet):
             self.residual_attention = residual_attention
         
         if patch_sizes is None: 
-            self.patch_sizes = [16, 16, 16, 16]
+            self.patch_sizes = [8, 8, 8, 8]
         else:
             self.patch_sizes = patch_sizes
             
@@ -120,12 +120,13 @@ class PatchTransPhaseNet(PhaseNet):
         x = Patches(patch_size=npatch, patch_stride=spatch)(x)
         y = Patches(patch_size=npatch, patch_stride=spatch)(y)
         
-        x = tfl.Reshape((x.shape[1], -1))(x)
-        y = tfl.Reshape((y.shape[1], -1))(y)
-        
         if self.intra_patch_attention:
-            x = tf.transpose(x, [0, 2, 1])
-            y = tf.transpose(y, [0, 2, 1])
+            
+            x_shape = x.shape[1:]
+            y_shape = y.shape[1:]
+            
+            x = tfl.Reshape((x.shape[-1], -1))(x)
+            y = tfl.Reshape((y.shape[-1], -1))(y)
             
             x = TransformerBlock(num_heads=8,
                                 embed_dim=x.shape[-1],
@@ -135,9 +136,13 @@ class PatchTransPhaseNet(PhaseNet):
                                 embed_dim=y.shape[-1],
                                 ff_dim=ra*4,
                                 rate=self.dropout_rate)(y)
-            
-            x = tf.transpose(x, [0, 2, 1])
-            y = tf.transpose(y, [0, 2, 1])
+                    
+            x = tfl.Reshape(x_shape)(x)
+            y = tfl.Reshape(y_shape)(y)
+
+                
+        x = tfl.Reshape((x.shape[1], -1))(x)
+        y = tfl.Reshape((y.shape[1], -1))(y)
         
         pos = tfl.Embedding(input_dim=x.shape[1], output_dim=x.shape[2])(tf.range(start=0, limit=x.shape[1], delta=1))
         x += pos
