@@ -192,11 +192,12 @@ class PatchTransPhaseNet(PhaseNet):
             x = self._up_block(self.filters[::-1][i], self.kernelsizes[::-1][i], x)
             
             if self.residual_attention[::-1][i] > 0 and self.att_type == 'across':
-                x = self._att_block(skips[::-1][i],
+                att = self._att_block(skips[::-1][i],
                                     skips[::-1][i],
                                     self.residual_attention[::-1][i], 
                                     self.patch_sizes[::-1][i], 
                                     self.patch_strides[::-1][i])
+                x = crop_and_concat(x, att)
 
         to_crop = x.shape[1] - input_shape[1]
         if to_crop != 0:
