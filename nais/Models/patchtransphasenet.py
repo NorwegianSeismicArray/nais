@@ -11,25 +11,7 @@ import numpy as np
 from nais.utils import crop_and_concat
 
 from nais.Models import PhaseNet
-from nais.Layers import DynamicConv1D, ResnetBlock1D, TransformerBlock, Resampling1D
-
-class Patches(tfl.Layer):
-    def __init__(self, patch_size, patch_stride):
-        super(Patches, self).__init__()
-        self.patch_size = patch_size
-        self.patch_stride = patch_stride
-
-    def call(self, images):
-        batch_size = tf.shape(images)[0]
-        patches = tf.image.extract_patches(
-            images=images,
-            sizes=[1, self.patch_size, 1, 1],
-            strides=[1, self.patch_stride, 1, 1],
-            rates=[1, 1, 1, 1],
-            padding="SAME",
-        )
-        
-        return patches
+from nais.Layers import DynamicConv1D, ResnetBlock1D, TransformerBlock, Resampling1D, PatchTransformerBlock
 
 class PatchTransPhaseNet(PhaseNet):
     def __init__(self,
@@ -45,7 +27,8 @@ class PatchTransPhaseNet(PhaseNet):
                  patch_strides=None,
                  intra_patch_attention=False,
                  pool_type='max',
-                 att_type='downstep',
+                 att_type='across',
+                 rnn_type='lstm',
                  activation='relu',
                  name='PatchTransPhaseNet'):
         """Adapted to 1D from https://keras.io/examples/vision/oxford_pets_image_segmentation/
@@ -74,6 +57,7 @@ class PatchTransPhaseNet(PhaseNet):
                                               name=name)
         self.att_type = att_type
         self.intra_patch_attention = intra_patch_attention
+        self.rnn_type = rnn_type
         
         if residual_attention is None:
             self.residual_attention = [16, 16, 16, 16]
@@ -107,56 +91,25 @@ class PatchTransPhaseNet(PhaseNet):
         return x
 
     def _att_block(self, x, y, ra, npatch, spatch):
-        out = x
+ 
+        if self.rnn_type == 'lstm':
+            x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True))(x)
+        elif self.rnn_type == 'casual':
+            x1 = ResidualConv1D(ra, 3, stacked_layers=3, causal=True)(x)
+            x2 = ResidualConv1D(ra, 3, stacked_layers=3, causal=True)(tf.reverse(x, axis=1))
+            x = tf.concat([x1, tf.reverse(x2, axis=1)], axis=-1)
+        else:
+            raise NotImplementedError('rnn type:' + self.rnn_type + ' is not supported')
         
-        x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True))(x)
-        x = tfl.Conv1D(ra, 1, padding='same')(x)
+        x = tfl.Conv1D(ra, 1, padding='same')(x) 
         
-        out_length = x.shape[1]
-        
-        x = tf.expand_dims(x, axis=-1)
-        y = tf.expand_dims(y, axis=-1)
-        
-        x = Patches(patch_size=npatch, patch_stride=spatch)(x)
-        y = Patches(patch_size=npatch, patch_stride=spatch)(y)
-        
-        if self.intra_patch_attention:
-            
-            x_shape = x.shape[1:]
-            y_shape = y.shape[1:]
-            
-            x = tfl.Reshape((x.shape[-1], -1))(x)
-            y = tfl.Reshape((y.shape[-1], -1))(y)
-            
-            x = TransformerBlock(num_heads=8,
-                                embed_dim=x.shape[-1],
-                                ff_dim=ra*4,
-                                rate=self.dropout_rate)(x)
-            y = TransformerBlock(num_heads=8,
-                                embed_dim=y.shape[-1],
-                                ff_dim=ra*4,
-                                rate=self.dropout_rate)(y)
-                    
-            x = tfl.Reshape(x_shape)(x)
-            y = tfl.Reshape(y_shape)(y)
-
+        att = PatchTransformerBlock(npatch, 
+                                    spatch,
+                                    num_heads=8,
+                                    embed_dim=npatch*ra,
+                                    ff_dim=npatch*ra,
+                                    rate=self.dropout_rate)([x,y])
                 
-        x = tfl.Reshape((x.shape[1], -1))(x)
-        y = tfl.Reshape((y.shape[1], -1))(y)
-        
-        pos = tfl.Embedding(input_dim=x.shape[1], output_dim=x.shape[2])(tf.range(start=0, limit=x.shape[1], delta=1))
-        x += pos
-        
-        att = TransformerBlock(num_heads=8,
-                               embed_dim=x.shape[-1],
-                               ff_dim=ra*4,
-                               rate=self.dropout_rate)([x,y])
-        
-        att = tfl.Conv1D(ra, 1, padding='same')(att)
-        att = Resampling1D(out_length)(att)
-        
-        x = crop_and_concat(out, att)
-        
         return x
 
     def build(self, input_shape):
@@ -175,11 +128,12 @@ class PatchTransPhaseNet(PhaseNet):
         for i in range(1, len(self.filters)):
             x = self._down_block(self.filters[i], self.kernelsizes[i], x)
             if self.residual_attention[i] > 0 and self.att_type == 'downstep':
-                x = self._att_block(x, 
+                att = self._att_block(x, 
                                     skips[-1], 
                                     self.residual_attention[i], 
                                     self.patch_sizes[i], 
                                     self.patch_strides[i])
+                x = crop_and_concat(x, att)
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
@@ -237,7 +191,7 @@ class PatchTransPhaseNet(PhaseNet):
 
     def call(self, inputs):
         return self.model(inputs)
-
+    
 class PatchTransPhaseNetMetadata(PatchTransPhaseNet):
     def __init__(self, num_outputs=None, metadata_model=None, ph_kw=None):
         """Provides a wrapper for TransPhaseNet with a metadata output, eg., when learning back azimuth.
@@ -253,6 +207,7 @@ class PatchTransPhaseNetMetadata(PatchTransPhaseNet):
                                                    tfl.Dense(num_outputs)])
         else:
             self.metadata_model = metadata_model
+            
     def call(self, inputs):
         p = self.model(inputs)
         m = self.encoder(inputs)

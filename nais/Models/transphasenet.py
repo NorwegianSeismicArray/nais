@@ -24,7 +24,8 @@ class TransPhaseNet(PhaseNet):
                  initializer='glorot_normal',
                  residual_attention=None,
                  pool_type='max',
-                 att_type='downstep',
+                 att_type='across',
+                 rnn_type='lstm',
                  activation='relu',
                  name='TransPhaseNet'):
         """Adapted to 1D from https://keras.io/examples/vision/oxford_pets_image_segmentation/
@@ -40,6 +41,7 @@ class TransPhaseNet(PhaseNet):
             initializer (tf.keras.initializers.Initializer, optional): weight initializer. Defaults to 'glorot_normal'.
             name (str, optional): model name. Defaults to 'PhaseNet'.
             att_type (str, optional): if the attention should work during downstep or across (self attention). 
+            rnn_type (str, optional): use "lstm" rnns or "causal" dilated conv.  
         """
         super(TransPhaseNet, self).__init__(num_classes=num_classes, 
                                               filters=filters, 
@@ -52,6 +54,7 @@ class TransPhaseNet(PhaseNet):
                                               initializer=initializer, 
                                               name=name)
         self.att_type = att_type
+        self.rnn_type = rnn_type
             
         if residual_attention is None:
             self.residual_attention = [16, 16, 16, 16]
@@ -76,8 +79,16 @@ class TransPhaseNet(PhaseNet):
 
     def _att_block(self, x, y, ra):
         out = x
-        x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True))(x)
+        if self.rnn_type == 'lstm':
+            x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True))(x)
+        elif self.rnn_type == 'casual':
+            x1 = ResidualConv1D(ra, 3, stacked_layers=3, causal=True)(x)
+            x2 = ResidualConv1D(ra, 3, stacked_layers=3, causal=True)(tf.reverse(x, axis=1))
+            x = tf.concat([x1, tf.reverse(x2, axis=1)], axis=-1)
+        else:
+            raise NotImplementedError('rnn type:' + self.rnn_type + ' is not supported')
         x = tfl.Conv1D(ra, 1, padding='same')(x)
+        
         att = TransformerBlock(num_heads=8,
                                embed_dim=ra,
                                ff_dim=ra*4,
@@ -116,7 +127,6 @@ class TransPhaseNet(PhaseNet):
             if self.residual_attention[::-1][i] > 0 and self.att_type == 'across':
                 att = self._att_block(skips[::-1][i], skips[::-1][i])
                 x = crop_and_concat(x, att)
-                
 
         to_crop = x.shape[1] - input_shape[1]
         if to_crop != 0:

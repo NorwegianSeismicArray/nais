@@ -11,7 +11,7 @@ get_custom_objects().update({'mish': Activation(mish)})
 
 class ResidualConv1D(tfl.Layer):
    
-    def __init__(self, filters=32, kernel_size=3, stacked_layer=1):
+    def __init__(self, filters=32, kernel_size=3, stacked_layer=1, causal=False):
         """1D residual convolution 
         
         Args:
@@ -24,6 +24,7 @@ class ResidualConv1D(tfl.Layer):
         self.filters = filters
         self.kernel_size = kernel_size
         self.stacked_layer = stacked_layer
+        self.causal = causal
 
     def build(self, input_shape):
         self.sigmoid_layers = []
@@ -32,10 +33,12 @@ class ResidualConv1D(tfl.Layer):
 
         for dilation_rate in [2 ** i for i in range(self.stacked_layer)]:
             self.sigmoid_layers.append(
-                tfl.Conv1D(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same',
+                tfl.Conv1D(self.filters, self.kernel_size, dilation_rate=dilation_rate, 
+                           padding='causal' if self.causal else 'same',
                                     activation='sigmoid'))
             self.tanh_layers.append(
-                tfl.Conv1D(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same',
+                tfl.Conv1D(self.filters, self.kernel_size, dilation_rate=dilation_rate, 
+                           padding='causal' if self.causal else 'same',
                                     activation='tanh'))
             self.conv_layers.append(tfl.Conv1D(self.filters, 1, padding='same'))
 
@@ -61,7 +64,7 @@ class ResidualConv1D(tfl.Layer):
 
 class ResidualConv1DTranspose(tfl.Layer):
     
-    def __init__(self, filters=32, kernel_size=3, stacked_layer=1):
+    def __init__(self, filters=32, kernel_size=3, stacked_layer=1, causal=False):
         """Inverse 1D residual convolution
 
         Args:
@@ -74,6 +77,7 @@ class ResidualConv1DTranspose(tfl.Layer):
         self.filters = filters
         self.kernel_size = kernel_size
         self.stacked_layer = stacked_layer
+        self.causal = causal
 
     def build(self, input_shape):
         self.sigmoid_layers = []
@@ -81,8 +85,8 @@ class ResidualConv1DTranspose(tfl.Layer):
         self.conv_layers = []
 
         for dilation_rate in [2 ** i for i in range(self.stacked_layer)]:
-            self.sigmoid_layers.append(tfl.Conv1DTranspose(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same', activation='sigmoid'))
-            self.tanh_layers.append(tfl.Conv1DTranspose(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='same', activation='mish'))
+            self.sigmoid_layers.append(tfl.Conv1DTranspose(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='causal' if self.causal else 'same', activation='sigmoid'))
+            self.tanh_layers.append(tfl.Conv1DTranspose(self.filters, self.kernel_size, dilation_rate=dilation_rate, padding='causal' if self.causal else 'same', activation='mish'))
             self.conv_layers.append(tfl.Conv1DTranspose(self.filters, 1, padding='same'))
 
     def get_config(self):
