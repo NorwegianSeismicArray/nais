@@ -11,7 +11,12 @@ get_custom_objects().update({'mish': Activation(mish)})
 
 class ResidualConv1D(tfl.Layer):
    
-    def __init__(self, filters=32, kernel_size=3, stacked_layer=1, causal=False):
+    def __init__(self, 
+                 filters=32, 
+                 kernel_size=3, 
+                 stacked_layer=1, 
+                 activation='relu',
+                 causal=False):
         """1D residual convolution 
         
         Args:
@@ -25,12 +30,15 @@ class ResidualConv1D(tfl.Layer):
         self.kernel_size = kernel_size
         self.stacked_layer = stacked_layer
         self.causal = causal
+        self.final_activation = tf.keras.activations.get(activation)
 
     def build(self, input_shape):
         self.sigmoid_layers = []
         self.tanh_layers = []
         self.conv_layers = []
-
+        
+        self.shape_matching_layer = tfl.Conv1D(self.filters, 1, padding = 'same')
+        
         for dilation_rate in [2 ** i for i in range(self.stacked_layer)]:
             self.sigmoid_layers.append(
                 tfl.Conv1D(self.filters, self.kernel_size, dilation_rate=dilation_rate, 
@@ -49,7 +57,8 @@ class ResidualConv1D(tfl.Layer):
                     stacked_layer=self.stacked_layer)
 
     def call(self, inputs):
-        residual_output = inputs
+        out = self.shape_matching_layer(inputs)
+        residual_attention = out
         x = inputs
         for sl, tl, cl in zip(self.sigmoid_layers, self.tanh_layers, self.conv_layers):
             sigmoid_x = sl(x)
@@ -59,8 +68,7 @@ class ResidualConv1D(tfl.Layer):
             x = cl(x)
             residual_output = tfl.add([residual_output, x])
 
-        return residual_output
-
+        return self.activation(self.add([out, x]))
 
 class ResidualConv1DTranspose(tfl.Layer):
     

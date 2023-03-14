@@ -80,7 +80,7 @@ class TransPhaseNet(PhaseNet):
     def _att_block(self, x, y, ra):
         if self.rnn_type == 'lstm':
             x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True))(x)
-        elif self.rnn_type == 'casual':
+        elif self.rnn_type == 'causal':
             x1 = ResidualConv1D(ra, 3, stacked_layers=3, causal=True)(x)
             x2 = ResidualConv1D(ra, 3, stacked_layers=3, causal=True)(tf.reverse(x, axis=1))
             x = tf.concat([x1, tf.reverse(x2, axis=1)], axis=-1)
