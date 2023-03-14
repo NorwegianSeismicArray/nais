@@ -60,7 +60,7 @@ class PatchTransPhaseNet(PhaseNet):
             dropout_rate (float, optional): dropout. Defaults to 0.2.
             initializer (tf.keras.initializers.Initializer, optional): weight initializer. Defaults to 'glorot_normal'.
             name (str, optional): model name. Defaults to 'PhaseNet'.
-            att_type (str, optional): if the attention should work during downstep or across. 
+            att_type (str, optional): if the attention should work during downstep or across (self attention). 
         """
         super(PatchTransPhaseNet, self).__init__(num_classes=num_classes, 
                                               filters=filters, 
@@ -192,7 +192,7 @@ class PatchTransPhaseNet(PhaseNet):
             x = self._up_block(self.filters[::-1][i], self.kernelsizes[::-1][i], x)
             
             if self.residual_attention[::-1][i] > 0 and self.att_type == 'across':
-                x = self._att_block(x, 
+                x = self._att_block(skips[::-1][i],
                                     skips[::-1][i],
                                     self.residual_attention[::-1][i], 
                                     self.patch_sizes[::-1][i], 
