@@ -58,7 +58,7 @@ class ResidualConv1D(tfl.Layer):
 
     def call(self, inputs):
         out = self.shape_matching_layer(inputs)
-        residual_attention = out
+        residual_output = out
         x = inputs
         for sl, tl, cl in zip(self.sigmoid_layers, self.tanh_layers, self.conv_layers):
             sigmoid_x = sl(x)
