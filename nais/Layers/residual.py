@@ -30,7 +30,7 @@ class ResidualConv1D(tfl.Layer):
         self.kernel_size = kernel_size
         self.stacked_layer = stacked_layer
         self.causal = causal
-        self.final_activation = tf.keras.activations.get(activation)
+        self.activation = activation
 
     def build(self, input_shape):
         self.sigmoid_layers = []
@@ -38,6 +38,8 @@ class ResidualConv1D(tfl.Layer):
         self.conv_layers = []
         
         self.shape_matching_layer = tfl.Conv1D(self.filters, 1, padding = 'same')
+        self.add = tfl.Add()
+        self.final_activation = tf.keras.activations.get(self.activation)
         
         for dilation_rate in [2 ** i for i in range(self.stacked_layer)]:
             self.sigmoid_layers.append(

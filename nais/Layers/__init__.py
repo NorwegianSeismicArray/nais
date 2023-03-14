@@ -10,3 +10,4 @@ from .spectrogram import StackedSpectrogram
 from .conv import DynamicConv1D
 from .patches import Patches1D
 from .transformer import *
+from .temporal import *
