@@ -68,7 +68,7 @@ class ResidualConv1D(tfl.Layer):
             x = cl(x)
             residual_output = tfl.add([residual_output, x])
 
-        return self.activation(self.add([out, x]))
+        return self.final_activation(self.add([out, x]))
 
 class ResidualConv1DTranspose(tfl.Layer):
     
