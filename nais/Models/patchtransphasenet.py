@@ -124,20 +124,20 @@ class PatchTransPhaseNet(PhaseNet):
         y = tfl.Reshape((y.shape[1], -1))(y)
         
         if self.intra_patch_attention:
-            x = tf.experimental.numpy.swapaxes(x, 1, 2)
-            y = tf.experimental.numpy.swapaxes(y, 1, 2)
+            x = tf.transpose(x, [0, 2, 1])
+            y = tf.transpose(y, [0, 2, 1])
             
             x = TransformerBlock(num_heads=8,
                                 embed_dim=x.shape[-1],
                                 ff_dim=ra*4,
                                 rate=self.dropout_rate)(x)
             y = TransformerBlock(num_heads=8,
-                                embed_dim=x.shape[-1],
+                                embed_dim=y.shape[-1],
                                 ff_dim=ra*4,
                                 rate=self.dropout_rate)(y)
             
-            x = tf.experimental.numpy.swapaxes(x, 1, 2)
-            y = tf.experimental.numpy.swapaxes(y, 1, 2)
+            x = tf.transpose(x, [0, 2, 1])
+            y = tf.transpose(y, [0, 2, 1])
         
         pos = tfl.Embedding(input_dim=x.shape[1], output_dim=x.shape[2])(tf.range(start=0, limit=x.shape[1], delta=1))
         x += pos
@@ -231,9 +231,6 @@ class PatchTransPhaseNet(PhaseNet):
 
     def call(self, inputs):
         return self.model(inputs)
-    
-model = PatchTransPhaseNet()
-model.build((None, 6000, 3))
 
 class PatchTransPhaseNetMetadata(PatchTransPhaseNet):
     def __init__(self, num_outputs=None, metadata_model=None, ph_kw=None):
