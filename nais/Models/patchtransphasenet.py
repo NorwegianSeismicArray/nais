@@ -137,7 +137,8 @@ class PatchTransPhaseNet(PhaseNet):
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
-            x = self._att_block(x, x, self.residual_attention[-1], self.patch_sizes[-1], self.patch_strides[-1])
+            att = self._att_block(x, x, self.residual_attention[-1], self.patch_sizes[-1], self.patch_strides[-1])
+            x = crop_and_concat(x, att)
 
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
