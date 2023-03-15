@@ -29,6 +29,7 @@ class PatchTransPhaseNet(PhaseNet):
                  pool_type='max',
                  att_type='across',
                  rnn_type='lstm',
+                 stacked_layer=4,
                  activation='relu',
                  name='PatchTransPhaseNet'):
         """Adapted to 1D from https://keras.io/examples/vision/oxford_pets_image_segmentation/
@@ -58,6 +59,7 @@ class PatchTransPhaseNet(PhaseNet):
         self.att_type = att_type
         self.intra_patch_attention = intra_patch_attention
         self.rnn_type = rnn_type
+        self.stacked_layer = stacked_layer
         
         if residual_attention is None:
             self.residual_attention = [16, 16, 16, 16]
@@ -95,8 +97,8 @@ class PatchTransPhaseNet(PhaseNet):
         if self.rnn_type == 'lstm':
             x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True))(x)
         elif self.rnn_type == 'casual':
-            x1 = ResidualConv1D(ra, 3, stacked_layers=4, causal=True)(x)
-            x2 = ResidualConv1D(ra, 3, stacked_layers=4, causal=True)(tf.reverse(x, axis=[1]))
+            x1 = ResidualConv1D(ra, 3, stacked_layers=self.stacked_layer, causal=True)(x)
+            x2 = ResidualConv1D(ra, 3, stacked_layers=self.stacked_layer, causal=True)(tf.reverse(x, axis=[1]))
             x = tf.concat([x1, tf.reverse(x2, axis=[1])], axis=-1)
         else:
             raise NotImplementedError('rnn type:' + self.rnn_type + ' is not supported')
