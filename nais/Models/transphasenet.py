@@ -26,6 +26,7 @@ class TransPhaseNet(PhaseNet):
                  pool_type='max',
                  att_type='across',
                  rnn_type='lstm',
+                 additive_att=True,
                  stacked_layer=4,
                  activation='relu',
                  name='TransPhaseNet'):
@@ -57,6 +58,7 @@ class TransPhaseNet(PhaseNet):
         self.att_type = att_type
         self.rnn_type = rnn_type
         self.stacked_layer = stacked_layer
+        self.additive_att = additive_att
             
         if residual_attention is None:
             self.residual_attention = [16, 16, 16, 16]
@@ -113,12 +115,20 @@ class TransPhaseNet(PhaseNet):
             x = self._down_block(self.filters[i], self.kernelsizes[i], x)
             if self.residual_attention[i] > 0 and self.att_type == 'downstep':
                 att = self._att_block(x, skips[-1], self.residual_attention[i])
-                x = crop_and_concat(x, att)
+                if self.additive_att:
+                    x += att
+                else:
+                    x = crop_and_concat(x, att)
+                    x = tfl.Conv1D(self.filters[i], 1, padding='same')
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
             att = self._att_block(x, x, self.residual_attention[-1])
-            x = crop_and_concat(x, att)
+            if self.additive_att:
+                x += att
+            else:
+                x = crop_and_concat(x, att)
+                x = tfl.Conv1D(self.filters[-1], 1, padding='same')
 
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
@@ -128,7 +138,11 @@ class TransPhaseNet(PhaseNet):
             
             if self.residual_attention[::-1][i] > 0 and self.att_type == 'across':
                 att = self._att_block(skips[::-1][i], skips[::-1][i])
-                x = crop_and_concat(x, att)
+                if self.additive_att:
+                    x += att
+                else:
+                    x = crop_and_concat(x, att)
+                    x = tfl.Conv1D(self.filters[::-1][i], 1, padding='same')
 
         to_crop = x.shape[1] - input_shape[1]
         if to_crop != 0:

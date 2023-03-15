@@ -29,6 +29,7 @@ class PatchTransPhaseNet(PhaseNet):
                  pool_type='max',
                  att_type='across',
                  rnn_type='lstm',
+                 additive_att = True,
                  stacked_layer=4,
                  activation='relu',
                  name='PatchTransPhaseNet'):
@@ -60,6 +61,7 @@ class PatchTransPhaseNet(PhaseNet):
         self.intra_patch_attention = intra_patch_attention
         self.rnn_type = rnn_type
         self.stacked_layer = stacked_layer
+        self.additive_att = additive_att
         
         if residual_attention is None:
             self.residual_attention = [16, 16, 16, 16]
@@ -141,14 +143,21 @@ class PatchTransPhaseNet(PhaseNet):
                                     self.residual_attention[i], 
                                     self.patch_sizes[i], 
                                     self.patch_strides[i])
-                #x = crop_and_concat(x, att)
-                x += att
+                if self.additive_att:
+                    x += att
+                else:
+                    x = crop_and_concat(x, att)
+                    x = tfl.Conv1D(self.filters[i], 1, padding='same')
+                    
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
             att = self._att_block(x, x, self.residual_attention[-1], self.patch_sizes[-1], self.patch_strides[-1])
-            #x = crop_and_concat(x, att)
-            x += att
+            if self.additive_att:
+                x += att
+            else:
+                x = crop_and_concat(x, att)
+                x = tfl.Conv1D(self.filters[-1], 1, padding='same')
 
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
@@ -162,8 +171,11 @@ class PatchTransPhaseNet(PhaseNet):
                                     self.residual_attention[::-1][i], 
                                     self.patch_sizes[::-1][i], 
                                     self.patch_strides[::-1][i])
-                #x = crop_and_concat(x, att)
-                x += att
+                if self.additive_att:
+                    x += att
+                else:
+                    x = crop_and_concat(x, att)
+                    x = tfl.Conv1D(self.filters[::-1][i], 1, padding='same')
 
         to_crop = x.shape[1] - input_shape[1]
         if to_crop != 0:
