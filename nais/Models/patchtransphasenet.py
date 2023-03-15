@@ -104,6 +104,7 @@ class PatchTransPhaseNet(PhaseNet):
             raise NotImplementedError('rnn type:' + self.rnn_type + ' is not supported')
         
         x = tfl.Conv1D(ra, 1, padding='same')(x) 
+        print(x.shape)
         
         if npatch > 1:
             att = PatchTransformerBlock(npatch, 
@@ -117,6 +118,7 @@ class PatchTransPhaseNet(PhaseNet):
                                 embed_dim=ra,
                                 ff_dim=ra*4,
                                 rate=self.dropout_rate)([x,y])
+        print(att.shape)
                         
         return att
 
