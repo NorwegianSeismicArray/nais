@@ -95,8 +95,8 @@ class PatchTransPhaseNet(PhaseNet):
         if self.rnn_type == 'lstm':
             x = tfl.Bidirectional(tfl.LSTM(ra, return_sequences=True))(x)
         elif self.rnn_type == 'casual':
-            x1 = ResidualConv1D(ra, 3, stacked_layers=3, causal=True)(x)
-            x2 = ResidualConv1D(ra, 3, stacked_layers=3, causal=True)(tf.reverse(x, axis=[1]))
+            x1 = ResidualConv1D(ra, 3, stacked_layers=4, causal=True)(x)
+            x2 = ResidualConv1D(ra, 3, stacked_layers=4, causal=True)(tf.reverse(x, axis=[1]))
             x = tf.concat([x1, tf.reverse(x2, axis=[1])], axis=-1)
         else:
             raise NotImplementedError('rnn type:' + self.rnn_type + ' is not supported')
