@@ -104,7 +104,6 @@ class PatchTransPhaseNet(PhaseNet):
             raise NotImplementedError('rnn type:' + self.rnn_type + ' is not supported')
         
         x = tfl.Conv1D(ra, 1, padding='same')(x) 
-        print(x.shape)
         
         if npatch > 1:
             att = PatchTransformerBlock(npatch, 
@@ -118,7 +117,6 @@ class PatchTransPhaseNet(PhaseNet):
                                 embed_dim=ra,
                                 ff_dim=ra*4,
                                 rate=self.dropout_rate)([x,y])
-        print(att.shape)
                         
         return att
 
@@ -143,12 +141,14 @@ class PatchTransPhaseNet(PhaseNet):
                                     self.residual_attention[i], 
                                     self.patch_sizes[i], 
                                     self.patch_strides[i])
-                x = crop_and_concat(x, att)
+                #x = crop_and_concat(x, att)
+                x += att
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
             att = self._att_block(x, x, self.residual_attention[-1], self.patch_sizes[-1], self.patch_strides[-1])
-            x = crop_and_concat(x, att)
+            #x = crop_and_concat(x, att)
+            x += att
 
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
@@ -162,7 +162,8 @@ class PatchTransPhaseNet(PhaseNet):
                                     self.residual_attention[::-1][i], 
                                     self.patch_sizes[::-1][i], 
                                     self.patch_strides[::-1][i])
-                x = crop_and_concat(x, att)
+                #x = crop_and_concat(x, att)
+                x += att
 
         to_crop = x.shape[1] - input_shape[1]
         if to_crop != 0:
