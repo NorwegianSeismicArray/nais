@@ -23,6 +23,19 @@ def crop_and_concat(x, y):
         y = tfl.ZeroPadding1D((of_start, of_end))(y)
     return tfl.concatenate([x,y])
 
+def crop_and_add(x, y):
+    to_crop = x.shape[1] - y.shape[1]
+    if to_crop < 0:
+        to_crop = abs(to_crop)
+        of_start, of_end = to_crop // 2, to_crop // 2
+        of_end += to_crop % 2
+        y = tfl.Cropping1D((of_start, of_end))(y)
+    elif to_crop > 0:
+        of_start, of_end = to_crop // 2, to_crop // 2
+        of_end += to_crop % 2
+        y = tfl.ZeroPadding1D((of_start, of_end))(y)
+    return x + y
+
 def spectrogram_standard_scaler(spectrograms):
     return spectrograms - spectrograms.mean(axis=0)[np.newaxis,:] / spectrograms.std(axis=0)[np.newaxis,:]
 
