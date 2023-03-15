@@ -94,7 +94,7 @@ class TransPhaseNet(PhaseNet):
                                embed_dim=ra,
                                ff_dim=ra*4,
                                rate=self.dropout_rate)([x,y])
-        return x
+        return att
 
     def build(self, input_shape):
         inputs = tf.keras.Input(shape=input_shape[1:])
