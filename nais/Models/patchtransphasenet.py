@@ -105,14 +105,20 @@ class PatchTransPhaseNet(PhaseNet):
         
         x = tfl.Conv1D(ra, 1, padding='same')(x) 
         
-        att = PatchTransformerBlock(npatch, 
-                                    spatch,
-                                    num_heads=8,
-                                    embed_dim=npatch*ra,
-                                    ff_dim=npatch*ra,
-                                    rate=self.dropout_rate)([x,y])
-                
-        return x
+        if npatch > 1:
+            att = PatchTransformerBlock(npatch, 
+                                        spatch,
+                                        num_heads=8,
+                                        embed_dim=npatch*ra,
+                                        ff_dim=npatch*ra,
+                                        rate=self.dropout_rate)([x,y])
+        else:
+            att = TransformerBlock(num_heads=8,
+                                embed_dim=ra,
+                                ff_dim=ra*4,
+                                rate=self.dropout_rate)([x,y])
+                        
+        return att
 
     def build(self, input_shape):
         inputs = tf.keras.Input(shape=input_shape[1:])
