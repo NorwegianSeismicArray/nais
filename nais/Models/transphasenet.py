@@ -8,7 +8,7 @@ import tensorflow as tf
 import tensorflow.keras.layers as tfl 
 import tensorflow.keras.backend as K
 import numpy as np
-from nais.utils import crop_and_concat
+from nais.utils import crop_and_concat, crop_and_add
 
 from nais.Models import PhaseNet
 from nais.Layers import DynamicConv1D, TransformerBlock, ResnetBlock1D, ResidualConv1D
@@ -118,14 +118,14 @@ class TransPhaseNet(PhaseNet):
                 if self.additive_att:
                     x += att
                 else:
-                    x = crop_and_concat(x, att)
+                    x = crop_and_add(x, att)
                     x = tfl.Conv1D(self.filters[i], 1, padding='same')
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
             att = self._att_block(x, x, self.residual_attention[-1])
             if self.additive_att:
-                x += att
+                x = crop_and_add(x, att)
             else:
                 x = crop_and_concat(x, att)
                 x = tfl.Conv1D(self.filters[-1], 1, padding='same')
@@ -139,7 +139,7 @@ class TransPhaseNet(PhaseNet):
             if self.residual_attention[::-1][i] > 0 and self.att_type == 'across':
                 att = self._att_block(skips[::-1][i], skips[::-1][i])
                 if self.additive_att:
-                    x += att
+                    x = crop_and_add(x, att)
                 else:
                     x = crop_and_concat(x, att)
                     x = tfl.Conv1D(self.filters[::-1][i], 1, padding='same')
