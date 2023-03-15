@@ -110,12 +110,13 @@ class TransPhaseNet(PhaseNet):
         for i in range(1, len(self.filters)):
             x = self._down_block(self.filters[i], self.kernelsizes[i], x)
             if self.residual_attention[i] > 0 and self.att_type == 'downstep':
-                x = self._att_block(x, skips[-1], self.residual_attention[i])
+                att = self._att_block(x, skips[-1], self.residual_attention[i])
                 x = crop_and_concat(x, att)
             skips.append(x)
 
         if self.residual_attention[-1] > 0:
-            x = self._att_block(x, x, self.residual_attention[-1])
+            att = self._att_block(x, x, self.residual_attention[-1])
+            x = crop_and_concat(x, att)
 
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
