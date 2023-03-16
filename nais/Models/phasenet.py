@@ -73,7 +73,7 @@ class PhaseNet(tf.keras.Model):
         x = tfl.BatchNormalization()(x)
         x = tfl.Activation(self.activation)(x)
         x = tfl.Dropout(self.dropout_rate)(x)
-        x = self.pool_layer(4, 2, padding='same')
+        x = self.pool_layer(4, 2, padding='same')(x)
         return x
     
     def _up_block(self, f, ks, x):
