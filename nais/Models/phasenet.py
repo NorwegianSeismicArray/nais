@@ -59,35 +59,33 @@ class PhaseNet(tf.keras.Model):
         else:
             self.pool_layer = tfl.AveragePooling1D
             
-        if conv_type == 'conv':
-            self.conv_layer = tfl.Conv1D 
-        elif conv_type == 'seperable':
+        if conv_type == 'seperable':
             self.conv_layer = tfl.SeparableConv1D
-        elif conv_type == 'depthwize':
-            self.conv_layer = tfl.DepthwiseConv1D
+        else:
+            self.conv_layer = tfl.Conv1D
 
     def _down_block(self, f, ks, x):
         x = self.conv_layer(f, 
                         ks, 
-                        strides=2,
                         padding="same",
                         kernel_regularizer=self.kernel_regularizer,
                         kernel_initializer=self.initializer)(x)
         x = tfl.BatchNormalization()(x)
         x = tfl.Activation(self.activation)(x)
         x = tfl.Dropout(self.dropout_rate)(x)
+        x = self.pool_layer(4, 2, padding='same')
         return x
     
     def _up_block(self, f, ks, x):
         x = self.conv_layer(f, 
-                                ks, 
-                                strides=2,
-                                padding="same",
-                                kernel_regularizer=self.kernel_regularizer,
-                                kernel_initializer=self.initializer)(x)
+                            ks, 
+                            padding="same",
+                            kernel_regularizer=self.kernel_regularizer,
+                            kernel_initializer=self.initializer)(x)
         x = tfl.BatchNormalization()(x)
         x = tfl.Activation(self.activation)(x)
         x = tfl.Dropout(self.dropout_rate)(x)
+        x = tfl.UpSampling1D(2)(x)
         return x
         
 
@@ -97,8 +95,8 @@ class PhaseNet(tf.keras.Model):
         ### [First half of the network: downsampling inputs] ###
 
         # Entry block
-        x = tfl.Conv1D(self.filters[0], self.kernelsizes[0],
-                       strides=1,
+        x = self.conv_layer(self.filters[0], 
+                            self.kernelsizes[0],
                        kernel_regularizer=self.kernel_regularizer,
                        padding="same",
                        name='entry')(inputs)
@@ -129,11 +127,11 @@ class PhaseNet(tf.keras.Model):
             x = tfl.Cropping1D((of_start, of_end))(x)
         
         #Exit block
-        x = tfl.Conv1D(self.filters[0], self.kernelsizes[0],
-                       strides=1,
-                       kernel_regularizer=self.kernel_regularizer,
-                       padding="same",
-                       name='exit')(x)
+        x = self.conv_layer(self.filters[0], 
+                            self.kernelsizes[0],
+                            kernel_regularizer=self.kernel_regularizer,
+                            padding="same",
+                            name='exit')(x)
 
         x = tfl.BatchNormalization()(x)
         x = tfl.Activation(self.activation)(x)
