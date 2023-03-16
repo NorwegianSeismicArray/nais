@@ -44,7 +44,7 @@ class PatchTransformerBlock(tfl.Layer):
         self.dropout1 = tfl.Dropout(rate)
         self.dropout2 = tfl.Dropout(rate)
         
-    def call(self, inputs):
+    def call(self, inputs, training):
         if isinstance(inputs, (list, tuple)):
             query, value = inputs 
         else: 
