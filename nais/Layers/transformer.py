@@ -65,6 +65,6 @@ class PatchTransformerBlock(tfl.Layer):
         
         out = self.layernorm2(out1 + ffn_output)
         
-        out = tf.reshape(out, (out.shape[0], -1, out.shape[-1]))
+        out = tf.reshape(out, (out.shape[0], out.shape[1]*out.shape[2], out.shape[3]))
         
         return out
