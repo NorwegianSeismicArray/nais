@@ -22,7 +22,7 @@ class PhaseNet(tf.keras.Model):
                  pool_type='max',
                  activation='relu',
                  initializer='glorot_normal',
-                 conv_type='conv',
+                 conv_type='default',
                  name='PhaseNet'):
         """Adapted to 1D from https://keras.io/examples/vision/oxford_pets_image_segmentation/
 
