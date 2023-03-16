@@ -29,7 +29,7 @@ class PatchTransPhaseNet(PhaseNet):
                  pool_type='max',
                  att_type='across',
                  rnn_type='lstm',
-                 additive_att = True,
+                 additive_att=True,
                  stacked_layer=4,
                  activation='relu',
                  name='PatchTransPhaseNet'):

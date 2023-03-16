@@ -77,13 +77,7 @@ class EarthQuakeTransformer(tf.keras.Model):
         if transformer_sizes is None:
             transformer_sizes = [64,64]
 
-        try:
-            assert resfilters[0] == filters[-1]
-        except AssertionError:
-            print('Filters missmatch.')
-            filters[-1] = resfilters[0]
-
-        pool_layer = tfl.MaxPooling1D if pool_type else tfl.AveragePooling1D
+        pool_layer = tfl.MaxPooling1D if pool_type == 'max' else tfl.AveragePooling1D
 
         def conv_block(f,kz):
             return tf.keras.Sequential([tfl.Conv1D(f, kz, padding='same', kernel_regularizer=kernel_regularizer),
