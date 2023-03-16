@@ -74,7 +74,7 @@ class PatchTransPhaseNet(PhaseNet):
             self.patch_sizes = patch_sizes
             
         if patch_strides is None:
-            self.patch_strides = [8, 8, 8, 8]
+            self.patch_strides = self.patch_sizes
         else:
             self.patch_strides = patch_strides
     

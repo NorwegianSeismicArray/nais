@@ -1,6 +1,7 @@
 
 import tensorflow.keras.layers as tfl
 import tensorflow as tf 
+import numpy as np
 
 from nais.Layers import Patches1D
 
@@ -31,14 +32,34 @@ class TransformerBlock(tfl.Layer):
         return self.layernorm2(out1 + ffn_output)
     
 class PatchTransformerBlock(tfl.Layer):
-    def __init__(self, patch_size, patch_stride, embed_dim, num_heads, ff_dim, outdim, rate=0.1):
+    def __init__(self, patch_size, embed_dim, num_heads, ff_dim, rate=0.1):
         super().__init__()
-        self.patching = Patches1D(patch_size, patch_stride)
-        self.transformer = TransformerBlock(embed_dim=embed_dim, 
-                                            num_heads=num_heads, 
-                                            ff_dim=ff_dim, 
-                                            rate=rate)
-        self.reshape = tfl.Reshape((-1, outdim))
+        self.patch_size = patch_size
+        self.embed_dim = embed_dim
+        self.num_heads = num_heads
+        self.rate = rate 
+        self.ff_dim = ff_dim
+        self.patching = Patches1D(patch_size, patch_size)
+        
+    def build(self, input_shape):
+        if isinstance(input_shape, list):
+            query, value = input_shape
+        else: 
+            query, value = input_shape, input_shape
+        b, t, c = query
+        num_patches = int(np.ceil(t/self.patch_size))
+        self.reshape_query = tfl.Reshape((num_patches, -1))
+        self.pos_embedding = tfl.Embedding(num_patches, c*self.patch_size)
+        
+        self.transformer = TransformerBlock(embed_dim=c*self.patch_size, 
+                                            num_heads=self.num_heads, 
+                                            ff_dim=c*self.patch_size, 
+                                            rate=self.rate)
+        
+        b, t, c = value
+        self.reshape_value = tfl.Reshape((int(np.ceil(t/self.patch_size)), -1))
+
+        self.reshape_output = tfl.Reshape((-1,c))        
                 
     def call(self, inputs, training):
         if isinstance(inputs, (list, tuple)):
@@ -46,17 +67,15 @@ class PatchTransformerBlock(tfl.Layer):
         else: 
             query, value = inputs, inputs
         
-        query_shape = query.shape
-        
         query = self.patching(query)
         value = self.patching(value)
-        query = tf.reshape(query, (query.shape[0], query.shape[1], query.shape[2]*query.shape[3]))
-        value = tf.reshape(value, (value.shape[0], value.shape[1], value.shape[2]*value.shape[3]))
+        query = self.reshape_query(query)
+        value = self.reshape_value(value)
         
-        out = self.transformer(query, value)
+        pos = self.pos_embedding(tf.range(0, query.shape[1], delta=1, dtype=tf.int32))
         
-        return self.reshape(out)
-
-
-
-
+        query += pos
+        
+        out = self.transformer([query, value])
+        
+        return self.reshape_output(out)
