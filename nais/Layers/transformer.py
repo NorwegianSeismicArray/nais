@@ -43,6 +43,7 @@ class PatchTransformerBlock(tfl.Layer):
         self.layernorm1 = tfl.LayerNormalization(epsilon=1e-6)
         self.layernorm2 = tfl.LayerNormalization(epsilon=1e-6)
         self.dropout1 = tfl.Dropout(rate)
+        self.reshape = tfl.Reshape((-1, embed_dim))
         
     def call(self, inputs, training):
         if isinstance(inputs, (list, tuple)):
@@ -65,6 +66,4 @@ class PatchTransformerBlock(tfl.Layer):
         
         out = self.layernorm2(out1 + ffn_output)
         
-        out = tf.reshape(out, (out.shape[0], out.shape[1]*out.shape[2], out.shape[3]))
-        
-        return out
+        return self.reshape(out)
