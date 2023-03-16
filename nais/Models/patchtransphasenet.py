@@ -108,12 +108,10 @@ class PatchTransPhaseNet(PhaseNet):
         x = tfl.Conv1D(ra, 1, padding='same')(x) 
         
         if npatch > 1:
-            att = PatchTransformerBlock(npatch, 
-                                        spatch,
+            att = PatchTransformerBlock(npatch,
                                         num_heads=8,
                                         embed_dim=ra*npatch,
                                         ff_dim=ra*npatch*4,
-                                        outdim=ra,
                                         rate=self.dropout_rate)([x,y])
         else:
             att = TransformerBlock(num_heads=8,
