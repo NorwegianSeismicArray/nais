@@ -31,7 +31,7 @@ class TransformerBlock(tfl.Layer):
         return self.layernorm2(out1 + ffn_output)
     
 class PatchTransformerBlock(tfl.Layer):
-    def __init__(self, patch_size, patch_stride, embed_dim, num_heads, ff_dim, rate=0.1):
+    def __init__(self, patch_size, patch_stride, embed_dim, num_heads, ff_dim, outdim, rate=0.1):
         super().__init__()
         self.patching = Patches1D(patch_size, patch_stride)
         self.att = tf.keras.Sequential([tfl.MultiHeadAttention(num_heads=num_heads,
@@ -43,7 +43,7 @@ class PatchTransformerBlock(tfl.Layer):
         self.layernorm1 = tfl.LayerNormalization(epsilon=1e-6)
         self.layernorm2 = tfl.LayerNormalization(epsilon=1e-6)
         self.dropout1 = tfl.Dropout(rate)
-        self.reshape = tfl.Reshape((-1, embed_dim))
+        self.reshape = tfl.Reshape((-1, outdim))
         
     def call(self, inputs, training):
         if isinstance(inputs, (list, tuple)):
