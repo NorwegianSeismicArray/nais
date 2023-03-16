@@ -55,6 +55,6 @@ class PatchTransformerBlock(tfl.Layer):
         query = self.patching(query)
         value = self.patching(value)
         
-        att = self.transformer([query,value])
+        att = self.att([query,value])
         
         return att
