@@ -61,5 +61,3 @@ class PatchTransformerBlock(tfl.Layer):
         ffn_output = self.ffn(out1)
         ffn_output = self.dropout2(ffn_output, training=training)
         return self.layernorm2(out1 + ffn_output)
-        
-        return att
