@@ -34,11 +34,9 @@ class PatchTransformerBlock(tfl.Layer):
     def __init__(self, patch_size, patch_stride, embed_dim, num_heads, ff_dim, rate=0.1):
         super().__init__()
         self.patching = Patches1D(patch_size, patch_stride)
-        self.att = tfl.MultiHeadAttention(num_heads=num_heads,
-                                          key_dim=embed_dim,
-                                          attention_axes=[0],
-                                          output_shape=(patch_size, embed_dim))  
-        
+        self.att = tf.keras.Sequential([tfl.MultiHeadAttention(num_heads=num_heads,
+                                          key_dim=embed_dim),tfl.Dropout(rate)])
+        self.match_dims = tfl.Conv2D(embed_dim, 1, padding='same')
         self.ffn = tf.keras.Sequential(
             [tfl.Dense(ff_dim, activation="relu"), tfl.Dense(embed_dim), tfl.Dropout(rate)]
         )
@@ -57,12 +55,10 @@ class PatchTransformerBlock(tfl.Layer):
         
         query = self.patching(query)
         value = self.patching(value)
+        query = tf.reshape(query, (query.shape[0], query.shape[1], query.shape[2]*query.shape[3]))
+        value = tf.reshape(value, (value.shape[0], value.shape[1], value.shape[2]*value.shape[3]))
         
         attn_output = self.att(query, value)
-        
-        print(attn_output.shape)
-        
-        attn_output = self.dropout1(attn_output, training=training)
         out1 = self.layernorm1(query + attn_output)
         
         ffn_output = self.ffn(out1)
