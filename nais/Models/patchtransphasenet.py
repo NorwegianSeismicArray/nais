@@ -111,13 +111,13 @@ class PatchTransPhaseNet(PhaseNet):
             att = PatchTransformerBlock(npatch, 
                                         spatch,
                                         num_heads=8,
-                                        embed_dim=npatch*ra,
-                                        ff_dim=npatch*ra,
+                                        embed_dim=ra,
+                                        ff_dim=ra,
                                         rate=self.dropout_rate)([x,y])
         else:
             att = TransformerBlock(num_heads=8,
                                 embed_dim=ra,
-                                ff_dim=ra*4,
+                                ff_dim=ra,
                                 rate=self.dropout_rate)([x,y])
                         
         return att

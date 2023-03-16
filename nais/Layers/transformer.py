@@ -33,8 +33,16 @@ class TransformerBlock(tfl.Layer):
 class PatchTransformerBlock(tfl.Layer):
     def __init__(self, patch_size, patch_stride, embed_dim, num_heads, ff_dim, rate=0.1):
         super().__init__()
-        self.transformer = TransformerBlock(embed_dim, num_heads, ff_dim, rate)
         self.patching = Patches1D(patch_size, patch_stride)
+        self.att = tfl.MultiHeadAttention(num_heads=num_heads,
+                                          key_dim=embed_dim)  
+        self.ffn = tf.keras.Sequential(
+            [tfl.Dense(ff_dim, activation="relu"), tfl.Dense(embed_dim)]
+        )
+        self.layernorm1 = tfl.LayerNormalization(epsilon=1e-6)
+        self.layernorm2 = tfl.LayerNormalization(epsilon=1e-6)
+        self.dropout1 = tfl.Dropout(rate)
+        self.dropout2 = tfl.Dropout(rate)
         
     def call(self, inputs):
         if isinstance(inputs, (list, tuple)):
@@ -47,11 +55,6 @@ class PatchTransformerBlock(tfl.Layer):
         query = self.patching(query)
         value = self.patching(value)
         
-        query = tf.reshape(query, (-1, query.shape[1], tf.math.reduce_prod(query.shape[2:])))
-        value = tf.reshape(value, (-1, value.shape[1], tf.math.reduce_prod(value.shape[2:])))
-        
         att = self.transformer([query,value])
-        
-        att = tf.reshape(att, (-1, *query_shape[1:]))
         
         return att
