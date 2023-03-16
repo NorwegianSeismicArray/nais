@@ -22,6 +22,7 @@ class PhaseNet(tf.keras.Model):
                  pool_type='max',
                  activation='relu',
                  initializer='glorot_normal',
+                 conv_type='conv',
                  name='PhaseNet'):
         """Adapted to 1D from https://keras.io/examples/vision/oxford_pets_image_segmentation/
 
@@ -57,9 +58,16 @@ class PhaseNet(tf.keras.Model):
             self.pool_layer = tfl.MaxPooling1D
         else:
             self.pool_layer = tfl.AveragePooling1D
+            
+        if conv_type == 'conv':
+            self.conv_layer = tfl.Conv1D 
+        elif conv_type == 'seperable':
+            self.conv_layer = tfl.SeparableConv1D
+        elif conv_type == 'depthwize':
+            self.conv_layer = tfl.DepthwiseConv1D
 
     def _down_block(self, f, ks, x):
-        x = tfl.Conv1D(f, 
+        x = self.conv_layer(f, 
                         ks, 
                         strides=2,
                         padding="same",
@@ -71,7 +79,7 @@ class PhaseNet(tf.keras.Model):
         return x
     
     def _up_block(self, f, ks, x):
-        x = tfl.Conv1DTranspose(f, 
+        x = self.conv_layer(f, 
                                 ks, 
                                 strides=2,
                                 padding="same",
