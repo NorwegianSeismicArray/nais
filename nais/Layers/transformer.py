@@ -63,4 +63,10 @@ class PatchTransformerBlock(tfl.Layer):
         
         out1 = self.match_dims(out1)
         
-        return self.layernorm2(out1 + ffn_output)
+        out = self.layernorm2(out1 + ffn_output)
+        
+        out = tf.split(out, axis=1)
+        out = tf.concat(out, axis=2)
+        out = tf.squeeze(out)
+        
+        return out
