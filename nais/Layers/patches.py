@@ -6,7 +6,7 @@ class Patches1D(tfl.Layer):
         super(Patches1D, self).__init__()
         self.patch_size = patch_size
         self.patch_stride = patch_stride
-
+    
     def call(self, images):
         batch_size = tf.shape(images)[0]
         images = tf.expand_dims(images, axis=-1)
