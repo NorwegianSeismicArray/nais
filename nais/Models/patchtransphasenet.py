@@ -146,7 +146,7 @@ class PatchTransPhaseNet(PhaseNet):
                     x = crop_and_add(x, att)
                 else:
                     x = crop_and_concat(x, att)
-                    x = tfl.Conv1D(self.filters[i], 1, padding='same')
+                    x = tfl.Conv1D(self.filters[i], 1, padding='same')(x)
                     
             skips.append(x)
 
@@ -156,7 +156,7 @@ class PatchTransPhaseNet(PhaseNet):
                 x = crop_and_add(x, att)
             else:
                 x = crop_and_concat(x, att)
-                x = tfl.Conv1D(self.filters[-1], 1, padding='same')
+                x = tfl.Conv1D(self.filters[-1], 1, padding='same')(x)
 
         self.encoder = tf.keras.Model(inputs, x)
         ### [Second half of the network: upsampling inputs] ###
@@ -174,7 +174,7 @@ class PatchTransPhaseNet(PhaseNet):
                     x = crop_and_add(x, att)
                 else:
                     x = crop_and_concat(x, att)
-                    x = tfl.Conv1D(self.filters[::-1][i], 1, padding='same')
+                    x = tfl.Conv1D(self.filters[::-1][i], 1, padding='same')(x)
 
         to_crop = x.shape[1] - input_shape[1]
         if to_crop != 0:
