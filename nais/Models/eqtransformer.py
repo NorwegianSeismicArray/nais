@@ -135,9 +135,10 @@ class EarthQuakeTransformer(tf.keras.Model):
             x = tfl.Cropping1D((of_start, of_end))(x)
             if activation is not None:
                 x = tfl.Conv1D(1, 1, 
-                               padding='same', 
-                               activation=activation, 
-                               name=output_name)(x)
+                               padding='same')(x)
+                x = tfl.Activation(activation, 
+                               name=output_name, 
+                               dtype=tf.float32)(x)
             return tf.keras.Model(inp, x)
 
         self.feature_extractor = _encoder()
