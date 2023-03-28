@@ -93,7 +93,7 @@ class TransPhaseNet(PhaseNet):
         x = tfl.Conv1D(ra, 1, padding='same')(x)
         
         att = TransformerBlock(num_heads=8,
-                               embed_dim=ra,
+                               key_dim=ra,
                                ff_dim=ra*4,
                                rate=self.dropout_rate)([x,y])
         return att
