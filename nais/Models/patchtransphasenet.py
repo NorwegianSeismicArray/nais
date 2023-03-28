@@ -110,12 +110,12 @@ class PatchTransPhaseNet(PhaseNet):
         if npatch > 1:
             att = PatchTransformerBlock(npatch,
                                         num_heads=8,
-                                        embed_dim=ra*npatch,
+                                        key_dim=ra*npatch,
                                         ff_dim=ra*npatch*4,
                                         rate=self.dropout_rate)([x,y])
         else:
             att = TransformerBlock(num_heads=8,
-                                embed_dim=ra,
+                                key_dim=ra,
                                 ff_dim=ra*4,
                                 rate=self.dropout_rate)([x,y])
                         
