@@ -6,12 +6,13 @@ import numpy as np
 from nais.Layers import Patches1D
 
 class TransformerBlock(tfl.Layer):
-    def __init__(self, embed_dim, num_heads, ff_dim, rate=0.1):
+    def __init__(self, key_dim, num_heads, ff_dim, value_dim=None, rate=0.1):
         super().__init__()
         self.att = tfl.MultiHeadAttention(num_heads=num_heads, 
-                                          key_dim=embed_dim)  
+                                          key_dim=key_dim,
+                                          value_dim=value_dim)  
         self.ffn = tf.keras.Sequential(
-            [tfl.Dense(ff_dim, activation="relu"), tfl.Dense(embed_dim)]
+            [tfl.Dense(ff_dim, activation="relu"), tfl.Dense(key_dim)]
         )
         self.layernorm1 = tfl.LayerNormalization(epsilon=1e-6)
         self.layernorm2 = tfl.LayerNormalization(epsilon=1e-6)
@@ -51,7 +52,8 @@ class PatchTransformerBlock(tfl.Layer):
         self.reshape_query = tfl.Reshape((num_patches, -1))
         self.pos_embedding = tfl.Embedding(num_patches, c*self.patch_size)
         
-        self.transformer = TransformerBlock(embed_dim=c*self.patch_size, 
+        self.transformer = TransformerBlock(key_dim=c*self.patch_size, 
+                                            value_dim=c*self.patch_size
                                             num_heads=self.num_heads, 
                                             ff_dim=c*self.patch_size, 
                                             rate=self.rate)
