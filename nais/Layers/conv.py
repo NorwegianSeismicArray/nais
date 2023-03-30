@@ -106,7 +106,7 @@ class NBeatsStack(tfl.Layer):
                                     kernelsize[i], 
                                     num_layers[i], 
                                     activation=activation, 
-                                    dropout=dropout) for i in range(len(numbers))]
+                                    dropout=dropout) for i in range(len(num_layers))]
         self.add = tfl.Add()
         
     def call(self, inputs):
