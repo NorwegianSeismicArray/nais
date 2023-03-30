@@ -53,7 +53,7 @@ class PatchTransformerBlock(tfl.Layer):
         self.pos_embedding = tfl.Embedding(num_patches, c*self.patch_size)
         
         self.transformer = TransformerBlock(key_dim=c*self.patch_size, 
-                                            value_dim=c*self.patch_size
+                                            value_dim=c*self.patch_size,
                                             num_heads=self.num_heads, 
                                             ff_dim=c*self.patch_size, 
                                             rate=self.rate)

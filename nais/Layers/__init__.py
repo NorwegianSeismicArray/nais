@@ -7,7 +7,7 @@ from .resampling import Resampling1D
 from .residual import *
 from .scatter import Scattering
 from .spectrogram import StackedSpectrogram
-from .conv import DynamicConv1D
+from .conv import DynamicConv1D, NBeatsConv1D
 from .patches import Patches1D
 from .transformer import *
 from .temporal import *

@@ -453,3 +453,74 @@ class DilatedPhaseNetMetadata(DynamicPhaseNet):
         m = self.encoder(inputs)
         return p, self.metadata_model(m)
     
+
+from nais.Layers import NBeatsConv1D
+
+class NBeatsPhaseNet(PhaseNet):
+    def __init__(self,
+                 num_classes=2,
+                 filters=None,
+                 kernelsizes=None,
+                 output_activation='linear',
+                 kernel_regularizer=None,
+                 dropout_rate=0.2,
+                 num_nbeats=7,
+                 pool_type='max',
+                 activation='relu',
+                 initializer='glorot_normal',
+                 name='NBeatsPhaseNet'):
+        """Adapted to 1D from https://keras.io/examples/vision/oxford_pets_image_segmentation/
+
+        Args:
+            num_classes (int, optional): number of outputs. Defaults to 2.
+            filters (list, optional): list of number of filters. Defaults to None.
+            kernelsizes (list, optional): list of kernel sizes. Defaults to None.
+            output_activation (str, optional): output activation, eg., 'softmax' for multiclass problems. Defaults to 'linear'.
+            kernel_regularizer (tf.keras.regualizers.Regualizer, optional): kernel regualizer. Defaults to None.
+            dropout_rate (float, optional): dropout. Defaults to 0.2.
+            initializer (tf.keras.initializers.Initializer, optional): weight initializer. Defaults to 'glorot_normal'.
+            name (str, optional): model name. Defaults to 'PhaseNet'.
+        """
+        super(NBeatsPhaseNet, self).__init__(num_classes=num_classes, 
+                                              filters=filters, 
+                                              kernelsizes=kernelsizes, 
+                                              output_activation=output_activation, 
+                                              kernel_regularizer=kernel_regularizer, 
+                                              dropout_rate=dropout_rate,
+                                              pool_type=pool_type, 
+                                              activation=activation, 
+                                              initializer=initializer, 
+                                              name=name)
+        
+        self.num_nbeats = num_nbeats
+
+    def _down_block(self, f, ks, x):
+        x = NBeatsConv1D(f, 
+                          ks, 
+                          num_layers=self.num_nbeats,
+                          activation=self.activation,
+                          dropout=self.dropout_rate)(x)
+        x = tfl.LayerNormalization()(x)
+        x = self.pool_layer(4, strides=2, padding="same")(x)
+        return x
+    
+    def _up_block(self, f, ks, x):
+        x = NBeatsConv1D(f, 
+                          ks, 
+                          num_layers=self.num_nbeats,
+                          activation=self.activation, 
+                          dropout=self.dropout_rate)(x)
+        x = tfl.LayerNormalization()(x)
+        x = tfl.UpSampling1D(2)(x)
+        return x
+    
+    @property
+    def num_parameters(self):
+        return sum([np.prod(K.get_value(w).shape) for w in self.model.trainable_weights])
+
+    def summary(self):
+        return self.model.summary()
+
+    def call(self, inputs):
+        return self.model(inputs)
+    
