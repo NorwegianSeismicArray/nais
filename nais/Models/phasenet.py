@@ -495,22 +495,24 @@ class NBeatsPhaseNet(PhaseNet):
         self.num_nbeats = num_nbeats
 
     def _down_block(self, f, ks, x):
-        x = NBeatsConv1D(f, 
-                          ks, 
-                          num_layers=self.num_nbeats,
+        x = NBeatsStack([f]*self.num_nbeats, 
+                          [ks]*self.num_nbeats, 
+                          num_layers=[self.num_nbeats]*self.num_nbeats,
                           activation=self.activation,
                           dropout=self.dropout_rate)(x)
         x = tfl.LayerNormalization()(x)
+        x = tfl.Activation(self.activation)
         x = self.pool_layer(4, strides=2, padding="same")(x)
         return x
     
     def _up_block(self, f, ks, x):
-        x = NBeatsConv1D(f, 
-                          ks, 
-                          num_layers=self.num_nbeats,
+        x = NBeatsStack([f]*self.num_nbeats, 
+                          [ks]*self.num_nbeats, 
+                          num_layers=[self.num_nbeats]*self.num_nbeats,
                           activation=self.activation, 
                           dropout=self.dropout_rate)(x)
         x = tfl.LayerNormalization()(x)
+        x = tfl.Activation(self.activation)
         x = tfl.UpSampling1D(2)(x)
         return x
     

@@ -68,7 +68,7 @@ class NBeatsConv1D(tfl.Layer):
         self.convs_neg = [tf.keras.Sequential([tfl.Conv1D(filters, kernelsize, padding='same'),
                                               tfl.BatchNormalization(),
                                               tfl.Activation('linear'),
-                                              tfl.Dropout(dropout)]) for _ in range(num_layers-1)]
+                                              tfl.Dropout(dropout)]) for _ in range(num_layers)]
         
         self.convs_com = [tf.keras.Sequential([tfl.Conv1D(filters, kernelsize, padding='same'),
                                               tfl.BatchNormalization(),
@@ -84,13 +84,40 @@ class NBeatsConv1D(tfl.Layer):
         for i in range(len(self.convs_com)):
             x = self.convs_com[i](x)
             pos = self.convs_pos[i](x)
-            try:
-                neg = self.convs_neg[i](x)
-                x -= neg 
-            except IndexError:
-                pass 
-            
+            neg = self.convs_neg[i](x)
+            x -= neg 
+
             out.append(pos)
         
-        return self.add(out)
+        return x, self.add(out)
+    
+class NBeatsStack(tfl.Layer):
+    def __init__(self, 
+                    filters, 
+                    kernelsize, 
+                    num_layers=[3,3,3], 
+                    activation='relu',
+                    dropout=0.0,
+                    **kwargs):
+        
+        super(NBeatsStack, self).__init__(**kwargs)
+        
+        self.stacks = [NBeatsConv1D(filters[i], 
+                                    kernelsize[i], 
+                                    num_layers[i], 
+                                    activation=activation, 
+                                    dropout=dropout) for i in range(len(numbers))]
+        self.add = tfl.Add()
+        
+    def call(self, inputs):
+        x = inputs
+        
+        block_outputs = []
+        for stack in self.stacks:
+            neg, pos = stack(x)
+            x = neg 
+            block_outputs.append(pos)
+        return self.add(block_outputs)
+        
+        
 
