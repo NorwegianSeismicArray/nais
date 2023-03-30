@@ -464,7 +464,8 @@ class NBeatsPhaseNet(PhaseNet):
                  output_activation='linear',
                  kernel_regularizer=None,
                  dropout_rate=0.2,
-                 num_nbeats=7,
+                 num_nbeats=3,
+                 num_stacks=2,
                  pool_type='max',
                  activation='relu',
                  initializer='glorot_normal',
@@ -493,11 +494,12 @@ class NBeatsPhaseNet(PhaseNet):
                                               name=name)
         
         self.num_nbeats = num_nbeats
+        self.num_stacks = num_stacks
 
     def _down_block(self, f, ks, x):
-        x = NBeatsStack([f]*self.num_nbeats, 
-                          [ks]*self.num_nbeats, 
-                          num_layers=[self.num_nbeats]*self.num_nbeats,
+        x = NBeatsStack([f]*self.num_stacks, 
+                          [ks]*self.num_stacks, 
+                          num_layers=[self.num_nbeats]*self.num_stacks,
                           activation=self.activation,
                           dropout=self.dropout_rate)(x)
         x = tfl.LayerNormalization()(x)
@@ -506,9 +508,9 @@ class NBeatsPhaseNet(PhaseNet):
         return x
     
     def _up_block(self, f, ks, x):
-        x = NBeatsStack([f]*self.num_nbeats, 
-                          [ks]*self.num_nbeats, 
-                          num_layers=[self.num_nbeats]*self.num_nbeats,
+        x = NBeatsStack([f]*self.num_stacks, 
+                          [ks]*self.num_stacks, 
+                          num_layers=[self.num_nbeats]*self.num_stacks,
                           activation=self.activation, 
                           dropout=self.dropout_rate)(x)
         x = tfl.LayerNormalization()(x)
