@@ -68,7 +68,7 @@ class NBeatsConv1D(tfl.Layer):
         self.convs_neg = [tf.keras.Sequential([tfl.Conv1D(filters, kernelsize, padding='same'),
                                               tfl.BatchNormalization(),
                                               tfl.Activation('linear'),
-                                              tfl.Dropout(dropout)]) for _ in range(num_layers)]
+                                              tfl.Dropout(dropout)]) for _ in range(num_layers-1)]
         
         self.convs_com = [tf.keras.Sequential([tfl.Conv1D(filters, kernelsize, padding='same'),
                                               tfl.BatchNormalization(),
@@ -84,9 +84,12 @@ class NBeatsConv1D(tfl.Layer):
         for i in range(len(self.convs_com)):
             x = self.convs_com[i](x)
             pos = self.convs_pos[i](x)
-            neg = self.convs_neg[i](x)
+            try:
+                neg = self.convs_neg[i](x)
+                x -= neg 
+            except IndexError:
+                pass 
             
-            x -= neg 
             out.append(pos)
         
         return self.add(out)
