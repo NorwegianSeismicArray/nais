@@ -85,7 +85,7 @@ class NBeatsConv1D(tfl.Layer):
             x = self.convs_com[i](x)
             pos = self.convs_pos[i](x)
             neg = self.convs_neg[i](x)
-            x -= neg 
+            x -= neg
 
             out.append(pos)
         
@@ -115,8 +115,9 @@ class NBeatsStack(tfl.Layer):
         block_outputs = []
         for stack in self.stacks:
             neg, pos = stack(x)
-            x = neg 
+            x = neg
             block_outputs.append(pos)
+        block_outputs.append(x)
         return self.add(block_outputs)
         
         
