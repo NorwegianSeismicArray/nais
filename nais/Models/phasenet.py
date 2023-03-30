@@ -501,7 +501,7 @@ class NBeatsPhaseNet(PhaseNet):
                           activation=self.activation,
                           dropout=self.dropout_rate)(x)
         x = tfl.LayerNormalization()(x)
-        x = tfl.Activation(self.activation)
+        x = tfl.Activation(self.activation)(x)
         x = self.pool_layer(4, strides=2, padding="same")(x)
         return x
     
@@ -512,7 +512,7 @@ class NBeatsPhaseNet(PhaseNet):
                           activation=self.activation, 
                           dropout=self.dropout_rate)(x)
         x = tfl.LayerNormalization()(x)
-        x = tfl.Activation(self.activation)
+        x = tfl.Activation(self.activation)(x)
         x = tfl.UpSampling1D(2)(x)
         return x
     
