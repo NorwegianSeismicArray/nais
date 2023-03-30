@@ -454,7 +454,7 @@ class DilatedPhaseNetMetadata(DynamicPhaseNet):
         return p, self.metadata_model(m)
     
 
-from nais.Layers import NBeatsConv1D
+from nais.Layers import NBeatsStack
 
 class NBeatsPhaseNet(PhaseNet):
     def __init__(self,
