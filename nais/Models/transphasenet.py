@@ -25,6 +25,7 @@ class TransPhaseNet(PhaseNet):
                  residual_attention=None,
                  pool_type='max',
                  att_type='across',
+                 num_transformers=1,
                  rnn_type='lstm',
                  additive_att=True,
                  stacked_layer=4,
@@ -59,6 +60,7 @@ class TransPhaseNet(PhaseNet):
         self.rnn_type = rnn_type
         self.stacked_layer = stacked_layer
         self.additive_att = additive_att
+        self.num_transformers = num_transformers
             
         if residual_attention is None:
             self.residual_attention = [16, 16, 16, 16]
@@ -96,6 +98,13 @@ class TransPhaseNet(PhaseNet):
                                key_dim=ra,
                                ff_dim=ra*4,
                                rate=self.dropout_rate)([x,y])
+        if self.num_transformers > 1:
+            for _ in range(1, self.num_transformers):
+                att = TransformerBlock(num_heads=8,
+                            key_dim=ra,
+                            ff_dim=ra*4,
+                            rate=self.dropout_rate)(att)
+        
         return att
 
     def build(self, input_shape):
