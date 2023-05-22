@@ -117,7 +117,7 @@ class PatchTransPhaseNet(PhaseNet):
                                         rate=self.dropout_rate)([x,y])
         else:
             att = TransformerBlock(num_heads=8,
-                                embed_dim=ra,
+                                key_dim=ra,
                                 ff_dim=ra*4,
                                 rate=self.dropout_rate)([x,y])
             
@@ -131,7 +131,7 @@ class PatchTransPhaseNet(PhaseNet):
                                                 rate=self.dropout_rate)(att)
                 else:
                     att = TransformerBlock(num_heads=8,
-                                        embed_dim=ra,
+                                        key_dim=ra,
                                         ff_dim=ra*4,
                                         rate=self.dropout_rate)(att)
         return att
