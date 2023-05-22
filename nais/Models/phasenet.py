@@ -584,7 +584,7 @@ class DoublePhaseNet(PhaseNet):
         self.dropout_rate = dropout_rate
         self.output_activation = output_activation
         self.activation = activation
-
+ 
         if filters is None:
             self.filters = [4, 8, 16, 32]
         else:

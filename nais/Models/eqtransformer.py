@@ -108,7 +108,7 @@ class EarthQuakeTransformer(tf.keras.Model):
                     x = block_BiLSTM(f, x)
                 x = tfl.LSTM(f, return_sequences=True, kernel_regularizer=kernel_regularizer)(x)
                 for ts in transformer_sizes:
-                    x = TransformerBlock(num_heads=8, embed_dim=ts, ff_dim=ts*4, rate=dropout)(x)
+                    x = TransformerBlock(num_heads=8, key_dim=ts, ff_dim=ts*4, rate=dropout)(x)
                 return x
             return tf.keras.Model(inp, encode(inp))
 
@@ -126,7 +126,7 @@ class EarthQuakeTransformer(tf.keras.Model):
                 x = tfl.LSTM(filters[-1], 
                              return_sequences=True, 
                              kernel_regularizer=kernel_regularizer)(x)
-                x = TransformerBlock(num_heads=8, ff_dim=filters[-1]*4, embed_dim=filters[-1])(x)
+                x = TransformerBlock(num_heads=8, ff_dim=filters[-1]*4, key_dim=filters[-1])(x)
 
             x = tf.keras.Sequential([inv_conv_block(f, kz) for f, kz in zip(invfilters, invkernelsizes)])(x)
             to_crop = x.shape[1] - input_dim[0]
