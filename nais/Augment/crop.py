@@ -18,8 +18,8 @@ class RandomCrop1D(tf.keras.layers.Layer):
         return dict(crop=self.crop, name=self.name)
 
     def build(self, input_dim):
-        #_, x_size, y_size = input_dim
-        x_size, y_size = input_dim
+        # TODO: Verify that this change doesnt break anything.
+        _, x_size, y_size = input_dim
         self.length = int(x_size * (1 - self.crop))
         self.channels = y_size
         self.rc_layer = tf.keras.layers.RandomCrop(self.length, self.channels)
