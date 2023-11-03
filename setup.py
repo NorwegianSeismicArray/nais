@@ -2,7 +2,7 @@
 import setuptools
 from setuptools import find_packages
 
-with open("/staff/tord/Workspace/nais/README.md") as file:
+with open("./README.md") as file:
     read_me_description = file.read()
 
 setuptools.setup(
